@@ -1,4 +1,8 @@
-const properties = [
+import { useRef } from "react";
+
+import PropertyCarousel, { Property } from "./PropertyCarousel";
+
+const properties: Property[] = [
   {
     id: 1,
     title: "Residencia de lujo",
@@ -41,6 +45,10 @@ const properties = [
 ];
 
 const FeaturedProperties = () => {
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const paginationRef = useRef<HTMLDivElement>(null);
+
   return (
     <section id="propiedades" className="bg-[#f1efeb] py-20">
       <div className="mx-auto max-w-7xl px-6">
@@ -50,39 +58,17 @@ const FeaturedProperties = () => {
 
         <div className="relative">
           <div className="swiper-container">
-            <div className="swiper mySwiper">
-              <div className="swiper-wrapper">
-                {properties.map((property) => (
-                  <div key={property.id} className="swiper-slide">
-                    <div className="card-3d overflow-hidden rounded-2xl bg-white shadow-md">
-                      <div className="relative">
-                        <img
-                          src={property.image}
-                          alt={property.title}
-                          className="h-56 w-full object-cover"
-                        />
-                        <span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
-                          {property.status}
-                        </span>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="mb-2 text-xl font-semibold text-[var(--text-dark)]">
-                          {property.title}
-                        </h3>
-                        <p className="mb-4 text-gray-600">{property.price}</p>
-                        <a href="#" className="font-medium text-indigo-600 hover:underline">
-                          Ver Detalles
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <PropertyCarousel
+              properties={properties}
+              navigationPrevRef={prevRef}
+              navigationNextRef={nextRef}
+              paginationRef={paginationRef}
+            />
           </div>
 
           <button
-            className="nav-prev text-[var(--indigo)] hover:text-black md:flex hidden absolute -left-16 top-1/2 z-20 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 backdrop-blur-md shadow-xl transition hover:bg-[var(--lime)]"
+            ref={prevRef}
+            className="nav-prev absolute -left-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md md:flex"
             aria-label="Ver propiedad anterior"
             type="button"
           >
@@ -95,7 +81,8 @@ const FeaturedProperties = () => {
             </svg>
           </button>
           <button
-            className="nav-next text-[var(--indigo)] hover:text-black md:flex hidden absolute -right-16 top-1/2 z-20 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 backdrop-blur-md shadow-xl transition hover:bg-[var(--lime)]"
+            ref={nextRef}
+            className="nav-next absolute -right-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md md:flex"
             aria-label="Ver siguiente propiedad"
             type="button"
           >
@@ -110,7 +97,7 @@ const FeaturedProperties = () => {
         </div>
 
         <div className="mt-8 flex justify-center md:hidden">
-          <div className="swiper-pagination !static" />
+          <div ref={paginationRef} className="swiper-pagination !static" />
         </div>
       </div>
     </section>
