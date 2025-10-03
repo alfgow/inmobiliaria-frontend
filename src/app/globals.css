@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --bg-base: #f8f6f3;
+  --text-dark: #2c2c2c;
+  --indigo: #7c3aed;
+  --lime: #d2ff1e;
 }
 
 @theme inline {
@@ -20,7 +24,70 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-dark);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.swiper-container {
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.swiper {
+  overflow: visible !important;
+  padding: 0;
+}
+
+.swiper-wrapper {
+  overflow: visible !important;
+}
+
+.swiper-slide {
+  z-index: 50;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateY(6deg) rotateX(2deg) translateY(-5px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 0 25px rgba(210, 255, 30, 0.25);
+}
+
+.swiper-pagination-bullet {
+  background: var(--indigo);
+  opacity: 0.6;
+  width: 12px;
+  height: 12px;
+  margin: 0 6px !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--lime);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.hero-parallax {
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+
+@media (max-width: 768px) {
+  .swiper-container {
+    padding: 10px;
+  }
+
+  .card-3d:hover {
+    transform: perspective(800px) rotateY(4deg) rotateX(1deg) translateY(-3px) scale(1.01);
+  }
+
+  .hero-parallax {
+    background-attachment: scroll;
+  }
 }
