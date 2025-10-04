@@ -34,7 +34,7 @@ export async function GET() {
         longitude: inmueble.longitud?.toNumber() ?? null,
       },
       rooms: inmueble.recamaras,
-      bathrooms: inmueble.banos?.toNumber() ?? null,
+      bathrooms: inmueble.banos ?? null,
       halfBathrooms: inmueble.mediosBanos,
       parkingSpots: inmueble.estacionamientos,
       landSizeM2: inmueble.m2Terreno?.toNumber() ?? null,
