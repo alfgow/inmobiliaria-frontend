@@ -24,13 +24,38 @@ const AboutSection = () => {
                                         throw new Error("No fue posible obtener las reseñas");
                                 }
                                 const data = await response.json();
-                                const mappedReviews: Review[] = Array.isArray(data)
-                                        ? data
-                                                  .map((item) => ({
-                                                          displayName: item.displayName,
-                                                          comment: item.comment,
-                                                          starRating: item.starRating,
-                                                  }))
+                                const rawReviews = Array.isArray(data?.reviews)
+                                        ? data.reviews
+                                        : data?.reviews ?? [];
+
+                                const ratingMap: Record<string, number> = {
+                                        ONE: 1,
+                                        TWO: 2,
+                                        THREE: 3,
+                                        FOUR: 4,
+                                        FIVE: 5,
+                                };
+
+                                const mappedReviews: Review[] = Array.isArray(rawReviews)
+                                        ? rawReviews
+                                                  .map((item: any) => {
+                                                          const displayName = item?.reviewer?.displayName;
+                                                          const comment = item?.comment;
+                                                          const starRatingValue = item?.starRating;
+
+                                                          let starRating: number | undefined;
+                                                          if (typeof starRatingValue === "string") {
+                                                                  starRating = ratingMap[starRatingValue.toUpperCase()];
+                                                          } else if (typeof starRatingValue === "number") {
+                                                                  starRating = Math.max(1, Math.min(5, starRatingValue));
+                                                          }
+
+                                                          return {
+                                                                  displayName,
+                                                                  comment,
+                                                                  starRating,
+                                                          };
+                                                  })
                                                   .filter((item) => item.displayName)
                                         : [];
 
