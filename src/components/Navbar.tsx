@@ -29,13 +29,14 @@ const Navbar = () => {
 						onClick={closeMenu}
 					>
 						<div className="relative h-12 w-12 overflow-hidden rounded-full shadow-lg">
-							<Image
-								src="/logo.png"
-								alt="Villanueva García"
-								fill
-								className="object-contain"
-								priority
-							/>
+                                                        <Image
+                                                                src="/logo.png"
+                                                                alt="Villanueva García"
+                                                                fill
+                                                                sizes="48px"
+                                                                className="object-contain"
+                                                                priority
+                                                        />
 						</div>
 					</Link>
 
