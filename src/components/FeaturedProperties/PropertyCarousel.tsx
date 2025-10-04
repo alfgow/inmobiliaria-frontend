@@ -144,7 +144,7 @@ const PropertyCarousel = ({
 
         return (
           <SwiperSlide key={property.id} className="swiper-slide">
-            <div className="card-3d overflow-hidden rounded-2xl bg-white shadow-md">
+            <div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-md">
               <div className="relative">
                 <img
                   src={property.coverImageUrl}
@@ -155,12 +155,12 @@ const PropertyCarousel = ({
                   {statusLabel}
                 </span>
               </div>
-              <div className="p-6">
-                <h3 className="mb-2 text-xl font-semibold text-[var(--text-dark)]">
+              <div className="flex h-full flex-col p-6">
+                <h3 className="mb-2 overflow-hidden text-ellipsis text-xl font-semibold text-[var(--text-dark)] whitespace-nowrap">
                   {property.title}
                 </h3>
                 <p className="mb-4 text-gray-600">{detailsLine}</p>
-                <a href="#" className="font-medium text-indigo-600 hover:underline">
+                <a href="#" className="mt-auto font-medium text-indigo-600 hover:underline">
                   Ver Detalles
                 </a>
               </div>
