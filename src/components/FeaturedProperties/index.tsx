@@ -1,55 +1,130 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import PropertyCarousel, { Property } from "./PropertyCarousel";
 
-const properties: Property[] = [
-  {
-    id: 1,
-    title: "Residencia de lujo",
-    price: "$15,000,000 MXN · San Pedro",
-    status: "Venta",
-    image:
-      "https://images.homify.com/v1488473405/p/photo/image/1881231/AP.FACHADAFINAL.jpg",
-  },
-  {
-    id: 2,
-    title: "Departamento Minimalista",
-    price: "$25,000 MXN/mes · CDMX",
-    status: "Renta",
-    image: "https://i.pinimg.com/474x/50/b1/c0/50b1c049f56069dc5cef7e0509f90153.jpg",
-  },
-  {
-    id: 3,
-    title: "Casa de una planta",
-    price: "$3,200,000 MXN · Mérida",
-    status: "Venta",
-    image:
-      "https://www.construyehogar.com/wp-content/uploads/2014/08/Fachada-de-casa-de-una-planta.jpg",
-  },
-  {
-    id: 4,
-    title: "Casa Familiar",
-    price: "$18,000 MXN/mes · Puebla",
-    status: "Renta",
-    image:
-      "https://e1.pxfuel.com/desktop-wallpaper/621/723/desktop-wallpaper-decoration-nice-house-new-big-houses-with-beautiful-beautiful-house.jpg",
-  },
-  {
-    id: 5,
-    title: "Casa Moderna",
-    price: "$4,500,000 MXN · Querétaro",
-    status: "Venta",
-    image:
-      "https://images.homify.com/v1484591344/p/photo/image/1777441/El_Molino-Principal_2.jpg",
-  },
-];
+interface ApiPropertyImage {
+  s3Key: string;
+  isCover?: boolean;
+}
+
+interface ApiPropertyStatus {
+  name: string;
+}
+
+interface ApiProperty {
+  id: string;
+  title: string;
+  price: number;
+  operation?: string | null;
+  status?: ApiPropertyStatus | null;
+  city?: string | null;
+  state?: string | null;
+  images?: ApiPropertyImage[];
+}
+
+const FALLBACK_IMAGE = "/1.png";
+
+const ensureAbsoluteImageUrl = (imageKey?: string): string => {
+  if (!imageKey) {
+    return FALLBACK_IMAGE;
+  }
+
+  if (imageKey.startsWith("http")) {
+    return imageKey;
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_FILES_BASE_URL;
+
+  if (baseUrl) {
+    const sanitizedBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+    const sanitizedKey = imageKey.startsWith("/") ? imageKey.slice(1) : imageKey;
+
+    return `${sanitizedBase}/${sanitizedKey}`;
+  }
+
+  return imageKey || FALLBACK_IMAGE;
+};
+
+const formatOperation = (operation?: string | null) => {
+  if (!operation) {
+    return null;
+  }
+
+  const normalized = operation.toLowerCase();
+
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
+const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
+  items.map((item) => {
+    const coverImage =
+      item.images?.find((image) => image.isCover) ?? item.images?.[0] ?? null;
+
+    const locationParts = [item.city, item.state].filter(Boolean) as string[];
+
+    return {
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      operation: formatOperation(item.operation),
+      status: item.status?.name ?? null,
+      coverImageUrl: ensureAbsoluteImageUrl(coverImage?.s3Key),
+      location: locationParts.length > 0 ? locationParts.join(", ") : null,
+    };
+  });
 
 const FeaturedProperties = () => {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProperties = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch("/api/properties");
+
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar las propiedades");
+        }
+
+        const { data } = await response.json();
+        const items = Array.isArray(data) ? data : [];
+
+        if (isMounted) {
+          setProperties(mapPropertiesFromApi(items));
+        }
+      } catch (fetchError) {
+        const message =
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Ocurrió un error inesperado";
+
+        if (isMounted) {
+          setError(message);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchProperties();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section id="propiedades" className="bg-[#f1efeb] py-20">
@@ -60,12 +135,34 @@ const FeaturedProperties = () => {
 
         <div className="relative">
           <div className="swiper-container">
-            <PropertyCarousel
-              properties={properties}
-              navigationPrevRef={prevRef}
-              navigationNextRef={nextRef}
-              paginationRef={paginationRef}
-            />
+            {isLoading && (
+              <div className="flex h-56 items-center justify-center">
+                <p className="text-gray-500">Cargando propiedades…</p>
+              </div>
+            )}
+
+            {error && !isLoading && (
+              <div className="rounded-lg bg-red-50 p-4 text-center text-red-700">
+                {error}
+              </div>
+            )}
+
+            {!isLoading && !error && properties.length === 0 && (
+              <div className="flex h-56 items-center justify-center">
+                <p className="text-gray-500">
+                  No hay propiedades destacadas disponibles por ahora.
+                </p>
+              </div>
+            )}
+
+            {!isLoading && !error && properties.length > 0 && (
+              <PropertyCarousel
+                properties={properties}
+                navigationPrevRef={prevRef}
+                navigationNextRef={nextRef}
+                paginationRef={paginationRef}
+              />
+            )}
           </div>
 
           <button

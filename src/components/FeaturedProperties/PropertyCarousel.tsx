@@ -11,12 +11,20 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  maximumFractionDigits: 0,
+});
+
 export interface Property {
-  id: number;
+  id: string;
   title: string;
-  price: string;
-  status: string;
-  image: string;
+  price: number;
+  operation?: string | null;
+  status?: string | null;
+  coverImageUrl: string;
+  location?: string | null;
 }
 
 interface PropertyCarouselProps {
@@ -115,31 +123,50 @@ const PropertyCarousel = ({
         swiperRef.current = swiper;
       }}
     >
-      {properties.map((property) => (
-        <SwiperSlide key={property.id} className="swiper-slide">
-          <div className="card-3d overflow-hidden rounded-2xl bg-white shadow-md">
-            <div className="relative">
-              <img
-                src={property.image}
-                alt={property.title}
-                className="h-56 w-full object-cover"
-              />
-              <span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
-                {property.status}
-              </span>
+      {properties.map((property) => {
+        const formattedPrice = Number.isFinite(property.price)
+          ? currencyFormatter.format(property.price)
+          : "Consultar";
+
+        const statusLabel = property.status ?? property.operation ?? "Disponible";
+        const detailsLineItems = [formattedPrice];
+
+        if (property.operation) {
+          detailsLineItems.push(property.operation);
+        }
+
+        if (property.location) {
+          detailsLineItems.push(property.location);
+        }
+
+        const detailsLine = detailsLineItems.join(" · ");
+
+        return (
+          <SwiperSlide key={property.id} className="swiper-slide">
+            <div className="card-3d overflow-hidden rounded-2xl bg-white shadow-md">
+              <div className="relative">
+                <img
+                  src={property.coverImageUrl}
+                  alt={property.title}
+                  className="h-56 w-full object-cover"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
+                  {statusLabel}
+                </span>
+              </div>
+              <div className="p-6">
+                <h3 className="mb-2 text-xl font-semibold text-[var(--text-dark)]">
+                  {property.title}
+                </h3>
+                <p className="mb-4 text-gray-600">{detailsLine}</p>
+                <a href="#" className="font-medium text-indigo-600 hover:underline">
+                  Ver Detalles
+                </a>
+              </div>
             </div>
-            <div className="p-6">
-              <h3 className="mb-2 text-xl font-semibold text-[var(--text-dark)]">
-                {property.title}
-              </h3>
-              <p className="mb-4 text-gray-600">{property.price}</p>
-              <a href="#" className="font-medium text-indigo-600 hover:underline">
-                Ver Detalles
-              </a>
-            </div>
-          </div>
-        </SwiperSlide>
-      ))}
+          </SwiperSlide>
+        );
+      })}
     </Swiper>
   );
 };
