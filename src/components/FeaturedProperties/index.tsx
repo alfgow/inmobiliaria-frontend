@@ -6,6 +6,7 @@ import PropertyCarousel, { Property } from "./PropertyCarousel";
 
 interface ApiPropertyImage {
   s3Key: string;
+  signedUrl?: string | null;
   isCover?: boolean;
 }
 
@@ -25,27 +26,6 @@ interface ApiProperty {
 }
 
 const FALLBACK_IMAGE = "/1.png";
-
-const ensureAbsoluteImageUrl = (imageKey?: string): string => {
-  if (!imageKey) {
-    return FALLBACK_IMAGE;
-  }
-
-  if (imageKey.startsWith("http")) {
-    return imageKey;
-  }
-
-  const baseUrl = process.env.NEXT_PUBLIC_FILES_BASE_URL;
-
-  if (baseUrl) {
-    const sanitizedBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-    const sanitizedKey = imageKey.startsWith("/") ? imageKey.slice(1) : imageKey;
-
-    return `${sanitizedBase}/${sanitizedKey}`;
-  }
-
-  return imageKey || FALLBACK_IMAGE;
-};
 
 const formatOperation = (operation?: string | null) => {
   if (!operation) {
@@ -70,7 +50,7 @@ const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
       price: item.price,
       operation: formatOperation(item.operation),
       status: item.status?.name ?? null,
-      coverImageUrl: ensureAbsoluteImageUrl(coverImage?.s3Key),
+      coverImageUrl: coverImage?.signedUrl ?? FALLBACK_IMAGE,
       location: locationParts.length > 0 ? locationParts.join(", ") : null,
     };
   });
