@@ -41,6 +41,7 @@ const PropertyCarousel = ({
   paginationRef,
 }: PropertyCarouselProps) => {
   const swiperRef = useRef<SwiperInstance | null>(null);
+  const shouldLoop = properties.length > 3;
 
   useEffect(() => {
     const swiper = swiperRef.current;
@@ -90,7 +91,7 @@ const PropertyCarousel = ({
       className="swiper mySwiper"
       spaceBetween={30}
       slidesPerView={1}
-      loop
+      loop={shouldLoop}
       navigation={{
         prevEl: navigationPrevRef.current,
         nextEl: navigationNextRef.current,
