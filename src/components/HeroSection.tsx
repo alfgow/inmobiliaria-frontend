@@ -39,8 +39,7 @@ const HeroSection = () => {
 				ref={parallaxRef}
 				className="absolute inset-0 bg-cover bg-center bg-no-repeat"
 				style={{
-					backgroundImage:
-						"url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?...')",
+					backgroundImage: "url('1.png')",
 					willChange: "transform",
 					height: "200vh", // 👈 más alto que la pantalla
 				}}
