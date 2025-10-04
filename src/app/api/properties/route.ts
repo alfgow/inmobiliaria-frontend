@@ -12,7 +12,7 @@ export async function GET() {
         },
       },
       orderBy: [
-        { esDestacado: 'desc' },
+        { destacado: 'desc' },
         { createdAt: 'desc' },
         { updatedAt: 'desc' },
       ],
@@ -41,7 +41,7 @@ export async function GET() {
       constructionSizeM2: inmueble.m2Construccion?.toNumber() ?? null,
       age: inmueble.antiguedad,
       furnished: inmueble.amueblado,
-      featured: inmueble.esDestacado,
+      featured: inmueble.destacado,
       active: inmueble.estaActivo,
       type: inmueble.tipo,
       operation: inmueble.operacion,
