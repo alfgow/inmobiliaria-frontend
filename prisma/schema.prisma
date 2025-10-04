@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Valores disponibles para el campo `tipo` de la tabla `inmuebles`.
+enum InmuebleTipo {
+  CASA          @map("casa")
+  DEPARTAMENTO  @map("departamento")
+  TERRENO       @map("terreno")
+  LOCAL         @map("local")
+  OFICINA       @map("oficina")
+  BODEGA        @map("bodega")
+  INDUSTRIAL    @map("industrial")
+  OTRO          @map("otro")
+}
+
+/// Valores disponibles para el campo `operacion` de la tabla `inmuebles`.
+enum InmuebleOperacion {
+  VENTA     @map("venta")
+  RENTA     @map("renta")
+  TRASPASO  @map("traspaso")
+  PREVENTA  @map("preventa")
+}
+
+/// Representa la tabla `inmuebles` con tipos alineados a MySQL.
+///
+/// Conversión destacada:
+/// - `tinyint(1)` se modela como `Boolean` usando `@db.TinyInt`.
+/// - `tinyint unsigned` se modela como `Int` con `@db.UnsignedTinyInt`.
+model Inmueble {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  titulo           String             @db.VarChar(255)
+  slug             String             @unique @db.VarChar(255)
+  descripcion      String?            @db.Text
+  precio           Decimal            @db.Decimal(12, 2)
+  direccion        String?            @db.VarChar(255)
+  colonia          String?            @db.VarChar(191)
+  ciudad           String?            @db.VarChar(191)
+  estado           String?            @db.VarChar(191)
+  codigoPostal     String?            @map("codigo_postal") @db.VarChar(10)
+  latitud          Decimal?           @db.Decimal(10, 7)
+  longitud         Decimal?           @db.Decimal(10, 7)
+  recamaras        Int?               @db.UnsignedTinyInt
+  banos            Decimal?           @db.Decimal(3, 1)
+  mediosBanos      Int?               @map("medios_banos") @db.UnsignedTinyInt
+  estacionamientos Int?               @db.UnsignedTinyInt
+  m2Terreno        Decimal?           @map("m2_terreno") @db.Decimal(10, 2)
+  m2Construccion   Decimal?           @map("m2_construccion") @db.Decimal(10, 2)
+  antiguedad       Int?               @db.UnsignedTinyInt
+  amueblado        Boolean            @default(false) @db.TinyInt
+  esDestacado      Boolean            @default(false) @map("es_destacado") @db.TinyInt
+  estaActivo       Boolean            @default(true) @map("esta_activo") @db.TinyInt
+  tipo             InmuebleTipo
+  operacion        InmuebleOperacion
+  estatusId        Int?               @map("estatus_id") @db.UnsignedInt
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  estatus          InmuebleEstatus?   @relation(fields: [estatusId], references: [id])
+  imagenes         InmuebleImagen[]
+
+  @@map("inmuebles")
+}
+
+/// Catálogo de estatus para los registros de `inmuebles`.
+model InmuebleEstatus {
+  id         Int         @id @default(autoincrement()) @db.UnsignedInt
+  nombre     String      @db.VarChar(100)
+  color      String?     @db.VarChar(20)
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  inmuebles  Inmueble[]
+
+  @@map("inmueble_estatus")
+}
+
+/// Imágenes almacenadas para un `Inmueble` con rutas en S3.
+model InmuebleImagen {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  inmuebleId  BigInt    @map("inmueble_id") @db.UnsignedBigInt
+  s3Key       String    @map("s3_key") @db.VarChar(191)
+  titulo      String?   @db.VarChar(191)
+  descripcion String?   @db.VarChar(255)
+  orden       Int?      @db.UnsignedInt
+  esPortada   Boolean   @default(false) @map("es_portada") @db.TinyInt
+  esPublica   Boolean   @default(true) @map("es_publica") @db.TinyInt
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  inmueble    Inmueble  @relation(fields: [inmuebleId], references: [id], onDelete: Cascade)
+
+  @@map("inmueble_imagenes")
+}
