@@ -29,9 +29,9 @@ export interface Property {
 
 interface PropertyCarouselProps {
   properties: Property[];
-  navigationPrevRef: RefObject<HTMLElement>;
-  navigationNextRef: RefObject<HTMLElement>;
-  paginationRef: RefObject<HTMLElement>;
+  navigationPrevRef: RefObject<HTMLButtonElement>;
+  navigationNextRef: RefObject<HTMLButtonElement>;
+  paginationRef: RefObject<HTMLDivElement>;
 }
 
 const PropertyCarousel = ({
