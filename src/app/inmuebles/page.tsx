@@ -15,9 +15,9 @@ const InmueblesPage = () => {
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-dark)]">
       <Navbar />
-      <main className="min-h-screen bg-[#f1efeb] pt-28 pb-20">
+      <main className="min-h-screen bg-[#f1efeb] pt-20 pb-16 md:pt-28 md:pb-20">
         <section className="bg-gradient-to-br from-white/60 via-[#f1efeb] to-white/30">
-          <div className="mx-auto max-w-4xl px-6 py-12 text-center">
+          <div className="mx-auto max-w-4xl px-6 py-8 text-center md:py-12">
             <h1 className="text-3xl font-bold text-[var(--text-dark)] md:text-4xl">
               Propiedades disponibles
             </h1>
