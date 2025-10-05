@@ -14,9 +14,13 @@ import { getPropertyBySlug } from "@/lib/properties";
 export const revalidate = 60;
 
 type PropertyPageProps = {
-  params: {
-    slug: string;
-  };
+  params:
+    | {
+        slug: string;
+      }
+    | Promise<{
+        slug: string;
+      }>;
 };
 
 const buildOpenGraphImages = (property: any) => {
@@ -50,7 +54,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
-  const property = await getPropertyBySlug({ slug: params.slug });
+  const { slug } = await Promise.resolve(params);
+  const property = await getPropertyBySlug({ slug });
 
   if (!property) {
     return {
@@ -76,14 +81,15 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
       title,
       description,
       type: "article",
-      url: `https://villanuevagarcia.mx/inmuebles/${params.slug}`,
+      url: `https://villanuevagarcia.mx/inmuebles/${slug}`,
       images,
     },
   };
 }
 
 const PropertyPage = async ({ params }: PropertyPageProps) => {
-  const property = await getPropertyBySlug({ slug: params.slug });
+  const { slug } = await Promise.resolve(params);
+  const property = await getPropertyBySlug({ slug });
 
   if (!property) {
     notFound();
