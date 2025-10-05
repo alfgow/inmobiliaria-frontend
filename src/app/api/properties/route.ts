@@ -5,6 +5,20 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { S3_PUBLIC_BUCKET, s3Client } from '@/lib/s3';
 
+const normalizeSlug = (value?: string | null) => {
+  if (!value) {
+    return '';
+  }
+
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
 export async function GET() {
   try {
     const inmuebles = await prisma.inmueble.findMany({
@@ -58,10 +72,13 @@ export async function GET() {
           }),
         );
 
+        const slug =
+          inmueble.slug?.trim() || normalizeSlug(inmueble.titulo) || inmueble.id.toString();
+
         return {
           id: inmueble.id.toString(),
           title: inmueble.titulo,
-          slug: inmueble.slug,
+          slug,
           description: inmueble.descripcion,
           price: inmueble.precio.toNumber(),
           address: inmueble.direccion,
