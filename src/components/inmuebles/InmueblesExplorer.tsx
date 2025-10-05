@@ -87,7 +87,7 @@ const InmueblesExplorer = () => {
   }, [filteredProperties, sortOption]);
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12">
+    <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-8 md:py-12">
       <FiltersBar
         totalCount={sortedProperties.length}
         isLoading={isLoading}
