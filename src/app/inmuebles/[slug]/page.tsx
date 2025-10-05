@@ -27,7 +27,7 @@ const buildOpenGraphImages = (property: any) => {
   return (property?.imagenes ?? [])
     .map((image: any) => {
       const imageMetadata = (image.metadata ?? {}) as { alt?: string };
-      const url = image.url ?? image.path;
+      const url = image.signedUrl ?? image.url ?? image.path;
 
       if (!url) {
         return null;
@@ -98,7 +98,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
   const statusName = property.estatus?.nombre ?? "Sin estatus";
   const images = (property.imagenes ?? [])
     .map((image) => ({
-      url: image?.url ?? image?.path ?? "",
+      url: image?.signedUrl ?? image?.url ?? image?.path ?? "",
       alt: (image?.metadata as { alt?: string } | null)?.alt ?? property.titulo ?? "Imagen del inmueble",
     }))
     .filter((image) => Boolean(image.url));

@@ -1,4 +1,8 @@
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 import { prisma } from "./prisma";
+import { S3_PUBLIC_BUCKET, s3Client } from "@/lib/s3";
 
 export interface GetPropertyBySlugParams {
   slug: string;
@@ -46,6 +50,51 @@ const attachMetadata = async <T extends { id: bigint } | null>(property: T) => {
   return property;
 };
 
+const attachSignedUrls = async <
+  T extends { imagenes?: Array<Record<string, any>> } | null,
+>(property: T) => {
+  if (!property) {
+    return property;
+  }
+
+  const imagenes = await Promise.all(
+    (property.imagenes ?? []).map(async (imagen) => {
+      let signedUrl: string | null = null;
+
+      if (imagen?.s3Key && S3_PUBLIC_BUCKET) {
+        try {
+          signedUrl = await getSignedUrl(
+            s3Client,
+            new GetObjectCommand({
+              Bucket: S3_PUBLIC_BUCKET,
+              Key: imagen.s3Key,
+            }),
+            { expiresIn: 3600 },
+          );
+        } catch (error) {
+          console.error(
+            `Error generating signed URL for image ${imagen.id} with key ${imagen.s3Key}`,
+            error,
+          );
+        }
+      }
+
+      const url = signedUrl ?? imagen?.url ?? imagen?.path ?? null;
+
+      return {
+        ...imagen,
+        signedUrl,
+        url,
+      };
+    }),
+  );
+
+  return {
+    ...(property as Record<string, any>),
+    imagenes,
+  } as T;
+};
+
 export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams) => {
   const propertyBySlug = await prisma.inmueble.findUnique({
     where: { slug } as any,
@@ -53,7 +102,9 @@ export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams) =
   } as any);
 
   if (propertyBySlug || id === undefined) {
-    return attachMetadata(propertyBySlug as any);
+    const propertyWithMetadata = await attachMetadata(propertyBySlug as any);
+
+    return attachSignedUrls(propertyWithMetadata as any);
   }
 
   const normalizedId = normalizeId(id);
@@ -62,5 +113,7 @@ export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams) =
     include: propertyInclude,
   } as any);
 
-  return attachMetadata(propertyById as any);
+  const propertyWithMetadata = await attachMetadata(propertyById as any);
+
+  return attachSignedUrls(propertyWithMetadata as any);
 };
