@@ -21,6 +21,7 @@ model Inmueble {
   descripcion           String?             @db.Text
   precio                Decimal             @db.Decimal(12, 2)
   direccion             String              @db.VarChar(255)
+  slug                  String?             @unique @db.VarChar(200)
   latitud               Decimal?            @db.Decimal(10, 6)
   longitud              Decimal?            @db.Decimal(10, 6)
   colonia               String?             @db.VarChar(255)
