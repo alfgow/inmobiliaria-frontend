@@ -16,6 +16,7 @@ interface FiltersBarProps {
   isLoading: boolean;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
+  canSelectViewMode: boolean;
   sortOption: SortOption;
   onSortChange: (option: SortOption) => void;
   operationFilter: string;
@@ -33,6 +34,7 @@ const FiltersBar = ({
   isLoading,
   viewMode,
   onViewModeChange,
+  canSelectViewMode,
   sortOption,
   onSortChange,
   operationFilter,
@@ -89,31 +91,33 @@ const FiltersBar = ({
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {viewOptions.map((option) => {
-            const isActive = option.value === viewMode;
+        {canSelectViewMode && (
+          <div className="flex flex-wrap items-center gap-3">
+            {viewOptions.map((option) => {
+              const isActive = option.value === viewMode;
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => onViewModeChange(option.value)}
-                aria-pressed={isActive}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[var(--indigo)] focus:ring-offset-2 ${
-                  isActive
-                    ? "border-[var(--indigo)] bg-[var(--indigo)] text-white"
-                    : "border-gray-200 bg-white text-[var(--text-dark)] hover:border-[var(--indigo)] hover:text-[var(--indigo)]"
-                }`}
-              >
-                <span
-                  className="inline-flex h-2.5 w-2.5 rounded-full border border-current"
-                  aria-hidden="true"
-                />
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onViewModeChange(option.value)}
+                  aria-pressed={isActive}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[var(--indigo)] focus:ring-offset-2 ${
+                    isActive
+                      ? "border-[var(--indigo)] bg-[var(--indigo)] text-white"
+                      : "border-gray-200 bg-white text-[var(--text-dark)] hover:border-[var(--indigo)] hover:text-[var(--indigo)]"
+                  }`}
+                >
+                  <span
+                    className="inline-flex h-2.5 w-2.5 rounded-full border border-current"
+                    aria-hidden="true"
+                  />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <button
@@ -128,9 +132,9 @@ const FiltersBar = ({
 
       <div
         id="filters-grid"
-        className={`mt-6 grid-cols-1 gap-4 transition-all duration-300 hidden md:grid md:grid-cols-4 ${
-          isMobileOpen ? "grid" : "hidden"
-        }`}
+        className={`mt-6 gap-4 transition-all duration-300 ${
+          isMobileOpen ? "grid grid-cols-1" : "hidden"
+        } md:grid md:grid-cols-4`}
       >
         <div className="rounded-2xl bg-slate-50/90 p-4 shadow-sm transition hover:shadow-md">
           <div className="flex items-center gap-3 text-[var(--text-dark)]">

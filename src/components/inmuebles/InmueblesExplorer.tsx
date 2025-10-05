@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import FiltersBar, { type SortOption, type ViewMode } from "./FiltersBar";
 import PropertiesList from "./PropertiesList";
@@ -11,6 +11,7 @@ const normalizeValue = (value?: string | null) => value?.trim().toLowerCase() ??
 const InmueblesExplorer = () => {
   const { properties, isLoading, error } = useProperties();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [canSelectViewMode, setCanSelectViewMode] = useState(false);
   const [operationFilter, setOperationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOption, setSortOption] = useState<SortOption>("relevance");
@@ -86,6 +87,43 @@ const InmueblesExplorer = () => {
     return copy;
   }, [filteredProperties, sortOption]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const desktopQuery = window.matchMedia("(min-width: 1020px)");
+
+    const updateViewMode = (matches: boolean) => {
+      setCanSelectViewMode(matches);
+      setViewMode((previous) => {
+        const desired = matches ? "list" : "grid";
+
+        return previous === desired ? previous : desired;
+      });
+    };
+
+    updateViewMode(desktopQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      updateViewMode(event.matches);
+    };
+
+    if (typeof desktopQuery.addEventListener === "function") {
+      desktopQuery.addEventListener("change", handleChange);
+    } else {
+      desktopQuery.addListener(handleChange);
+    }
+
+    return () => {
+      if (typeof desktopQuery.removeEventListener === "function") {
+        desktopQuery.removeEventListener("change", handleChange);
+      } else {
+        desktopQuery.removeListener(handleChange);
+      }
+    };
+  }, []);
+
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-8 md:py-12">
       <FiltersBar
@@ -93,6 +131,7 @@ const InmueblesExplorer = () => {
         isLoading={isLoading}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        canSelectViewMode={canSelectViewMode}
         sortOption={sortOption}
         onSortChange={setSortOption}
         operationFilter={operationFilter}
