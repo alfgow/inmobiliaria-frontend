@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 const viewOptions = [
   { value: "list" as const, label: "Lista" },
   { value: "grid" as const, label: "Cuadrícula" },
@@ -42,6 +44,39 @@ const FiltersBar = ({
   searchTerm,
   onSearchChange,
 }: FiltersBarProps) => {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const updateState = (matches: boolean) => {
+      setIsMobileOpen(matches);
+    };
+
+    updateState(mediaQuery.matches);
+
+    const listener = (event: MediaQueryListEvent) => {
+      updateState(event.matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", listener);
+    } else {
+      mediaQuery.addListener(listener);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", listener);
+      } else {
+        mediaQuery.removeListener(listener);
+      }
+    };
+  }, []);
+
   return (
     <section className="rounded-3xl bg-white/80 p-6 shadow-lg backdrop-blur">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -81,7 +116,22 @@ const FiltersBar = ({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
+      <button
+        type="button"
+        onClick={() => setIsMobileOpen((prevState) => !prevState)}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-[var(--text-dark)] shadow-sm transition hover:border-[var(--indigo)] hover:text-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)] focus:ring-offset-2 md:hidden"
+        aria-expanded={isMobileOpen}
+        aria-controls="filters-grid"
+      >
+        {isMobileOpen ? "Ocultar filtros" : "Mostrar filtros"}
+      </button>
+
+      <div
+        id="filters-grid"
+        className={`mt-6 grid-cols-1 gap-4 transition-all duration-300 hidden md:grid md:grid-cols-4 ${
+          isMobileOpen ? "grid" : "hidden"
+        }`}
+      >
         <div className="rounded-2xl bg-slate-50/90 p-4 shadow-sm transition hover:shadow-md">
           <div className="flex items-center gap-3 text-[var(--text-dark)]">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow-sm" aria-hidden="true">
