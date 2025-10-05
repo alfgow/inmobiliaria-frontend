@@ -2,11 +2,12 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/effect-coverflow";
 
 type GalleryImage = {
   url: string;
@@ -52,50 +53,62 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 
   return (
     <motion.section
-      className="overflow-hidden rounded-3xl border border-white/40 bg-white/80 p-2 shadow-xl backdrop-blur"
+      className="overflow-hidden rounded-3xl border border-white/40 bg-gradient-to-br from-white/90 via-white/70 to-[var(--indigo)]/10 p-6 shadow-xl backdrop-blur"
       initial={{ opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
-        slidesPerView={1}
-        loop
+        modules={[Navigation, Pagination, Autoplay, EffectCoverflow]}
+        effect="coverflow"
+        coverflowEffect={{ rotate: 32, stretch: -10, depth: 140, modifier: 1.2, slideShadows: true }}
+        slidesPerView="auto"
         centeredSlides
+        loop
+        grabCursor
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         navigation
         pagination={{ clickable: true }}
-        className="property-gallery"
+        breakpoints={{
+          0: { slidesPerView: 1.1, spaceBetween: 16 },
+          640: { slidesPerView: 1.35, spaceBetween: 24 },
+          1024: { slidesPerView: 2.15, spaceBetween: 32 },
+          1440: { slidesPerView: 2.75, spaceBetween: 40 },
+        }}
+        className="property-gallery !px-4 pb-12"
       >
         {galleryItems.map((image, index) => (
-          <SwiperSlide key={`${image.url}-${index}`} className="!flex items-center justify-center">
+          <SwiperSlide
+            key={`${image.url}-${index}`}
+            className="!flex max-w-[22rem] items-center justify-center sm:max-w-[26rem] md:max-w-[30rem] lg:max-w-[34rem]"
+          >
             <motion.figure
-              className="group relative w-full max-w-5xl overflow-hidden rounded-[28px] bg-slate-100/80 shadow-inner"
-              initial={{ opacity: 0.85, scale: 0.98 }}
+              className="group relative w-full overflow-hidden rounded-[32px] bg-slate-100/80 shadow-[0_25px_50px_-12px_rgba(30,64,175,0.35)]"
+              initial={{ opacity: 0.85, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <motion.div
-                className="aspect-[16/10] w-full sm:aspect-[16/9]"
-                whileHover={{ scale: 1.01 }}
+                className="aspect-[4/5] w-full sm:aspect-[16/10]"
+                whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.4 }}
               >
                 <img
                   src={image.url}
                   alt={image.alt ?? title ?? "Imagen del inmueble"}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   style={{ background: shimmerBackground }}
                   loading="lazy"
                 />
               </motion.div>
               <motion.figcaption
-                className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-black/0 p-6"
+                className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25, duration: 0.6 }}
               >
-                <p className="text-sm font-medium uppercase tracking-[0.25em] text-white/80">Galería</p>
-                <p className="text-lg font-semibold text-white drop-shadow">{title}</p>
+                <p className="text-[0.65rem] font-medium uppercase tracking-[0.4em] text-white/70">Galería</p>
+                <p className="text-lg font-semibold text-white drop-shadow-lg">{title}</p>
               </motion.figcaption>
             </motion.figure>
           </SwiperSlide>
