@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const links = [
 	{ href: "#", label: "Inicio" },
-	{ href: "#propiedades", label: "Propiedades", badge: "3000+" },
+	{ href: "/inmuebles", label: "Inmuebles", badge: "3000+" },
 	{ href: "#nosotros", label: "Nosotros" },
 	{ href: "#contacto", label: "Contacto" },
 ];
@@ -29,14 +29,14 @@ const Navbar = () => {
 						onClick={closeMenu}
 					>
 						<div className="relative h-12 w-12 overflow-hidden rounded-full shadow-lg">
-                                                        <Image
-                                                                src="/logo.png"
-                                                                alt="Villanueva García"
-                                                                fill
-                                                                sizes="48px"
-                                                                className="object-contain"
-                                                                priority
-                                                        />
+							<Image
+								src="/logo.png"
+								alt="Villanueva García"
+								fill
+								sizes="48px"
+								className="object-contain"
+								priority
+							/>
 						</div>
 					</Link>
 
