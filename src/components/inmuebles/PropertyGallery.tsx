@@ -83,7 +83,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 
   return (
     <motion.section
-      className="overflow-hidden rounded-3xl border border-white/40 bg-gradient-to-br from-white/90 via-white/70 to-[var(--indigo)]/10 p-6 shadow-xl backdrop-blur"
+      className="relative overflow-visible rounded-3xl bg-transparent"
       initial={{ opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -146,7 +146,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
               className="!flex w-full max-w-xl items-center justify-center px-4 sm:max-w-2xl lg:max-w-3xl"
             >
               <motion.figure
-                className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
+                className="group relative w-full overflow-hidden rounded-[32px] bg-transparent shadow-lg shadow-black/20"
                 initial={{ opacity: 0.85, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
