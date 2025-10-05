@@ -42,7 +42,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
 
   const statusLabel = property.status?.name ?? property.operation ?? "Disponible";
   const operationLabel = property.operation ?? "";
-  const propertyHref = `/inmuebles/${property.slug ?? property.id}`;
+  const propertyHref = `/inmuebles/${property.slug}`;
 
   const isListMode = viewMode === "list";
   const baseArticleClasses =
