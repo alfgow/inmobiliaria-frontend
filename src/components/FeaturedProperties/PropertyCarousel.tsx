@@ -20,6 +20,7 @@ const currencyFormatter = new Intl.NumberFormat("es-MX", {
 export interface Property {
   id: string;
   title: string;
+  slug?: string | null;
   price: number;
   operation?: string | null;
   status?: string | null;

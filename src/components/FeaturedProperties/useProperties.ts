@@ -17,6 +17,7 @@ export interface ApiPropertyStatus {
 export interface ApiProperty {
   id: string;
   title: string;
+  slug: string;
   price: number;
   operation?: string | null;
   status?: ApiPropertyStatus | null;
@@ -47,6 +48,7 @@ export const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
     return {
       id: item.id,
       title: item.title,
+      slug: item.slug,
       price: item.price,
       operation: formatOperation(item.operation),
       status: item.status?.name ?? null,

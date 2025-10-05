@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { FALLBACK_IMAGE } from "@/components/FeaturedProperties/useProperties";
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
 import type { ViewMode } from "./FiltersBar";
@@ -40,11 +42,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
 
   const statusLabel = property.status?.name ?? property.operation ?? "Disponible";
   const operationLabel = property.operation ?? "";
-  const whatsappMessage = encodeURIComponent(
-    `Hola, me interesa la propiedad "${property.title}" (${formattedPrice}).`
-  );
-
-  const whatsappHref = `https://wa.me/?text=${whatsappMessage}`;
+  const propertyHref = `/inmuebles/${property.slug ?? property.id}`;
 
   const isListMode = viewMode === "list";
   const baseArticleClasses =
@@ -113,20 +111,12 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
             isListMode ? "md:items-center" : ""
           }`}
         >
-          <a
-            href="#contacto"
+          <Link
+            href={propertyHref}
             className="flex-1 rounded-full bg-[var(--indigo)] px-5 py-3 text-center text-white transition hover:bg-[var(--lime)] hover:text-black"
           >
-            Contactar asesor
-          </a>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 rounded-full border border-[var(--indigo)] px-5 py-3 text-center text-[var(--indigo)] transition hover:bg-[var(--indigo)] hover:text-white"
-          >
-            Hablar por WhatsApp
-          </a>
+            Ver información
+          </Link>
         </div>
       </div>
     </article>
