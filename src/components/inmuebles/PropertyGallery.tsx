@@ -166,8 +166,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.6, ease: "easeOut" }}
 							>
-								<motion.div
-									className="aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10]"
+                                                                <motion.div
+                                                                        className="w-full overflow-hidden aspect-[4/5] sm:aspect-[16/10]"
 									whileHover={{ scale: 1.03 }}
 									transition={{ duration: 0.4 }}
 								>
