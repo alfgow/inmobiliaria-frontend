@@ -145,7 +145,7 @@ const PropertyCarousel = ({
 
         return (
           <SwiperSlide key={property.id} className="swiper-slide">
-            <div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-md">
+            <div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
               <div className="relative">
                 <img
                   src={property.coverImageUrl}

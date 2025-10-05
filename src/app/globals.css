@@ -69,9 +69,11 @@ body {
 }
 
 .swiper-container {
-  overflow: hidden;
-  padding: 20px;
-  border-radius: 12px;
+  position: relative;
+  overflow: visible;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .swiper {
@@ -95,6 +97,17 @@ body {
 .card-3d:hover {
   transform: perspective(1000px) rotateY(6deg) rotateX(2deg) translateY(-5px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 0 25px rgba(210, 255, 30, 0.25);
+}
+
+.featured-properties .card-3d {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.featured-properties .card-3d:hover {
+  box-shadow: 0 32px 65px rgba(15, 23, 42, 0.18), 0 0 25px rgba(210, 255, 30, 0.25);
 }
 
 .swiper-pagination-bullet {
@@ -167,7 +180,7 @@ body {
 
 @media (max-width: 768px) {
   .swiper-container {
-    padding: 10px;
+    padding: 0;
   }
 
   .card-3d:hover {

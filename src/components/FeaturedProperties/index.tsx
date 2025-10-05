@@ -16,13 +16,13 @@ const FeaturedProperties = () => {
   );
 
   return (
-    <section id="propiedades" className="bg-[#f1efeb] py-20">
+    <section id="propiedades" className="py-20">
       <div className="mx-auto max-w-7xl px-6">
         <h2 className="mb-12 text-center text-3xl font-bold text-[var(--text-dark)]">
           Propiedades Destacadas
         </h2>
 
-        <div className="relative">
+        <div className="featured-properties relative">
           <div className="swiper-container">
             {isLoading && (
               <div className="flex h-56 items-center justify-center">
