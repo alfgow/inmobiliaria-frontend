@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperInstance } from "swiper";
 import type { NavigationOptions } from "swiper/types";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/effect-coverflow";
 
 type GalleryImage = {
   url: string;
@@ -89,19 +90,42 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
     >
       <div className="relative">
         <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          slidesPerView={1}
-          spaceBetween={24}
+          modules={[Navigation, Pagination, Autoplay, EffectCoverflow]}
+          effect="coverflow"
+          centeredSlides
+          slidesPerView={1.15}
+          spaceBetween={0}
           loop
           grabCursor
           autoplay={{ delay: 5000, disableOnInteraction: false }}
+          coverflowEffect={{
+            rotate: 32,
+            stretch: -12,
+            depth: 220,
+            modifier: 1.1,
+            slideShadows: true,
+          }}
           navigation={{
             prevEl: prevButtonRef.current,
             nextEl: nextButtonRef.current,
           }}
           pagination={{ clickable: true }}
           breakpoints={{
-            1024: { spaceBetween: 32 },
+            768: {
+              slidesPerView: 1.5,
+              coverflowEffect: {
+                rotate: 22,
+                stretch: -24,
+              },
+            },
+            1024: {
+              slidesPerView: 2.35,
+              coverflowEffect: {
+                rotate: 18,
+                stretch: -32,
+                depth: 260,
+              },
+            },
           }}
           className="property-gallery !px-4 pb-12 [&_.swiper-button-next]:hidden [&_.swiper-button-prev]:hidden"
           onBeforeInit={(swiper) => {
@@ -117,15 +141,18 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
           }}
         >
           {galleryItems.map((image, index) => (
-            <SwiperSlide key={`${image.url}-${index}`} className="!flex w-full items-center justify-center">
+            <SwiperSlide
+              key={`${image.url}-${index}`}
+              className="!flex w-full max-w-xl items-center justify-center px-4 sm:max-w-2xl lg:max-w-3xl"
+            >
               <motion.figure
-                className="group relative w-full overflow-hidden rounded-[32px] bg-slate-100/80 shadow-[0_25px_50px_-12px_rgba(30,64,175,0.35)]"
+                className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
                 initial={{ opacity: 0.85, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <motion.div
-                  className="aspect-[4/5] w-full sm:aspect-[16/10]"
+                  className="aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10]"
                   whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.4 }}
                 >
