@@ -63,7 +63,13 @@ const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) 
       <MapContainer
         center={position}
         zoom={16}
+        dragging={false}
+        doubleClickZoom={false}
+        touchZoom={false}
+        keyboard={false}
+        boxZoom={false}
         scrollWheelZoom={false}
+        zoomControl={false}
         style={{ height: "420px", width: "100%" }}
       >
         <TileLayer
