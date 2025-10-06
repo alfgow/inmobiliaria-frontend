@@ -226,13 +226,13 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						swiperRef.current = swiper;
 					}}
 				>
-					{galleryItems.map((image, index) => (
-						<SwiperSlide
-							key={`${image.url}-${index}`}
-							className="!flex w-full max-w-xl items-center justify-center px-4 sm:max-w-2xl lg:max-w-3xl"
-						>
-							<motion.figure
-								className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
+                                        {galleryItems.map((image, index) => (
+                                                <SwiperSlide
+                                                        key={`${image.url}-${index}`}
+                                                        className="!flex w-full max-w-2xl items-center justify-center px-4 sm:max-w-3xl lg:max-w-4xl"
+                                                >
+                                                        <motion.figure
+                                                                className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
 								initial={{ opacity: 0.85, scale: 0.94 }}
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.6, ease: "easeOut" }}
@@ -249,11 +249,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									}
 								}}
 							>
-								<motion.div
-									className="w-full overflow-hidden aspect-[4/5] sm:aspect-[16/10]"
-									whileHover={{ scale: 1.03 }}
-									transition={{ duration: 0.4 }}
-								>
+                                                                <motion.div
+                                                                        className="w-full overflow-hidden aspect-[16/11] sm:aspect-[16/9]"
+                                                                        whileHover={{ scale: 1.03 }}
+                                                                        transition={{ duration: 0.4 }}
+                                                                >
 									<img
 										src={image.url}
 										alt={
@@ -268,16 +268,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 										loading="lazy"
 									/>
 								</motion.div>
-								<motion.figcaption
-									className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-6"
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									transition={{ delay: 0.25, duration: 0.6 }}
-								></motion.figcaption>
-							</motion.figure>
-						</SwiperSlide>
-					))}
-				</Swiper>
+                                                                <motion.div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                                                        </motion.figure>
+                                                </SwiperSlide>
+                                        ))}
+                                </Swiper>
 
 				<button
 					ref={prevButtonRef}
@@ -328,29 +323,29 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						exit={{ opacity: 0 }}
 						onClick={closeModal}
 					>
-						<motion.div
-							className="relative flex w-full max-w-5xl flex-col items-center gap-6"
+                                                <motion.div
+                                                        className="relative flex w-full max-w-6xl flex-col items-center gap-6"
 							initial={{ y: 40, opacity: 0, scale: 0.95 }}
 							animate={{ y: 0, opacity: 1, scale: 1 }}
 							exit={{ y: 40, opacity: 0, scale: 0.95 }}
 							transition={{ duration: 0.5, ease: "easeOut" }}
 							onClick={(event) => event.stopPropagation()}
 						>
-							<motion.figure
-								className="relative w-full overflow-hidden rounded-[40px] border border-white/30 bg-white/10 shadow-[0_40px_80px_-20px_rgba(15,23,42,0.75)]"
+                                                        <motion.figure
+                                                                className="relative w-full overflow-hidden rounded-[40px] border border-white/30 bg-white/10 shadow-[0_40px_80px_-20px_rgba(15,23,42,0.75)]"
 								initial={{ opacity: 0, scale: 0.96 }}
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.45, ease: "easeOut" }}
 							>
-								<motion.img
-									key={galleryItems[activeIndex]?.url}
-									src={galleryItems[activeIndex]?.url}
-									alt={
-										galleryItems[activeIndex]?.alt ??
-										title ??
-										"Imagen del inmueble"
-									}
-									className="max-h-[80vh] w-full object-contain"
+                                                                <motion.img
+                                                                        key={galleryItems[activeIndex]?.url}
+                                                                        src={galleryItems[activeIndex]?.url}
+                                                                        alt={
+                                                                                galleryItems[activeIndex]?.alt ??
+                                                                                title ??
+                                                                                "Imagen del inmueble"
+                                                                        }
+                                                                        className="max-h-[85vh] w-full object-contain"
 									initial={{ opacity: 0, scale: 1.05 }}
 									animate={{ opacity: 1, scale: 1 }}
 									transition={{
@@ -358,44 +353,33 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 										ease: "easeOut",
 									}}
 								/>
-								<motion.figcaption
-									className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent px-8 py-6"
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									transition={{ delay: 0.2, duration: 0.4 }}
-								>
-									<p className="text-sm font-semibold uppercase tracking-[0.35em] text-white/70">
-										Galería en detalle
-									</p>
-									<p className="text-2xl font-bold text-white drop-shadow-xl">
-										{title}
-									</p>
-								</motion.figcaption>
-							</motion.figure>
+                                                                <motion.div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                                                        </motion.figure>
 
-							<div className="flex w-full items-center justify-between gap-4 text-white">
-								<button
-									type="button"
-									onClick={showPrevious}
-									className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-								>
-									<span aria-hidden>←</span> Anterior
-								</button>
-								<button
-									type="button"
-									onClick={closeModal}
-									className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-								>
-									Cerrar ✨
-								</button>
-								<button
-									type="button"
-									onClick={showNext}
-									className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-								>
-									Siguiente <span aria-hidden>→</span>
-								</button>
-							</div>
+                                                        <div className="flex w-full items-center justify-between gap-4 text-white">
+                                                                <button
+                                                                        type="button"
+                                                                        onClick={showPrevious}
+                                                                        className="inline-flex items-center justify-center rounded-full bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+                                                                >
+                                                                        Anterior
+                                                                </button>
+                                                                <button
+                                                                        type="button"
+                                                                        onClick={closeModal}
+                                                                        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-lg font-semibold text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+                                                                >
+                                                                        <span aria-hidden>×</span>
+                                                                        <span className="sr-only">Cerrar</span>
+                                                                </button>
+                                                                <button
+                                                                        type="button"
+                                                                        onClick={showNext}
+                                                                        className="inline-flex items-center justify-center rounded-full bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+                                                                >
+                                                                        Siguiente
+                                                                </button>
+                                                        </div>
 						</motion.div>
 					</motion.div>
 				) : null}
