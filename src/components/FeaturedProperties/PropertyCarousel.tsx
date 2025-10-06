@@ -87,16 +87,18 @@ const PropertyCarousel = ({
 	}, [navigationPrevRef, navigationNextRef, paginationRef]);
 
 	return (
-		<Swiper
-			modules={[Navigation, Pagination]}
-			className="swiper mySwiper"
-			spaceBetween={30}
-			slidesPerView={1}
-			loop={shouldLoop}
-			navigation={{
-				prevEl: navigationPrevRef.current,
-				nextEl: navigationNextRef.current,
-			}}
+                <Swiper
+                        modules={[Navigation, Pagination]}
+                        className="swiper mySwiper"
+                        spaceBetween={30}
+                        slidesPerView={1}
+                        loop={shouldLoop}
+                        centeredSlides={properties.length < 3}
+                        centerInsufficientSlides
+                        navigation={{
+                                prevEl: navigationPrevRef.current,
+                                nextEl: navigationNextRef.current,
+                        }}
 			pagination={{
 				el: paginationRef.current,
 				clickable: true,
