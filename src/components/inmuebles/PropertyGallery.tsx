@@ -111,13 +111,13 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 					loop
 					grabCursor
 					autoplay={{ delay: 5000, disableOnInteraction: false }}
-					coverflowEffect={{
-						rotate: 32,
-						stretch: -12,
-						depth: 220,
-						modifier: 1.1,
-						slideShadows: true,
-					}}
+                                        coverflowEffect={{
+                                                rotate: 32,
+                                                stretch: -12,
+                                                depth: 220,
+                                                modifier: 1.1,
+                                                slideShadows: false,
+                                        }}
 					navigation={{
 						prevEl: prevButtonRef.current,
 						nextEl: nextButtonRef.current,
