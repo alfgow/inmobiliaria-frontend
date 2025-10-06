@@ -43,17 +43,17 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 	const prevButtonRef = useRef<HTMLButtonElement>(null);
 	const nextButtonRef = useRef<HTMLButtonElement>(null);
 	const swiperRef = useRef<SwiperInstance | null>(null);
-        const [isModalOpen, setIsModalOpen] = useState(false);
-        const [activeIndex, setActiveIndex] = useState(0);
-        const [isMounted, setIsMounted] = useState(false);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [activeIndex, setActiveIndex] = useState(0);
+	const [isMounted, setIsMounted] = useState(false);
 
-        useEffect(() => {
-                setIsMounted(true);
+	useEffect(() => {
+		setIsMounted(true);
 
-                return () => {
-                        setIsMounted(false);
-                };
-        }, []);
+		return () => {
+			setIsMounted(false);
+		};
+	}, []);
 
 	const openModal = useCallback((index: number) => {
 		setActiveIndex(index);
@@ -115,11 +115,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 		swiper.navigation.update();
 	}, [prevButtonRef, nextButtonRef]);
 
-        useEffect(() => {
-                const handleKeyDown = (event: KeyboardEvent) => {
-                        if (!isModalOpen) {
-                                return;
-                        }
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (!isModalOpen) {
+				return;
+			}
 
 			if (event.key === "Escape") {
 				closeModal();
@@ -134,22 +134,22 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 			}
 		};
 
-                window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keydown", handleKeyDown);
 
-                if (isModalOpen) {
-                        document.body.style.overflow = "hidden";
-                        document.documentElement.classList.add("gallery-modal-open");
-                } else {
-                        document.body.style.overflow = "";
-                        document.documentElement.classList.remove("gallery-modal-open");
-                }
+		if (isModalOpen) {
+			document.body.style.overflow = "hidden";
+			document.documentElement.classList.add("gallery-modal-open");
+		} else {
+			document.body.style.overflow = "";
+			document.documentElement.classList.remove("gallery-modal-open");
+		}
 
-                return () => {
-                        window.removeEventListener("keydown", handleKeyDown);
-                        document.body.style.overflow = "";
-                        document.documentElement.classList.remove("gallery-modal-open");
-                };
-        }, [closeModal, isModalOpen, showNext, showPrevious]);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			document.body.style.overflow = "";
+			document.documentElement.classList.remove("gallery-modal-open");
+		};
+	}, [closeModal, isModalOpen, showNext, showPrevious]);
 
 	if (!galleryItems.length) {
 		return (
@@ -239,13 +239,13 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						swiperRef.current = swiper;
 					}}
 				>
-                                        {galleryItems.map((image, index) => (
-                                                <SwiperSlide
-                                                        key={`${image.url}-${index}`}
-                                                        className="!flex w-full max-w-2xl items-center justify-center px-4 sm:max-w-3xl lg:max-w-4xl"
-                                                >
-                                                        <motion.figure
-                                                                className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
+					{galleryItems.map((image, index) => (
+						<SwiperSlide
+							key={`${image.url}-${index}`}
+							className="!flex w-full max-w-2xl items-center justify-center px-4 sm:max-w-3xl lg:max-w-4xl"
+						>
+							<motion.figure
+								className="group relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-white/80 shadow-[0_35px_60px_-18px_rgba(30,64,175,0.45)] backdrop-blur"
 								initial={{ opacity: 0.85, scale: 0.94 }}
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.6, ease: "easeOut" }}
@@ -262,11 +262,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									}
 								}}
 							>
-                                                                <motion.div
-                                                                        className="w-full overflow-hidden aspect-[16/11] sm:aspect-[16/9]"
-                                                                        whileHover={{ scale: 1.03 }}
-                                                                        transition={{ duration: 0.4 }}
-                                                                >
+								<motion.div
+									className="w-full overflow-hidden aspect-[16/11] sm:aspect-[16/9]"
+									whileHover={{ scale: 1.03 }}
+									transition={{ duration: 0.4 }}
+								>
 									<img
 										src={image.url}
 										alt={
@@ -281,11 +281,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 										loading="lazy"
 									/>
 								</motion.div>
-                                                                <motion.div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                                                        </motion.figure>
-                                                </SwiperSlide>
-                                        ))}
-                                </Swiper>
+								<motion.div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+							</motion.figure>
+						</SwiperSlide>
+					))}
+				</Swiper>
 
 				<button
 					ref={prevButtonRef}
@@ -327,81 +327,115 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 				</button>
 			</div>
 
-                        {isMounted
-                                ? createPortal(
-                                          <AnimatePresence>
-                                                  {isModalOpen ? (
-                                                          <motion.div
-                                                                  className="property-gallery-modal fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.65),_rgba(15,23,42,0.88))] px-4 py-10 backdrop-blur-3xl"
-                                                                  initial={{ opacity: 0 }}
-                                                                  animate={{ opacity: 1 }}
-                                                                  exit={{ opacity: 0 }}
-                                                                  onClick={closeModal}
-                                                          >
-                                                                  <motion.div
-                                                                          className="relative flex w-full max-w-7xl flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:p-10"
-                                                                          initial={{ y: 48, opacity: 0, scale: 0.94 }}
-                                                                          animate={{ y: 0, opacity: 1, scale: 1 }}
-                                                                          exit={{ y: 48, opacity: 0, scale: 0.94 }}
-                                                                          transition={{ duration: 0.5, ease: "easeOut" }}
-                                                                          onClick={(event) => event.stopPropagation()}
-                                                                  >
-                                                                          <motion.figure
-                                                                                  className="relative w-full overflow-hidden rounded-[48px] border border-white/25 bg-white/10 shadow-[0_50px_110px_-30px_rgba(15,23,42,0.85)]"
-                                                                                  initial={{ opacity: 0, scale: 0.95 }}
-                                                                                  animate={{ opacity: 1, scale: 1 }}
-                                                                                  transition={{ duration: 0.45, ease: "easeOut" }}
-                                                                          >
-                                                                                  <motion.img
-                                                                                          key={galleryItems[activeIndex]?.url}
-                                                                                          src={galleryItems[activeIndex]?.url}
-                                                                                          alt={
-                                                                                                  galleryItems[activeIndex]?.alt ??
-                                                                                                  title ??
-                                                                                                  "Imagen del inmueble"
-                                                                                          }
-                                                                                          className="max-h-[88vh] w-full object-contain"
-                                                                                          initial={{ opacity: 0, scale: 1.04 }}
-                                                                                          animate={{ opacity: 1, scale: 1 }}
-                                                                                          transition={{
-                                                                                                  duration: 0.45,
-                                                                                                  ease: "easeOut",
-                                                                                          }}
-                                                                                  />
-                                                                                  <motion.div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                                                                          </motion.figure>
+			{isMounted
+				? createPortal(
+						<AnimatePresence>
+							{isModalOpen ? (
+								<motion.div
+									className="property-gallery-modal fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.65),_rgba(15,23,42,0.88))] px-4 py-10 backdrop-blur-3xl"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									onClick={closeModal}
+								>
+									<motion.div
+										className="relative flex w-full max-w-7xl flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:p-10"
+										initial={{
+											y: 48,
+											opacity: 0,
+											scale: 0.94,
+										}}
+										animate={{ y: 0, opacity: 1, scale: 1 }}
+										exit={{
+											y: 48,
+											opacity: 0,
+											scale: 0.94,
+										}}
+										transition={{
+											duration: 0.5,
+											ease: "easeOut",
+										}}
+										onClick={(event) =>
+											event.stopPropagation()
+										}
+									>
+										<motion.figure
+											className="relative w-full overflow-hidden rounded-[48px] border border-white/25 bg-white/10 shadow-[0_50px_110px_-30px_rgba(15,23,42,0.85)]"
+											initial={{
+												opacity: 0,
+												scale: 0.95,
+											}}
+											animate={{ opacity: 1, scale: 1 }}
+											transition={{
+												duration: 0.45,
+												ease: "easeOut",
+											}}
+										>
+											<motion.img
+												key={
+													galleryItems[activeIndex]
+														?.url
+												}
+												src={
+													galleryItems[activeIndex]
+														?.url
+												}
+												alt={
+													galleryItems[activeIndex]
+														?.alt ??
+													title ??
+													"Imagen del inmueble"
+												}
+												className="max-h-[88vh] w-full object-contain"
+												initial={{
+													opacity: 0,
+													scale: 1.04,
+												}}
+												animate={{
+													opacity: 1,
+													scale: 1,
+												}}
+												transition={{
+													duration: 0.45,
+													ease: "easeOut",
+												}}
+											/>
+											<motion.div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+										</motion.figure>
 
-                                                                          <div className="flex w-full flex-col items-center justify-between gap-4 text-white sm:flex-row">
-                                                                                  <button
-                                                                                          type="button"
-                                                                                          onClick={showPrevious}
-                                                                                          className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-                                                                                  >
-                                                                                          Anterior
-                                                                                  </button>
-                                                                                  <button
-                                                                                          type="button"
-                                                                                          onClick={closeModal}
-                                                                                          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/15 text-lg font-semibold text-white shadow-lg backdrop-blur transition hover:bg-white/25"
-                                                                                  >
-                                                                                          <span aria-hidden>×</span>
-                                                                                          <span className="sr-only">Cerrar</span>
-                                                                                  </button>
-                                                                                  <button
-                                                                                          type="button"
-                                                                                          onClick={showNext}
-                                                                                          className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-                                                                                  >
-                                                                                          Siguiente
-                                                                                  </button>
-                                                                          </div>
-                                                                  </motion.div>
-                                                          </motion.div>
-                                                  ) : null}
-                                          </AnimatePresence>,
-                                          document.body
-                                  )
-                                : null}
+										<div className="flex w-full flex-col items-center justify-between gap-4 text-white sm:flex-row">
+											<button
+												type="button"
+												onClick={showPrevious}
+												className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+											>
+												Anterior
+											</button>
+											<button
+												type="button"
+												onClick={closeModal}
+												className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-lg font-semibold text-white shadow-lg backdrop-blur transition hover:bg-red-400"
+											>
+												<span aria-hidden>×</span>
+												<span className="sr-only">
+													Cerrar
+												</span>
+											</button>
+											<button
+												type="button"
+												onClick={showNext}
+												className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+											>
+												Siguiente
+											</button>
+										</div>
+									</motion.div>
+								</motion.div>
+							) : null}
+						</AnimatePresence>,
+						document.body
+				  )
+				: null}
 		</motion.section>
 	);
 };
