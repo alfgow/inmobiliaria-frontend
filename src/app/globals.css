@@ -39,7 +39,7 @@ html.gallery-modal-open body {
   overflow: hidden;
 }
 
-html.gallery-modal-open body > *:not(.property-gallery-modal) {
+html.gallery-modal-open body > *:not(.property-gallery-modal):not(.property-gallery-modal-mobile) {
   filter: blur(14px);
   transition: filter 0.35s ease;
 }
