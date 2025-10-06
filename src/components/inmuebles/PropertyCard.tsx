@@ -51,11 +51,9 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
     ? `${baseArticleClasses} md:h-80 md:flex-row`
     : baseArticleClasses;
   const imageWrapperClasses = isListMode
-    ? "relative w-full shrink-0 md:w-5/12"
-    : "relative w-full shrink-0";
-  const imageClasses = isListMode
-    ? "h-64 w-full object-cover md:h-full"
-    : "h-56 w-full object-cover";
+    ? "relative w-full shrink-0 aspect-[4/3] md:h-full md:w-5/12 md:aspect-auto"
+    : "relative w-full shrink-0 aspect-[4/3]";
+  const imageClasses = "h-full w-full object-cover";
 
   return (
     <article className={articleClasses}>
