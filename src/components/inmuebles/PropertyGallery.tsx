@@ -111,13 +111,13 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 					loop
 					grabCursor
 					autoplay={{ delay: 5000, disableOnInteraction: false }}
-                                        coverflowEffect={{
-                                                rotate: 32,
-                                                stretch: -12,
-                                                depth: 220,
-                                                modifier: 1.1,
-                                                slideShadows: false,
-                                        }}
+					coverflowEffect={{
+						rotate: 32,
+						stretch: -12,
+						depth: 220,
+						modifier: 1.1,
+						slideShadows: false,
+					}}
 					navigation={{
 						prevEl: prevButtonRef.current,
 						nextEl: nextButtonRef.current,
@@ -166,8 +166,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ duration: 0.6, ease: "easeOut" }}
 							>
-                                                                <motion.div
-                                                                        className="w-full overflow-hidden aspect-[4/5] sm:aspect-[16/10]"
+								<motion.div
+									className="w-full overflow-hidden aspect-[4/5] sm:aspect-[16/10]"
 									whileHover={{ scale: 1.03 }}
 									transition={{ duration: 0.4 }}
 								>
@@ -190,14 +190,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									transition={{ delay: 0.25, duration: 0.6 }}
-								>
-									<p className="text-[0.65rem] font-medium uppercase tracking-[0.4em] text-white/70">
-										Galería
-									</p>
-									<p className="text-lg font-semibold text-white drop-shadow-lg">
-										{title}
-									</p>
-								</motion.figcaption>
+								></motion.figcaption>
 							</motion.figure>
 						</SwiperSlide>
 					))}
