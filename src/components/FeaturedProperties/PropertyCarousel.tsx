@@ -1,178 +1,187 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { useEffect, useRef } from "react";
 import type { Swiper as SwiperInstance } from "swiper";
-import type { NavigationOptions, PaginationOptions } from "swiper/types";
 import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { NavigationOptions, PaginationOptions } from "swiper/types";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
-  style: "currency",
-  currency: "MXN",
-  maximumFractionDigits: 0,
+	style: "currency",
+	currency: "MXN",
+	maximumFractionDigits: 0,
 });
 
 export interface Property {
-  id: string;
-  title: string;
-  slug?: string | null;
-  price: number;
-  operation?: string | null;
-  status?: string | null;
-  coverImageUrl: string;
-  location?: string | null;
+	id: string;
+	title: string;
+	slug?: string | null;
+	price: number;
+	operation?: string | null;
+	status?: string | null;
+	coverImageUrl: string;
+	location?: string | null;
 }
 
 interface PropertyCarouselProps {
-  properties: Property[];
-  navigationPrevRef: RefObject<HTMLButtonElement>;
-  navigationNextRef: RefObject<HTMLButtonElement>;
-  paginationRef: RefObject<HTMLDivElement>;
+	properties: Property[];
+	navigationPrevRef: RefObject<HTMLButtonElement>;
+	navigationNextRef: RefObject<HTMLButtonElement>;
+	paginationRef: RefObject<HTMLDivElement>;
 }
 
 const PropertyCarousel = ({
-  properties,
-  navigationPrevRef,
-  navigationNextRef,
-  paginationRef,
+	properties,
+	navigationPrevRef,
+	navigationNextRef,
+	paginationRef,
 }: PropertyCarouselProps) => {
-  const swiperRef = useRef<SwiperInstance | null>(null);
-  const shouldLoop = properties.length > 3;
+	const swiperRef = useRef<SwiperInstance | null>(null);
+	const shouldLoop = properties.length > 3;
 
-  useEffect(() => {
-    const swiper = swiperRef.current;
+	useEffect(() => {
+		const swiper = swiperRef.current;
 
-    if (!swiper) {
-      return;
-    }
+		if (!swiper) {
+			return;
+		}
 
-    if (
-      swiper.params.navigation &&
-      typeof swiper.params.navigation !== "boolean" &&
-      navigationPrevRef.current &&
-      navigationNextRef.current
-    ) {
-      swiper.params.navigation = {
-        ...(swiper.params.navigation as NavigationOptions),
-        prevEl: navigationPrevRef.current,
-        nextEl: navigationNextRef.current,
-      };
+		if (
+			swiper.params.navigation &&
+			typeof swiper.params.navigation !== "boolean" &&
+			navigationPrevRef.current &&
+			navigationNextRef.current
+		) {
+			swiper.params.navigation = {
+				...(swiper.params.navigation as NavigationOptions),
+				prevEl: navigationPrevRef.current,
+				nextEl: navigationNextRef.current,
+			};
 
-      swiper.navigation.destroy();
-      swiper.navigation.init();
-      swiper.navigation.update();
-    }
+			swiper.navigation.destroy();
+			swiper.navigation.init();
+			swiper.navigation.update();
+		}
 
-    if (
-      swiper.params.pagination &&
-      typeof swiper.params.pagination !== "boolean" &&
-      paginationRef.current
-    ) {
-      swiper.params.pagination = {
-        ...(swiper.params.pagination as PaginationOptions),
-        el: paginationRef.current,
-        clickable: true,
-      };
+		if (
+			swiper.params.pagination &&
+			typeof swiper.params.pagination !== "boolean" &&
+			paginationRef.current
+		) {
+			swiper.params.pagination = {
+				...(swiper.params.pagination as PaginationOptions),
+				el: paginationRef.current,
+				clickable: true,
+			};
 
-      swiper.pagination.destroy();
-      swiper.pagination.init();
-      swiper.pagination.render();
-      swiper.pagination.update();
-    }
-  }, [navigationPrevRef, navigationNextRef, paginationRef]);
+			swiper.pagination.destroy();
+			swiper.pagination.init();
+			swiper.pagination.render();
+			swiper.pagination.update();
+		}
+	}, [navigationPrevRef, navigationNextRef, paginationRef]);
 
-  return (
-    <Swiper
-      modules={[Navigation, Pagination]}
-      className="swiper mySwiper"
-      spaceBetween={30}
-      slidesPerView={1}
-      loop={shouldLoop}
-      navigation={{
-        prevEl: navigationPrevRef.current,
-        nextEl: navigationNextRef.current,
-      }}
-      pagination={{
-        el: paginationRef.current,
-        clickable: true,
-      }}
-      breakpoints={{
-        768: {
-          slidesPerView: 2,
-        },
-        1024: {
-          slidesPerView: 3,
-        },
-      }}
-      onBeforeInit={(swiper) => {
-        swiperRef.current = swiper;
+	return (
+		<Swiper
+			modules={[Navigation, Pagination]}
+			className="swiper mySwiper"
+			spaceBetween={30}
+			slidesPerView={1}
+			loop={shouldLoop}
+			navigation={{
+				prevEl: navigationPrevRef.current,
+				nextEl: navigationNextRef.current,
+			}}
+			pagination={{
+				el: paginationRef.current,
+				clickable: true,
+			}}
+			breakpoints={{
+				768: {
+					slidesPerView: 2,
+				},
+				1024: {
+					slidesPerView: 3,
+				},
+			}}
+			onBeforeInit={(swiper) => {
+				swiperRef.current = swiper;
 
-        if (swiper.params.navigation && typeof swiper.params.navigation !== "boolean") {
-          const navigation = swiper.params.navigation;
+				if (
+					swiper.params.navigation &&
+					typeof swiper.params.navigation !== "boolean"
+				) {
+					const navigation = swiper.params.navigation;
 
-          navigation.prevEl = navigationPrevRef.current;
-          navigation.nextEl = navigationNextRef.current;
-        }
+					navigation.prevEl = navigationPrevRef.current;
+					navigation.nextEl = navigationNextRef.current;
+				}
 
-        if (typeof swiper.params.pagination !== "boolean") {
-          swiper.params.pagination.el = paginationRef.current;
-        }
-      }}
-      onSwiper={(swiper) => {
-        swiperRef.current = swiper;
-      }}
-    >
-      {properties.map((property) => {
-        const formattedPrice = Number.isFinite(property.price)
-          ? currencyFormatter.format(property.price)
-          : "Consultar";
+				if (typeof swiper.params.pagination !== "boolean") {
+					swiper.params.pagination.el = paginationRef.current;
+				}
+			}}
+			onSwiper={(swiper) => {
+				swiperRef.current = swiper;
+			}}
+		>
+			{properties.map((property) => {
+				const formattedPrice = Number.isFinite(property.price)
+					? currencyFormatter.format(property.price)
+					: "Consultar";
 
-        const statusLabel = property.status ?? property.operation ?? "Disponible";
-        const detailsLineItems = [formattedPrice];
+				const statusLabel =
+					property.status ?? property.operation ?? "Disponible";
+				const detailsLineItems = [formattedPrice];
 
-        if (property.operation) {
-          detailsLineItems.push(property.operation);
-        }
+				if (property.operation) {
+					detailsLineItems.push(property.operation);
+				}
 
-        if (property.location) {
-          detailsLineItems.push(property.location);
-        }
+				if (property.location) {
+					detailsLineItems.push(property.location);
+				}
 
-        const detailsLine = detailsLineItems.join(" · ");
+				const detailsLine = detailsLineItems.join(" · ");
 
-        return (
-          <SwiperSlide key={property.id} className="swiper-slide">
-            <div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
-              <div className="relative aspect-[16/9] md:aspect-auto md:h-56">
-                <img
-                  src={property.coverImageUrl}
-                  alt={property.title}
-                  className="h-full w-full object-cover"
-                />
-                <span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
-                  {statusLabel}
-                </span>
-              </div>
-              <div className="flex h-full flex-col p-6">
-                <h3 className="mb-2 overflow-hidden text-ellipsis text-xl font-semibold text-[var(--text-dark)] whitespace-nowrap">
-                  {property.title}
-                </h3>
-                <p className="mb-4 text-gray-600">{detailsLine}</p>
-                <a href="#" className="mt-auto font-medium text-indigo-600 hover:underline">
-                  Ver Detalles
-                </a>
-              </div>
-            </div>
-          </SwiperSlide>
-        );
-      })}
-    </Swiper>
-  );
+				return (
+					<SwiperSlide key={property.id} className="swiper-slide">
+						<div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
+							<div className="relative aspect-[16/9] md:aspect-auto md:h-56">
+								<img
+									src={property.coverImageUrl}
+									alt={property.title}
+									className="h-full w-full object-cover"
+								/>
+								<span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
+									{statusLabel}
+								</span>
+							</div>
+							<div className="flex h-full flex-col p-6">
+								<h3 className="mb-2 overflow-hidden text-ellipsis text-xl font-semibold text-[var(--text-dark)] whitespace-nowrap">
+									{property.title}
+								</h3>
+								<p className="mb-4 text-gray-600">
+									{detailsLine}
+								</p>
+								<a
+									href="#"
+									className="mt-auto font-medium text-indigo-600 hover:underline"
+								>
+									Ver Detalles
+								</a>
+							</div>
+						</div>
+					</SwiperSlide>
+				);
+			})}
+		</Swiper>
+	);
 };
 
 export default PropertyCarousel;
