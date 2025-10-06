@@ -330,108 +330,160 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 			{isMounted
 				? createPortal(
 						<AnimatePresence>
-							{isModalOpen ? (
-								<motion.div
-									className="property-gallery-modal fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.65),_rgba(15,23,42,0.88))] px-4 py-10 backdrop-blur-3xl"
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0 }}
-									onClick={closeModal}
-								>
+                                                        {isModalOpen ? (
+                                                                <motion.div
+                                                                        className="property-gallery-modal fixed inset-0 z-50 flex bg-slate-950/70 backdrop-blur-2xl"
+                                                                        initial={{ opacity: 0 }}
+                                                                        animate={{ opacity: 1 }}
+                                                                        exit={{ opacity: 0 }}
+                                                                        onClick={closeModal}
+                                                                >
                                                                         <motion.div
-                                                                                className="relative flex w-full max-w-7xl flex-col items-center gap-6 rounded-[32px] bg-white/5 p-5 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:gap-8 sm:rounded-[36px] sm:p-10"
-										initial={{
-											y: 48,
-											opacity: 0,
-											scale: 0.94,
-										}}
-										animate={{ y: 0, opacity: 1, scale: 1 }}
-										exit={{
-											y: 48,
-											opacity: 0,
-											scale: 0.94,
-										}}
-										transition={{
-											duration: 0.5,
-											ease: "easeOut",
-										}}
-										onClick={(event) =>
-											event.stopPropagation()
-										}
-									>
-                                                                                <motion.figure
-                                                                                        className="relative w-full overflow-hidden rounded-3xl border border-white/25 bg-white/10 shadow-[0_50px_110px_-30px_rgba(15,23,42,0.85)] sm:rounded-[48px]"
-											initial={{
-												opacity: 0,
-												scale: 0.95,
-											}}
-											animate={{ opacity: 1, scale: 1 }}
-											transition={{
-												duration: 0.45,
-												ease: "easeOut",
-											}}
-										>
-											<motion.img
-												key={
-													galleryItems[activeIndex]
-														?.url
-												}
-												src={
-													galleryItems[activeIndex]
-														?.url
-												}
-												alt={
-													galleryItems[activeIndex]
-														?.alt ??
-													title ??
-													"Imagen del inmueble"
-												}
-												className="max-h-[88vh] w-full object-contain"
-												initial={{
-													opacity: 0,
-													scale: 1.04,
-												}}
-												animate={{
-													opacity: 1,
-													scale: 1,
-												}}
-												transition={{
-													duration: 0.45,
-													ease: "easeOut",
-												}}
-											/>
-											<motion.div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-										</motion.figure>
-
-                                                                                <div className="flex w-full flex-col items-center gap-4 text-white sm:flex-row sm:items-center sm:justify-between">
+                                                                                className="relative mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-none bg-white/10 shadow-[0_35px_70px_-25px_rgba(15,23,42,0.9)] ring-1 ring-white/15 backdrop-blur-2xl sm:my-10 sm:h-auto sm:max-h-[90vh] sm:rounded-[32px]"
+                                                                                initial={{
+                                                                                        y: 32,
+                                                                                        opacity: 0,
+                                                                                        scale: 0.96,
+                                                                                }}
+                                                                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                                                                exit={{
+                                                                                        y: 32,
+                                                                                        opacity: 0,
+                                                                                        scale: 0.96,
+                                                                                }}
+                                                                                transition={{
+                                                                                        duration: 0.45,
+                                                                                        ease: "easeOut",
+                                                                                }}
+                                                                                onClick={(event) =>
+                                                                                        event.stopPropagation()
+                                                                                }
+                                                                        >
+                                                                                <div className="flex items-center justify-between px-5 pb-3 pt-4 text-white sm:px-8">
+                                                                                        <div className="flex min-w-0 flex-col">
+                                                                                                <span className="text-xs uppercase tracking-[0.3em] text-white/60">Galería</span>
+                                                                                                <span className="truncate text-base font-semibold sm:text-lg">
+                                                                                                        {title ?? "Galería del inmueble"}
+                                                                                                </span>
+                                                                                        </div>
                                                                                         <button
                                                                                                 type="button"
-                                                                                                onClick={showPrevious}
-                                                                                                className="inline-flex w-full items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20 sm:w-auto"
-											>
-												Anterior
-											</button>
-											<button
-												type="button"
-												onClick={closeModal}
-												className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-lg font-semibold text-white shadow-lg backdrop-blur transition hover:bg-red-400"
-											>
-												<span aria-hidden>×</span>
-												<span className="sr-only">
-													Cerrar
-												</span>
-											</button>
-                                                                                        <button
-                                                                                                type="button"
-                                                                                                onClick={showNext}
-                                                                                                className="inline-flex w-full items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20 sm:w-auto"
+                                                                                                onClick={closeModal}
+                                                                                                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-lg font-semibold text-white shadow-lg transition hover:bg-white/30"
                                                                                         >
-												Siguiente
-											</button>
-										</div>
-									</motion.div>
-								</motion.div>
-							) : null}
+                                                                                                <span aria-hidden>×</span>
+                                                                                                <span className="sr-only">Cerrar</span>
+                                                                                        </button>
+                                                                                </div>
+
+                                                                                <motion.figure
+                                                                                        className="relative flex-1 overflow-hidden rounded-t-[24px] border-y border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-900/40 to-slate-900/80 sm:mx-6 sm:rounded-[28px] sm:border"
+                                                                                        initial={{
+                                                                                                opacity: 0,
+                                                                                                scale: 0.97,
+                                                                                        }}
+                                                                                        animate={{ opacity: 1, scale: 1 }}
+                                                                                        transition={{
+                                                                                                duration: 0.4,
+                                                                                                ease: "easeOut",
+                                                                                        }}
+                                                                                >
+                                                                                        <motion.img
+                                                                                                key={
+                                                                                                        galleryItems[activeIndex]
+                                                                                                                ?.url
+                                                                                                }
+                                                                                                src={
+                                                                                                        galleryItems[activeIndex]
+                                                                                                                ?.url
+                                                                                                }
+                                                                                                alt={
+                                                                                                        galleryItems[activeIndex]
+                                                                                                                ?.alt ??
+                                                                                                        title ??
+                                                                                                        "Imagen del inmueble"
+                                                                                                }
+                                                                                                className="h-full w-full max-h-[70vh] object-contain sm:max-h-[65vh]"
+                                                                                                initial={{
+                                                                                                        opacity: 0,
+                                                                                                        scale: 1.02,
+                                                                                                }}
+                                                                                                animate={{
+                                                                                                        opacity: 1,
+                                                                                                        scale: 1,
+                                                                                                }}
+                                                                                                transition={{
+                                                                                                        duration: 0.45,
+                                                                                                        ease: "easeOut",
+                                                                                                }}
+                                                                                        />
+                                                                                        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/40 via-black/10 to-transparent" />
+                                                                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+
+                                                                                        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 sm:px-6">
+                                                                                                <button
+                                                                                                        ref={previousButtonRef}
+                                                                                                        type="button"
+                                                                                                        onClick={showPrevious}
+                                                                                                        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur transition hover:bg-white/30"
+                                                                                                        aria-label="Ver imagen anterior"
+                                                                                                >
+                                                                                                        <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                className="h-5 w-5"
+                                                                                                                fill="none"
+                                                                                                                viewBox="0 0 24 24"
+                                                                                                                stroke="currentColor"
+                                                                                                                strokeWidth={1.5}
+                                                                                                        >
+                                                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                                                                                        </svg>
+                                                                                                </button>
+                                                                                                <button
+                                                                                                        ref={nextButtonRef}
+                                                                                                        type="button"
+                                                                                                        onClick={showNext}
+                                                                                                        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur transition hover:bg-white/30"
+                                                                                                        aria-label="Ver imagen siguiente"
+                                                                                                >
+                                                                                                        <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                className="h-5 w-5"
+                                                                                                                fill="none"
+                                                                                                                viewBox="0 0 24 24"
+                                                                                                                stroke="currentColor"
+                                                                                                                strokeWidth={1.5}
+                                                                                                        >
+                                                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                                                                        </svg>
+                                                                                                </button>
+                                                                                        </div>
+                                                                                </motion.figure>
+
+                                                                                <div className="flex flex-col gap-3 px-5 pb-6 pt-4 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                                                                                        <p className="text-center text-sm text-white/70 sm:text-left">
+                                                                                                Navega por la galería para conocer cada detalle del inmueble.
+                                                                                        </p>
+                                                                                        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                                                                                                <button
+                                                                                                        type="button"
+                                                                                                        onClick={showPrevious}
+                                                                                                        className="inline-flex w-full items-center justify-center rounded-full bg-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-md transition hover:bg-white/30 sm:w-auto"
+                                                                                                >
+                                                                                                        Anterior
+                                                                                                </button>
+                                                                                                <button
+                                                                                                        type="button"
+                                                                                                        onClick={showNext}
+                                                                                                        className="inline-flex w-full items-center justify-center rounded-full bg-[var(--lime)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-black shadow-md transition hover:bg-lime-300 sm:w-auto"
+                                                                                                >
+                                                                                                        Siguiente
+                                                                                                </button>
+                                                                                        </div>
+                                                                                </div>
+                                                                        </motion.div>
+                                                                </motion.div>
+                                                        ) : null}
 						</AnimatePresence>,
 						document.body
 				  )
