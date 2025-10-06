@@ -112,9 +112,11 @@ const PropertyCarousel = ({
       onBeforeInit={(swiper) => {
         swiperRef.current = swiper;
 
-        if (typeof swiper.params.navigation !== "boolean") {
-          swiper.params.navigation.prevEl = navigationPrevRef.current;
-          swiper.params.navigation.nextEl = navigationNextRef.current;
+        if (swiper.params.navigation && typeof swiper.params.navigation !== "boolean") {
+          const navigation = swiper.params.navigation;
+
+          navigation.prevEl = navigationPrevRef.current;
+          navigation.nextEl = navigationNextRef.current;
         }
 
         if (typeof swiper.params.pagination !== "boolean") {
