@@ -338,8 +338,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									exit={{ opacity: 0 }}
 									onClick={closeModal}
 								>
-									<motion.div
-										className="relative flex w-full max-w-7xl flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:p-10"
+                                                                        <motion.div
+                                                                                className="relative flex w-full max-w-7xl flex-col items-center gap-6 rounded-[32px] bg-white/5 p-5 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:gap-8 sm:rounded-[36px] sm:p-10"
 										initial={{
 											y: 48,
 											opacity: 0,
@@ -359,8 +359,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 											event.stopPropagation()
 										}
 									>
-										<motion.figure
-											className="relative w-full overflow-hidden rounded-[48px] border border-white/25 bg-white/10 shadow-[0_50px_110px_-30px_rgba(15,23,42,0.85)]"
+                                                                                <motion.figure
+                                                                                        className="relative w-full overflow-hidden rounded-3xl border border-white/25 bg-white/10 shadow-[0_50px_110px_-30px_rgba(15,23,42,0.85)] sm:rounded-[48px]"
 											initial={{
 												opacity: 0,
 												scale: 0.95,
@@ -403,11 +403,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 											<motion.div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 										</motion.figure>
 
-										<div className="flex w-full flex-col items-center justify-between gap-4 text-white sm:flex-row">
-											<button
-												type="button"
-												onClick={showPrevious}
-												className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+                                                                                <div className="flex w-full flex-col items-center gap-4 text-white sm:flex-row sm:items-center sm:justify-between">
+                                                                                        <button
+                                                                                                type="button"
+                                                                                                onClick={showPrevious}
+                                                                                                className="inline-flex w-full items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20 sm:w-auto"
 											>
 												Anterior
 											</button>
@@ -421,11 +421,11 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 													Cerrar
 												</span>
 											</button>
-											<button
-												type="button"
-												onClick={showNext}
-												className="inline-flex items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20"
-											>
+                                                                                        <button
+                                                                                                type="button"
+                                                                                                onClick={showNext}
+                                                                                                className="inline-flex w-full items-center justify-center rounded-full bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg backdrop-blur transition hover:bg-white/20 sm:w-auto"
+                                                                                        >
 												Siguiente
 											</button>
 										</div>
