@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Review = {
 	displayName: string;
@@ -14,8 +14,16 @@ const AboutSection = () => {
 	const [reviews, setReviews] = useState<Review[]>([]);
 	const [activeIndex, setActiveIndex] = useState(0);
 
-	useEffect(() => {
-		let isMounted = true;
+        const hasFetchedRef = useRef(false);
+
+        useEffect(() => {
+                if (hasFetchedRef.current) {
+                        return;
+                }
+
+                hasFetchedRef.current = true;
+
+                let isMounted = true;
 
 		const fetchReviews = async () => {
 			try {
@@ -86,10 +94,10 @@ const AboutSection = () => {
 
 		fetchReviews();
 
-		return () => {
-			isMounted = false;
-		};
-	}, []);
+                return () => {
+                        isMounted = false;
+                };
+        }, []);
 
 	useEffect(() => {
 		if (!reviews.length) {
