@@ -598,16 +598,19 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						},
 					}}
 					className="property-gallery !px-4 pb-12 [&_.swiper-button-next]:hidden [&_.swiper-button-prev]:hidden"
-					onBeforeInit={(swiper) => {
-						swiperRef.current = swiper;
+                                        onBeforeInit={(swiper) => {
+                                                swiperRef.current = swiper;
 
-						if (typeof swiper.params.navigation !== "boolean") {
-							swiper.params.navigation.prevEl =
-								thumbnailPrevButtonRef.current;
-							swiper.params.navigation.nextEl =
-								thumbnailNextButtonRef.current;
-						}
-					}}
+                                                if (
+                                                        swiper.params.navigation &&
+                                                        typeof swiper.params.navigation !== "boolean"
+                                                ) {
+                                                        const navigation = swiper.params.navigation;
+
+                                                        navigation.prevEl = thumbnailPrevButtonRef.current;
+                                                        navigation.nextEl = thumbnailNextButtonRef.current;
+                                                }
+                                        }}
 					onSwiper={(swiper) => {
 						swiperRef.current = swiper;
 					}}
