@@ -1,8 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import L from "leaflet";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
+
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
 
 type PropertyMapProps = {
   latitude?: number | null;
@@ -14,6 +30,28 @@ type PropertyMapProps = {
 const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) => {
   const numericLatitude = typeof latitude === "number" ? latitude : latitude ? Number(latitude) : null;
   const numericLongitude = typeof longitude === "number" ? longitude : longitude ? Number(longitude) : null;
+
+  const [leaflet, setLeaflet] = useState<typeof import("leaflet") | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLeaflet = async () => {
+      const leafletModule = await import("leaflet");
+
+      if (isMounted) {
+        setLeaflet((leafletModule.default ?? leafletModule) as typeof import("leaflet"));
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      void loadLeaflet();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const position = useMemo(() => {
     if (typeof numericLatitude !== "number" || typeof numericLongitude !== "number") {
@@ -27,24 +65,26 @@ const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) 
     return [numericLatitude, numericLongitude] as [number, number];
   }, [numericLatitude, numericLongitude]);
 
-  const markerIcon = useMemo(
-    () =>
-      L.divIcon({
-        className: "custom-property-marker",
-        html: `
+  const markerIcon = useMemo(() => {
+    if (!leaflet) {
+      return null;
+    }
+
+    return leaflet.divIcon({
+      className: "custom-property-marker",
+      html: `
           <div class="marker-shell">
             <span class="marker-pulse"></span>
             <span class="marker-core"></span>
           </div>
         `,
-        iconSize: [46, 60],
-        iconAnchor: [23, 58],
-        popupAnchor: [0, -54],
-      }),
-    []
-  );
+      iconSize: [46, 60],
+      iconAnchor: [23, 58],
+      popupAnchor: [0, -54],
+    });
+  }, [leaflet]);
 
-  if (!position) {
+  if (!position || !markerIcon) {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-[var(--indigo)]/30 bg-white/70 text-center text-gray-600">
         <p className="text-lg font-semibold text-[var(--text-dark)]">Mapa no disponible</p>
