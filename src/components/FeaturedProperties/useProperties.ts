@@ -11,7 +11,9 @@ export interface ApiPropertyImage {
 }
 
 export interface ApiPropertyStatus {
+  id: number | string;
   name: string;
+  color?: string | null;
 }
 
 export interface ApiProperty {
@@ -24,6 +26,7 @@ export interface ApiProperty {
   city?: string | null;
   state?: string | null;
   images?: ApiPropertyImage[];
+  featured?: boolean;
 }
 
 export const FALLBACK_IMAGE = "/1.png";
@@ -39,23 +42,30 @@ export const formatOperation = (operation?: string | null) => {
 };
 
 export const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
-  items.map((item) => {
-    const coverImage =
-      item.images?.find((image) => image.isCover) ?? item.images?.[0] ?? null;
+  items
+    .filter((item) => {
+      const hasActiveStatus = Number(item.status?.id ?? 0) === 1;
+      const isFeatured = item.featured === true;
 
-    const locationParts = [item.city, item.state].filter(Boolean) as string[];
+      return hasActiveStatus && isFeatured;
+    })
+    .map((item) => {
+      const coverImage =
+        item.images?.find((image) => image.isCover) ?? item.images?.[0] ?? null;
 
-    return {
-      id: item.id,
-      title: item.title,
-      slug: item.slug,
-      price: item.price,
-      operation: formatOperation(item.operation),
-      status: item.status?.name ?? null,
-      coverImageUrl: coverImage?.signedUrl ?? FALLBACK_IMAGE,
-      location: locationParts.length > 0 ? locationParts.join(", ") : null,
-    };
-  });
+      const locationParts = [item.city, item.state].filter(Boolean) as string[];
+
+      return {
+        id: item.id,
+        title: item.title,
+        slug: item.slug,
+        price: item.price,
+        operation: formatOperation(item.operation),
+        status: item.status?.name ?? null,
+        coverImageUrl: coverImage?.signedUrl ?? FALLBACK_IMAGE,
+        location: locationParts.length > 0 ? locationParts.join(", ") : null,
+      };
+    });
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<ApiProperty[]>([]);
