@@ -332,67 +332,73 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						<AnimatePresence>
 							{isModalOpen ? (
 								<motion.div
-									className="property-gallery-modal fixed inset-0 z-50 flex bg-slate-950/70 backdrop-blur-2xl"
+									className="property-gallery-modal fixed inset-0 z-50 flex min-h-[100svh] w-full flex-col bg-black/95 backdrop-blur-sm"
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									onClick={closeModal}
+									role="dialog"
+									aria-modal="true"
+									aria-label="Galería de imágenes"
 								>
 									<motion.div
-										className="relative mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-none bg-white/10 shadow-[0_35px_70px_-25px_rgba(15,23,42,0.9)] ring-1 ring-white/15 backdrop-blur-2xl sm:my-10 sm:h-auto sm:max-h-[90vh] sm:rounded-[32px]"
-										initial={{
-											y: 32,
-											opacity: 0,
-											scale: 0.96,
-										}}
-										animate={{ y: 0, opacity: 1, scale: 1 }}
-										exit={{
-											y: 32,
-											opacity: 0,
-											scale: 0.96,
-										}}
+										className="relative flex w-full flex-1 flex-col"
+										initial={{ scale: 0.96, opacity: 0 }}
+										animate={{ scale: 1, opacity: 1 }}
+										exit={{ scale: 0.96, opacity: 0 }}
 										transition={{
-											duration: 0.45,
+											duration: 0.3,
 											ease: "easeOut",
 										}}
 										onClick={(event) =>
 											event.stopPropagation()
 										}
 									>
-										<div className="flex items-center justify-between px-4 py-3 text-white sm:px-8">
-											<div className="flex min-w-0 flex-col">
-												<span className="text-xs uppercase tracking-[0.3em] text-white/60">
-													Galería
-												</span>
-												<span className="truncate text-base font-semibold sm:text-lg">
-													{title ??
-														"Galería del inmueble"}
-												</span>
-											</div>
+										<div
+											className="flex items-center justify-between px-4 text-white sm:hidden"
+											style={{
+												paddingTop:
+													"calc(env(safe-area-inset-top, 0px) + 1rem)",
+												paddingBottom: "1rem",
+											}}
+										>
+											<span
+												className="inline-flex h-10 w-10 flex-none"
+												aria-hidden="true"
+											/>
+											{title ? (
+												<div className="flex min-w-0 flex-1 justify-center">
+													<h2 className="truncate text-base font-medium">
+														{title}
+													</h2>
+												</div>
+											) : (
+												<span className="flex-1" />
+											)}
 											<button
 												type="button"
 												onClick={closeModal}
-												className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-lg font-semibold text-white shadow-lg transition hover:bg-white/30"
+												className="ml-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+												aria-label="Cerrar galería"
 											>
-												<span aria-hidden>×</span>
-												<span className="sr-only">
-													Cerrar
-												</span>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													className="h-5 w-5"
+													fill="none"
+													viewBox="0 0 24 24"
+													stroke="currentColor"
+													strokeWidth={2}
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M6 18L18 6M6 6l12 12"
+													/>
+												</svg>
 											</button>
 										</div>
 
-										<motion.figure
-											className="relative flex-1 overflow-hidden rounded-none border-y border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-900/40 to-slate-900/80 sm:mx-6 sm:rounded-[28px] sm:border"
-											initial={{
-												opacity: 0,
-												scale: 0.97,
-											}}
-											animate={{ opacity: 1, scale: 1 }}
-											transition={{
-												duration: 0.4,
-												ease: "easeOut",
-											}}
-										>
+										<div className="relative flex flex-1 items-center justify-center px-4 pb-10 pt-4 sm:px-8 sm:pb-12">
 											<motion.img
 												key={
 													galleryItems[activeIndex]
@@ -408,92 +414,158 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 													title ??
 													"Imagen del inmueble"
 												}
-												className="h-full w-full object-contain sm:max-h-[80vh]"
-												initial={{
-													opacity: 0,
-													scale: 1.02,
-												}}
-												animate={{
-													opacity: 1,
-													scale: 1,
-												}}
+												className="max-h-full w-full max-w-full cursor-zoom-in object-contain"
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
 												transition={{
-													duration: 0.45,
+													duration: 0.4,
 													ease: "easeOut",
 												}}
 											/>
-											<div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 via-black/10 to-transparent sm:h-24" />
-											<div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 via-black/10 to-transparent sm:h-24" />
 
-											<div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 sm:px-6">
-												<button
-													type="button"
-													onClick={showPrevious}
-													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur transition hover:bg-white/30"
-													aria-label="Ver imagen anterior"
+											<button
+												type="button"
+												onClick={closeModal}
+												className="absolute right-6 top-6 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 sm:flex md:h-14 md:w-14"
+												aria-label="Cerrar galería"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													className="h-6 w-6 md:h-7 md:w-7"
+													fill="none"
+													viewBox="0 0 24 24"
+													stroke="currentColor"
+													strokeWidth={2}
 												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={1.5}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M15.75 19.5L8.25 12l7.5-7.5"
-														/>
-													</svg>
-												</button>
-												<button
-													type="button"
-													onClick={showNext}
-													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur transition hover:bg-white/30"
-													aria-label="Ver imagen siguiente"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={1.5}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M8.25 4.5l7.5 7.5-7.5 7.5"
-														/>
-													</svg>
-												</button>
-											</div>
-										</motion.figure>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M6 18L18 6M6 6l12 12"
+													/>
+												</svg>
+											</button>
 
-										<div className="flex flex-col gap-3 px-4 py-3 text-white sm:flex-row sm:gap-4 sm:items-center sm:justify-between sm:px-8">
-											<p className="hidden text-center text-sm text-white/70 sm:block sm:text-left">
-												Navega por la galería para
-												conocer cada detalle del
-												inmueble.
-											</p>
-											<div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-												<button
-													type="button"
-													onClick={showPrevious}
-													className="inline-flex w-full items-center justify-center rounded-full bg-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-md transition hover:bg-white/30 sm:w-auto"
-												>
-													Anterior
-												</button>
-												<button
-													type="button"
-													onClick={showNext}
-													className="inline-flex w-full items-center justify-center rounded-full bg-[var(--lime)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-black shadow-md transition hover:bg-lime-300 sm:w-auto"
-												>
-													Siguiente
-												</button>
-											</div>
+											{galleryItems.length > 1 && (
+												<>
+													<button
+														type="button"
+														onClick={showPrevious}
+														className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 sm:flex h-12 w-12 md:left-6 md:h-14 md:w-14"
+														aria-label="Imagen anterior"
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															className="h-6 w-6 md:h-7 md:w-7"
+															fill="none"
+															viewBox="0 0 24 24"
+															stroke="currentColor"
+															strokeWidth={2}
+														>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																d="M15 19l-7-7 7-7"
+															/>
+														</svg>
+													</button>
+													<button
+														type="button"
+														onClick={showNext}
+														className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 sm:flex h-12 w-12 md:right-6 md:h-14 md:w-14"
+														aria-label="Imagen siguiente"
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															className="h-6 w-6 md:h-7 md:w-7"
+															fill="none"
+															viewBox="0 0 24 24"
+															stroke="currentColor"
+															strokeWidth={2}
+														>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																d="M9 5l7 7-7 7"
+															/>
+														</svg>
+													</button>
+												</>
+											)}
+
+											{galleryItems.length > 1 && (
+												<div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 transform rounded-full bg-black/50 px-4 py-2 text-center text-sm font-medium text-white backdrop-blur-sm sm:block md:text-base">
+													{activeIndex + 1} /{" "}
+													{galleryItems.length}
+												</div>
+											)}
+
+											{title && (
+												<div className="absolute left-6 top-6 z-10 hidden max-w-xs truncate text-white sm:hidden lg:block">
+													<h2 className="text-lg font-semibold">
+														{title}
+													</h2>
+												</div>
+											)}
 										</div>
+
+										{galleryItems.length > 1 && (
+											<div
+												className="flex items-center justify-between px-4 text-white sm:hidden"
+												style={{
+													paddingBottom:
+														"calc(env(safe-area-inset-bottom, 0px) + 1.25rem)",
+												}}
+											>
+												<button
+													type="button"
+													onClick={showPrevious}
+													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+													aria-label="Imagen anterior"
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														className="h-5 w-5"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														strokeWidth={2}
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															d="M15 19l-7-7 7-7"
+														/>
+													</svg>
+												</button>
+
+												<div className="text-sm font-medium">
+													{activeIndex + 1} /{" "}
+													{galleryItems.length}
+												</div>
+
+												<button
+													type="button"
+													onClick={showNext}
+													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+													aria-label="Imagen siguiente"
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														className="h-5 w-5"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+														strokeWidth={2}
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															d="M9 5l7 7-7 7"
+														/>
+													</svg>
+												</button>
+											</div>
+										)}
 									</motion.div>
 								</motion.div>
 							) : null}
