@@ -33,6 +33,7 @@ const shimmerBackground =
 type GalleryModalContentProps = {
         activeIndex: number;
         closeModal: () => void;
+        direction: "next" | "previous" | null;
         galleryItems: GalleryImage[];
         showNext: () => void;
         showPrevious: () => void;
@@ -42,6 +43,7 @@ type GalleryModalContentProps = {
 const DesktopGalleryModal = ({
         activeIndex,
         closeModal,
+        direction: _direction,
         galleryItems,
         showNext,
         showPrevious,
@@ -216,20 +218,41 @@ const DesktopGalleryModal = ({
         );
 };
 
+const imageVariants = {
+        enter: (direction: "next" | "previous") => ({
+                x: direction === "next" ? 120 : -120,
+                opacity: 0,
+                scale: 0.95,
+        }),
+        center: {
+                x: 0,
+                opacity: 1,
+                scale: 1,
+        },
+        exit: (direction: "next" | "previous") => ({
+                x: direction === "next" ? -120 : 120,
+                opacity: 0,
+                scale: 0.95,
+        }),
+};
+
 const MobileGalleryModal = ({
         activeIndex,
         closeModal,
+        direction,
         galleryItems,
         showNext,
         showPrevious,
         title,
 }: GalleryModalContentProps) => {
+        const activeDirection = direction ?? "next";
+
         return (
                 <motion.div
-                        className="property-gallery-modal-mobile fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-white/20 backdrop-blur-2xl"
+                        className="property-gallery-modal-mobile fixed inset-0 z-50 flex min-h-[100svh] w-full bg-black/95"
                         style={{
-                                paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
-                                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                                paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+                                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)",
                                 paddingLeft: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
                                 paddingRight: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
                         }}
@@ -242,32 +265,18 @@ const MobileGalleryModal = ({
                         aria-label="Galería de imágenes"
                 >
                         <motion.div
-                                className="relative flex h-full w-full max-h-[calc(100svh-2rem)] max-w-[min(90vw,420px)] flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white/85 text-[var(--text-dark)] shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl"
-                                initial={{ scale: 0.96, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.96, opacity: 0 }}
-                                transition={{
-                                        duration: 0.3,
-                                        ease: "easeOut",
-                                }}
+                                className="relative flex h-full w-full flex-1 flex-col text-white"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.25, ease: "easeOut" }}
                                 onClick={(event) => event.stopPropagation()}
                         >
-                                <header className="flex items-start justify-between gap-4 border-b border-white/60 px-4 py-4">
-                                        <div className="min-w-0 space-y-1">
-                                                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--indigo)] opacity-80">
-                                                        Galería
-                                                </p>
-                                                {title && (
-                                                        <h2 className="truncate text-lg font-semibold text-[var(--text-dark)]">
-                                                                {title}
-                                                        </h2>
-                                                )}
-                                        </div>
-
+                                <header className="flex items-center justify-between px-1 py-2 text-sm">
                                         <button
                                                 type="button"
                                                 onClick={closeModal}
-                                                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(15,23,42,0.25)]"
+                                                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                                                 aria-label="Cerrar galería"
                                         >
                                                 <svg
@@ -281,74 +290,77 @@ const MobileGalleryModal = ({
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                         </button>
-                                </header>
-
-                                <div className="relative flex flex-1 items-center justify-center bg-gradient-to-b from-white/60 via-white/80 to-white px-4 py-6">
-                                        <motion.img
-                                                key={galleryItems[activeIndex]?.url}
-                                                src={galleryItems[activeIndex]?.url}
-                                                alt={
-                                                        galleryItems[activeIndex]?.alt ??
-                                                        title ??
-                                                        "Imagen del inmueble"
-                                                }
-                                                className="max-h-full w-full max-w-full rounded-2xl bg-white object-contain shadow-[0_12px_28px_-18px_rgba(15,23,42,0.35)]"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{
-                                                        duration: 0.4,
-                                                        ease: "easeOut",
-                                                }}
-                                        />
 
                                         {galleryItems.length > 1 && (
-                                                <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 transform items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium text-[var(--text-dark)] shadow-md">
+                                                <div className="min-w-0 flex-1 text-center font-medium text-white/80">
+                                                        {activeIndex + 1} de {galleryItems.length}
+                                                </div>
+                                        )}
+
+                                        <div className="h-11 w-11" aria-hidden="true" />
+                                </header>
+
+                                <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+                                        <AnimatePresence initial={false} custom={activeDirection} mode="wait">
+                                                <motion.img
+                                                        key={galleryItems[activeIndex]?.url}
+                                                        src={galleryItems[activeIndex]?.url}
+                                                        alt={
+                                                                galleryItems[activeIndex]?.alt ??
+                                                                title ??
+                                                                "Imagen del inmueble"
+                                                        }
+                                                        className="max-h-full w-full max-w-full select-none object-contain"
+                                                        custom={activeDirection}
+                                                        variants={imageVariants}
+                                                        initial="enter"
+                                                        animate="center"
+                                                        exit="exit"
+                                                        transition={{
+                                                                type: "spring",
+                                                                stiffness: 400,
+                                                                damping: 32,
+                                                        }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                                if (info.offset.x < -80 || info.velocity.x < -0.5) {
+                                                                        showNext();
+                                                                } else if (info.offset.x > 80 || info.velocity.x > 0.5) {
+                                                                        showPrevious();
+                                                                }
+                                                        }}
+                                                />
+                                        </AnimatePresence>
+
+                                        {galleryItems.length > 1 && (
+                                                <>
+                                                        <button
+                                                                type="button"
+                                                                onClick={showPrevious}
+                                                                className="absolute left-0 top-0 h-full w-1/3 focus:outline-none"
+                                                                aria-label="Imagen anterior"
+                                                        />
+                                                        <button
+                                                                type="button"
+                                                                onClick={showNext}
+                                                                className="absolute right-0 top-0 h-full w-1/3 focus:outline-none"
+                                                                aria-label="Imagen siguiente"
+                                                        />
+                                                </>
+                                        )}
+
+                                        {galleryItems.length > 1 && (
+                                                <div className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/60 px-4 py-1 text-xs font-medium text-white/90 backdrop-blur">
                                                         {activeIndex + 1} / {galleryItems.length}
                                                 </div>
                                         )}
                                 </div>
 
-                                {galleryItems.length > 1 && (
-                                        <footer className="flex items-center justify-between gap-4 border-t border-white/60 px-4 py-4">
-                                                <button
-                                                        type="button"
-                                                        onClick={showPrevious}
-                                                        className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)]"
-                                                        aria-label="Imagen anterior"
-                                                >
-                                                        <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-5 w-5"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                                strokeWidth={2}
-                                                        >
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                                                        </svg>
-                                                </button>
-
-                                                <div className="text-sm font-semibold text-[var(--text-dark)]">
-                                                        {activeIndex + 1} / {galleryItems.length}
-                                                </div>
-
-                                                <button
-                                                        type="button"
-                                                        onClick={showNext}
-                                                        className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)]"
-                                                        aria-label="Imagen siguiente"
-                                                >
-                                                        <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-5 w-5"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                                strokeWidth={2}
-                                                        >
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                                        </svg>
-                                                </button>
+                                {title && (
+                                        <footer className="px-6 pt-4 text-center text-sm text-white/80">
+                                                {title}
                                         </footer>
                                 )}
                         </motion.div>
@@ -373,6 +385,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
         const [activeIndex, setActiveIndex] = useState(0);
         const [isMounted, setIsMounted] = useState(false);
         const [isDesktopViewport, setIsDesktopViewport] = useState(false);
+        const [navigationDirection, setNavigationDirection] = useState<"next" | "previous" | null>(null);
 
         useEffect(() => {
                 setIsMounted(true);
@@ -410,37 +423,42 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
                 };
         }, []);
 
-	const openModal = useCallback((index: number) => {
-		setActiveIndex(index);
-		setIsModalOpen(true);
-	}, []);
+        const openModal = useCallback((index: number) => {
+                setActiveIndex(index);
+                setNavigationDirection(null);
+                setIsModalOpen(true);
+        }, []);
 
-	const closeModal = useCallback(() => {
-		setIsModalOpen(false);
-	}, []);
+        const closeModal = useCallback(() => {
+                setIsModalOpen(false);
+        }, []);
 
-	const showPrevious = useCallback(() => {
-		setActiveIndex((current) =>
-			current === 0 ? Math.max(galleryItems.length - 1, 0) : current - 1
-		);
-	}, [galleryItems.length]);
+        const showPrevious = useCallback(() => {
+                setNavigationDirection("previous");
+                setActiveIndex((current) =>
+                        current === 0 ? Math.max(galleryItems.length - 1, 0) : current - 1
+                );
+        }, [galleryItems.length]);
 
-	const showNext = useCallback(() => {
-		setActiveIndex((current) =>
-			current === galleryItems.length - 1 ? 0 : current + 1
-		);
-	}, [galleryItems.length]);
+        const showNext = useCallback(() => {
+                setNavigationDirection("next");
+                setActiveIndex((current) =>
+                        current === galleryItems.length - 1 ? 0 : current + 1
+                );
+        }, [galleryItems.length]);
 
-	useEffect(() => {
-		if (!galleryItems.length) {
-			setActiveIndex(0);
-			return;
-		}
+        useEffect(() => {
+                if (!galleryItems.length) {
+                        setActiveIndex(0);
+                        setNavigationDirection(null);
+                        return;
+                }
 
-		setActiveIndex((current) => {
-			if (current > galleryItems.length - 1) {
-				return galleryItems.length - 1;
-			}
+                setNavigationDirection(null);
+                setActiveIndex((current) => {
+                        if (current > galleryItems.length - 1) {
+                                return galleryItems.length - 1;
+                        }
 
 			return current;
 		});
@@ -688,23 +706,25 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 							{isModalOpen
 								? isDesktopViewport
 									? (
-										<DesktopGalleryModal
-											activeIndex={activeIndex}
-											closeModal={closeModal}
-											galleryItems={galleryItems}
-											showNext={showNext}
-											showPrevious={showPrevious}
-											title={title}
+                                                                                <DesktopGalleryModal
+                                                                                        activeIndex={activeIndex}
+                                                                                        closeModal={closeModal}
+                                                                                        direction={navigationDirection}
+                                                                                        galleryItems={galleryItems}
+                                                                                        showNext={showNext}
+                                                                                        showPrevious={showPrevious}
+                                                                                        title={title}
 										/>
 									)
 									: (
-										<MobileGalleryModal
-											activeIndex={activeIndex}
-											closeModal={closeModal}
-											galleryItems={galleryItems}
-											showNext={showNext}
-											showPrevious={showPrevious}
-											title={title}
+                                                                                <MobileGalleryModal
+                                                                                        activeIndex={activeIndex}
+                                                                                        closeModal={closeModal}
+                                                                                        direction={navigationDirection}
+                                                                                        galleryItems={galleryItems}
+                                                                                        showNext={showNext}
+                                                                                        showPrevious={showPrevious}
+                                                                                        title={title}
 										/>
 									)
 							: null}
