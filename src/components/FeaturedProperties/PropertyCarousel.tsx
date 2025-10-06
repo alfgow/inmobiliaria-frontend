@@ -146,11 +146,11 @@ const PropertyCarousel = ({
         return (
           <SwiperSlide key={property.id} className="swiper-slide">
             <div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
-              <div className="relative">
+              <div className="relative aspect-[16/9] md:aspect-auto md:h-56">
                 <img
                   src={property.coverImageUrl}
                   alt={property.title}
-                  className="h-56 w-full object-cover"
+                  className="h-full w-full object-cover"
                 />
                 <span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
                   {statusLabel}
