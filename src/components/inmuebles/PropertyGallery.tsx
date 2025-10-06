@@ -332,14 +332,14 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 						<AnimatePresence>
 							{isModalOpen ? (
 								<motion.div
-									className="property-gallery-modal fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.65),_rgba(15,23,42,0.88))] px-4 py-8 backdrop-blur-3xl sm:items-center sm:py-10"
+									className="property-gallery-modal fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.65),_rgba(15,23,42,0.88))] px-4 py-10 backdrop-blur-3xl"
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									onClick={closeModal}
 								>
-                                                                <motion.div
-                                                                        className="relative mx-auto flex w-full max-w-[min(100vw-2rem,_80rem)] flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:p-10"
+									<motion.div
+										className="relative flex w-full max-w-7xl flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:p-10"
 										initial={{
 											y: 48,
 											opacity: 0,
