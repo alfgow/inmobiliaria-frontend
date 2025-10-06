@@ -329,145 +329,208 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 
 			{isMounted
 				? createPortal(
-						<AnimatePresence>
-							{isModalOpen ? (
-								<motion.div
-									className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0 }}
-									onClick={closeModal}
-									role="dialog"
-									aria-modal="true"
-									aria-label="Galería de imágenes"
-								>
-									<motion.div
-										className="relative flex h-full w-full items-center justify-center"
-										initial={{ scale: 0.9, opacity: 0 }}
-										animate={{ scale: 1, opacity: 1 }}
-										exit={{ scale: 0.9, opacity: 0 }}
-										transition={{
-											duration: 0.3,
-											ease: "easeOut",
-										}}
-										onClick={(event) =>
-											event.stopPropagation()
-										}
-									>
-										<motion.img
-											key={galleryItems[activeIndex]?.url}
-											src={galleryItems[activeIndex]?.url}
-											alt={
-												galleryItems[activeIndex]
-													?.alt ??
-												title ??
-												"Imagen del inmueble"
-											}
-											className="max-h-screen max-w-full cursor-zoom-in object-contain"
-											initial={{ opacity: 0, y: 20 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{
-												duration: 0.4,
-												ease: "easeOut",
-											}}
-										/>
+                                                <AnimatePresence>
+                                                        {isModalOpen ? (
+                                                <motion.div
+                                                        className="property-gallery-modal fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-black/90 px-4 backdrop-blur"
+                                                        style={{
+                                                                paddingTop:
+                                                                        "calc(env(safe-area-inset-top, 0px) + 1.25rem)",
+                                                                paddingBottom:
+                                                                        "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)",
+                                                        }}
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        exit={{ opacity: 0 }}
+                                                        onClick={closeModal}
+                                                        role="dialog"
+                                                        aria-modal="true"
+                                                        aria-label="Galería de imágenes"
+                                                >
+                                                        <motion.div
+                                                                className="relative flex w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-black/75 text-white shadow-2xl ring-1 ring-white/10"
+                                                                style={{
+                                                                        maxHeight:
+                                                                                "calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2.5rem)",
+                                                                }}
+                                                                initial={{ y: 24, opacity: 0.8 }}
+                                                                animate={{ y: 0, opacity: 1 }}
+                                                                exit={{ y: 24, opacity: 0.8 }}
+                                                                transition={{
+                                                                        duration: 0.32,
+                                                                        ease: "easeOut",
+                                                                }}
+                                                                onClick={(event) => event.stopPropagation()}
+                                                        >
+                                                                <header
+                                                                        className="flex items-center justify-between gap-3 px-4 py-3 text-sm md:px-6 md:py-4 md:text-base"
+                                                                        style={{
+                                                                                paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.25rem)",
+                                                                        }}
+                                                                >
+                                                                        <div className="min-w-0 flex-1">
+                                                                                {title ? (
+                                                                                        <h2 className="truncate font-medium tracking-tight">
+                                                                                                {title}
+                                                                                        </h2>
+                                                                                ) : (
+                                                                                        <span className="sr-only">Galería</span>
+                                                                                )}
+                                                                        </div>
+                                                                        <button
+                                                                                type="button"
+                                                                                onClick={closeModal}
+                                                                                className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:h-11 md:w-11"
+                                                                                aria-label="Cerrar galería"
+                                                                        >
+                                                                                <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        className="h-5 w-5"
+                                                                                        fill="none"
+                                                                                        viewBox="0 0 24 24"
+                                                                                        stroke="currentColor"
+                                                                                        strokeWidth={2}
+                                                                                >
+                                                                                        <path
+                                                                                                strokeLinecap="round"
+                                                                                                strokeLinejoin="round"
+                                                                                                d="M6 18L18 6M6 6l12 12"
+                                                                                        />
+                                                                                </svg>
+                                                                        </button>
+                                                                </header>
 
-										{/* Close button - top right */}
-										<button
-											type="button"
-											onClick={closeModal}
-											className="absolute right-4 top-4 z-10 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 md:h-14 md:w-14"
-											aria-label="Cerrar galería"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												className="h-6 w-6 md:h-7 md:w-7"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={2}
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M6 18L18 6M6 6l12 12"
-												/>
-											</svg>
-										</button>
+                                                                <div className="flex flex-1 flex-col">
+                                                                        <div className="relative flex flex-1 items-center justify-center px-4 pb-6">
+                                                                                <motion.img
+                                                                                        key={galleryItems[activeIndex]?.url}
+                                                                                        src={galleryItems[activeIndex]?.url}
+                                                                                        alt={galleryItems[activeIndex]?.alt ?? "Imagen del inmueble"}
+                                                                                        className="h-full w-full max-w-full rounded-2xl object-contain"
+                                                                                        style={{
+                                                                                                backgroundImage: shimmerBackground,
+                                                                                                backgroundSize: "400% 400%",
+                                                                                        }}
+                                                                                        initial={{ opacity: 0, scale: 0.98 }}
+                                                                                        animate={{ opacity: 1, scale: 1 }}
+                                                                                        transition={{ duration: 0.35 }}
+                                                                                />
 
-										{/* Navigation buttons - sides */}
-										{galleryItems.length > 1 && (
-											<>
-												<button
-													type="button"
-													onClick={showPrevious}
-													className="absolute left-4 top-1/2 z-10 inline-flex -translate-y-1/2 transform items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 h-12 w-12 md:h-14 md:w-14"
-													aria-label="Imagen anterior"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-6 w-6 md:h-7 md:w-7"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M15 19l-7-7 7-7"
-														/>
-													</svg>
-												</button>
-												<button
-													type="button"
-													onClick={showNext}
-													className="absolute right-4 top-1/2 z-10 inline-flex -translate-y-1/2 transform items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 h-12 w-12 md:h-14 md:w-14"
-													aria-label="Imagen siguiente"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-6 w-6 md:h-7 md:w-7"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M9 5l7 7-7 7"
-														/>
-													</svg>
-												</button>
-											</>
-										)}
+                                                                                {galleryItems.length > 1 && (
+                                                                                        <div className="pointer-events-none absolute inset-x-0 top-0 hidden justify-between px-6 pt-6 text-sm font-medium text-white/80 md:flex">
+                                                                                                <span>
+                                                                                                        {activeIndex + 1} / {galleryItems.length}
+                                                                                                </span>
+                                                                                                {title ? <span className="line-clamp-1 max-w-xs text-right">{title}</span> : null}
+                                                                                        </div>
+                                                                                )}
 
-										{/* Counter - bottom center, minimal */}
-										{galleryItems.length > 1 && (
-											<div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 transform rounded-full bg-black/50 px-4 py-2 text-center text-sm font-medium text-white backdrop-blur-sm md:text-base">
-												{activeIndex + 1} /{" "}
-												{galleryItems.length}
-											</div>
-										)}
+                                                                                {galleryItems.length > 1 && (
+                                                                                        <>
+                                                                                                <button
+                                                                                                        type="button"
+                                                                                                        onClick={showPrevious}
+                                                                                                        className="absolute left-3 top-1/2 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:flex h-12 w-12 lg:left-6 lg:h-14 lg:w-14"
+                                                                                                        aria-label="Imagen anterior"
+                                                                                                >
+                                                                                                        <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                className="h-6 w-6"
+                                                                                                                fill="none"
+                                                                                                                viewBox="0 0 24 24"
+                                                                                                                stroke="currentColor"
+                                                                                                                strokeWidth={2}
+                                                                                                        >
+                                                                                                                <path
+                                                                                                                        strokeLinecap="round"
+                                                                                                                        strokeLinejoin="round"
+                                                                                                                        d="M15 19l-7-7 7-7"
+                                                                                                                />
+                                                                                                        </svg>
+                                                                                                </button>
+                                                                                                <button
+                                                                                                        type="button"
+                                                                                                        onClick={showNext}
+                                                                                                        className="absolute right-3 top-1/2 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:flex h-12 w-12 lg:right-6 lg:h-14 lg:w-14"
+                                                                                                        aria-label="Imagen siguiente"
+                                                                                                >
+                                                                                                        <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                className="h-6 w-6"
+                                                                                                                fill="none"
+                                                                                                                viewBox="0 0 24 24"
+                                                                                                                stroke="currentColor"
+                                                                                                                strokeWidth={2}
+                                                                                                        >
+                                                                                                                <path
+                                                                                                                        strokeLinecap="round"
+                                                                                                                        strokeLinejoin="round"
+                                                                                                                        d="M9 5l7 7-7 7"
+                                                                                                                />
+                                                                                                        </svg>
+                                                                                                </button>
+                                                                                        </>
+                                                                                )}
+                                                                        </div>
 
-										{/* Title - top left on desktop only */}
-										{title && (
-											<div className="absolute left-4 top-4 z-10 hidden max-w-xs truncate text-white md:block">
-												<h2 className="text-lg font-semibold">
-													{title}
-												</h2>
-											</div>
-										)}
-									</motion.div>
-								</motion.div>
-							) : null}
-						</AnimatePresence>,
-						document.body
-				  )
-				: null}
-		</motion.section>
-	);
-};
+                                                                        {galleryItems.length > 1 && (
+                                                                                <footer
+                                                                                        className="flex items-center justify-between gap-4 px-4 pb-4 text-sm"
+                                                                                        style={{
+                                                                                                paddingBottom:
+                                                                                                        "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)",
+                                                                                        }}
+                                                                                >
+                                                                                        <button
+                                                                                                type="button"
+                                                                                                onClick={showPrevious}
+                                                                                                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
+                                                                                                aria-label="Imagen anterior"
+                                                                                        >
+                                                                                                <svg
+                                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                                        className="h-5 w-5"
+                                                                                                        fill="none"
+                                                                                                        viewBox="0 0 24 24"
+                                                                                                        stroke="currentColor"
+                                                                                                        strokeWidth={2}
+                                                                                                >
+                                                                                                        <path
+                                                                                                                strokeLinecap="round"
+                                                                                                                strokeLinejoin="round"
+                                                                                                                d="M15 19l-7-7 7-7"
+                                                                                                        />
+                                                                                                </svg>
+                                                                                        </button>
 
-export default PropertyGallery;
+                                                                                        <span className="flex-1 text-center font-medium text-white/90 md:hidden">
+                                                                                                {activeIndex + 1} / {galleryItems.length}
+                                                                                        </span>
+
+                                                                                        <button
+                                                                                                type="button"
+                                                                                                onClick={showNext}
+                                                                                                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:hidden"
+                                                                                                aria-label="Imagen siguiente"
+                                                                                        >
+                                                                                                <svg
+                                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                                        className="h-5 w-5"
+                                                                                                        fill="none"
+                                                                                                        viewBox="0 0 24 24"
+                                                                                                        stroke="currentColor"
+                                                                                                        strokeWidth={2}
+                                                                                                >
+                                                                                                        <path
+                                                                                                                strokeLinecap="round"
+                                                                                                                strokeLinejoin="round"
+                                                                                                                d="M9 5l7 7-7 7"
+                                                                                                        />
+                                                                                                </svg>
+                                                                                        </button>
+                                                                                </footer>
+                                                                        )}
+                                                                </div>
+                                                        </motion.div>
+                                                </motion.div>
+                                        ) : null}
