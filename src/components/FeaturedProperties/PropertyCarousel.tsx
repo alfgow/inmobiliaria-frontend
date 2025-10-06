@@ -87,7 +87,7 @@ const PropertyCarousel = ({
 	}, [navigationPrevRef, navigationNextRef, paginationRef]);
 
 	return (
-		<Swiper
+                <Swiper
 			modules={[Navigation, Pagination]}
 			className="swiper mySwiper"
 			spaceBetween={30}
@@ -132,7 +132,7 @@ const PropertyCarousel = ({
 				swiperRef.current = swiper;
 			}}
 		>
-			{properties.map((property) => {
+                        {properties.map((property) => {
 				const formattedPrice = Number.isFinite(property.price)
 					? currencyFormatter.format(property.price)
 					: "Consultar";
@@ -151,9 +151,12 @@ const PropertyCarousel = ({
 
 				const detailsLine = detailsLineItems.join(" · ");
 
-				return (
-					<SwiperSlide key={property.id} className="swiper-slide">
-						<div className="card-3d flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
+                                return (
+                                        <SwiperSlide
+                                                key={property.id}
+                                                className="swiper-slide flex justify-center"
+                                        >
+                                                <div className="card-3d flex h-full w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
 							<div className="relative aspect-[16/9] md:aspect-auto md:h-56">
 								<img
 									src={property.coverImageUrl}
