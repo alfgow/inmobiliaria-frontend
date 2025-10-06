@@ -338,8 +338,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									exit={{ opacity: 0 }}
 									onClick={closeModal}
 								>
-									<motion.div
-										className="relative flex w-full max-w-7xl flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl sm:max-h-[calc(100vh-4rem)] sm:p-10"
+                                                                <motion.div
+                                                                        className="relative mx-auto flex w-full max-w-[min(100vw-2rem,_80rem)] flex-col items-center gap-8 rounded-[36px] bg-white/5 p-6 shadow-[0_45px_85px_-20px_rgba(15,23,42,0.75)] backdrop-blur-xl max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-4rem)] sm:p-10"
 										initial={{
 											y: 48,
 											opacity: 0,
