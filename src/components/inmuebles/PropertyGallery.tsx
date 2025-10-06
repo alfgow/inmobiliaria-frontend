@@ -422,7 +422,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 
                                                                                         <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 sm:px-6">
                                                                                                 <button
-                                                                                                        ref={previousButtonRef}
+                                                                                                        ref={prevButtonRef}
                                                                                                         type="button"
                                                                                                         onClick={showPrevious}
                                                                                                         className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur transition hover:bg-white/30"
