@@ -18,42 +18,397 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { NavigationOptions } from "swiper/types";
 
 type GalleryImage = {
-	url: string;
-	alt?: string | null;
+        url: string;
+        alt?: string | null;
 };
 
 type PropertyGalleryProps = {
-	images?: GalleryImage[] | null;
-	title?: string | null;
+        images?: GalleryImage[] | null;
+        title?: string | null;
 };
 
 const shimmerBackground =
-	"linear-gradient(120deg, rgba(124,58,237,0.25), rgba(210,255,30,0.35), rgba(124,58,237,0.25))";
+        "linear-gradient(120deg, rgba(124,58,237,0.25), rgba(210,255,30,0.35), rgba(124,58,237,0.25))";
+
+type GalleryModalContentProps = {
+        activeIndex: number;
+        closeModal: () => void;
+        galleryItems: GalleryImage[];
+        showNext: () => void;
+        showPrevious: () => void;
+        title?: string | null;
+};
+
+const DesktopGalleryModal = ({
+        activeIndex,
+        closeModal,
+        galleryItems,
+        showNext,
+        showPrevious,
+        title,
+}: GalleryModalContentProps) => {
+        return (
+                <motion.div
+                        className="property-gallery-modal fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-black/95"
+                        style={{
+                                paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.25rem)",
+                                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)",
+                                paddingLeft: "calc(env(safe-area-inset-left, 0px) + 1rem)",
+                                paddingRight: "calc(env(safe-area-inset-right, 0px) + 1rem)",
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={closeModal}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Galería de imágenes"
+                >
+                        <motion.div
+                                className="relative flex h-full w-full max-h-[calc(100svh-2.5rem)] max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-black/75 shadow-[0_45px_120px_-40px_rgba(15,23,42,0.9)] backdrop-blur"
+                                initial={{ scale: 0.96, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.96, opacity: 0 }}
+                                transition={{
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                }}
+                                onClick={(event) => event.stopPropagation()}
+                        >
+                                <header className="flex items-start justify-between gap-4 border-b border-white/10 px-4 py-4 text-white sm:px-6 sm:py-5">
+                                        <div className="min-w-0 space-y-1">
+                                                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
+                                                        Galería
+                                                </p>
+                                                {title && (
+                                                        <h2 className="truncate text-lg font-semibold sm:text-xl">{title}</h2>
+                                                )}
+                                        </div>
+
+                                        <button
+                                                type="button"
+                                                onClick={closeModal}
+                                                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                                                aria-label="Cerrar galería"
+                                        >
+                                                <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        strokeWidth={2}
+                                                >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                        </button>
+                                </header>
+
+                                <div className="relative flex flex-1 items-center justify-center bg-gradient-to-b from-black/30 via-black/50 to-black/70 px-3 py-6 sm:px-8 sm:py-10">
+                                        <motion.img
+                                                key={galleryItems[activeIndex]?.url}
+                                                src={galleryItems[activeIndex]?.url}
+                                                alt={
+                                                        galleryItems[activeIndex]?.alt ??
+                                                        title ??
+                                                        "Imagen del inmueble"
+                                                }
+                                                className="max-h-full w-full max-w-full cursor-zoom-in object-contain"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{
+                                                        duration: 0.4,
+                                                        ease: "easeOut",
+                                                }}
+                                        />
+
+                                        {galleryItems.length > 1 && (
+                                                <>
+                                                        <button
+                                                                type="button"
+                                                                onClick={showPrevious}
+                                                                className="absolute left-4 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 sm:flex h-12 w-12 md:left-6 md:h-14 md:w-14"
+                                                                aria-label="Imagen anterior"
+                                                        >
+                                                                <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        className="h-6 w-6 md:h-7 md:w-7"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth={2}
+                                                                >
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                                                </svg>
+                                                        </button>
+                                                        <button
+                                                                type="button"
+                                                                onClick={showNext}
+                                                                className="absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 sm:flex h-12 w-12 md:right-6 md:h-14 md:w-14"
+                                                                aria-label="Imagen siguiente"
+                                                        >
+                                                                <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        className="h-6 w-6 md:h-7 md:w-7"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth={2}
+                                                                >
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                        </button>
+                                                </>
+                                        )}
+
+                                        {galleryItems.length > 1 && (
+                                                <div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 transform rounded-full bg-black/60 px-4 py-2 text-center text-sm font-medium text-white backdrop-blur sm:block md:text-base">
+                                                        {activeIndex + 1} / {galleryItems.length}
+                                                </div>
+                                        )}
+                                </div>
+
+                                {galleryItems.length > 1 && (
+                                        <footer className="flex items-center justify-between gap-6 border-t border-white/10 px-4 py-4 text-white sm:hidden">
+                                                <button
+                                                        type="button"
+                                                        onClick={showPrevious}
+                                                        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                                                        aria-label="Imagen anterior"
+                                                >
+                                                        <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                                strokeWidth={2}
+                                                        >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                </button>
+
+                                                <div className="text-sm font-medium">
+                                                        {activeIndex + 1} / {galleryItems.length}
+                                                </div>
+
+                                                <button
+                                                        type="button"
+                                                        onClick={showNext}
+                                                        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                                                        aria-label="Imagen siguiente"
+                                                >
+                                                        <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                                strokeWidth={2}
+                                                        >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                </button>
+                                        </footer>
+                                )}
+                        </motion.div>
+                </motion.div>
+        );
+};
+
+const MobileGalleryModal = ({
+        activeIndex,
+        closeModal,
+        galleryItems,
+        showNext,
+        showPrevious,
+        title,
+}: GalleryModalContentProps) => {
+        return (
+                <motion.div
+                        className="property-gallery-modal-mobile fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-white/20 backdrop-blur-2xl"
+                        style={{
+                                paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+                                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                                paddingLeft: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
+                                paddingRight: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={closeModal}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Galería de imágenes"
+                >
+                        <motion.div
+                                className="relative flex h-full w-full max-h-[calc(100svh-2rem)] max-w-[min(90vw,420px)] flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white/85 text-[var(--text-dark)] shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl"
+                                initial={{ scale: 0.96, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.96, opacity: 0 }}
+                                transition={{
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                }}
+                                onClick={(event) => event.stopPropagation()}
+                        >
+                                <header className="flex items-start justify-between gap-4 border-b border-white/60 px-4 py-4">
+                                        <div className="min-w-0 space-y-1">
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--indigo)] opacity-80">
+                                                        Galería
+                                                </p>
+                                                {title && (
+                                                        <h2 className="truncate text-lg font-semibold text-[var(--text-dark)]">
+                                                                {title}
+                                                        </h2>
+                                                )}
+                                        </div>
+
+                                        <button
+                                                type="button"
+                                                onClick={closeModal}
+                                                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(15,23,42,0.25)]"
+                                                aria-label="Cerrar galería"
+                                        >
+                                                <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        strokeWidth={2}
+                                                >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                        </button>
+                                </header>
+
+                                <div className="relative flex flex-1 items-center justify-center bg-gradient-to-b from-white/60 via-white/80 to-white px-4 py-6">
+                                        <motion.img
+                                                key={galleryItems[activeIndex]?.url}
+                                                src={galleryItems[activeIndex]?.url}
+                                                alt={
+                                                        galleryItems[activeIndex]?.alt ??
+                                                        title ??
+                                                        "Imagen del inmueble"
+                                                }
+                                                className="max-h-full w-full max-w-full rounded-2xl bg-white object-contain shadow-[0_12px_28px_-18px_rgba(15,23,42,0.35)]"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{
+                                                        duration: 0.4,
+                                                        ease: "easeOut",
+                                                }}
+                                        />
+
+                                        {galleryItems.length > 1 && (
+                                                <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 transform items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium text-[var(--text-dark)] shadow-md">
+                                                        {activeIndex + 1} / {galleryItems.length}
+                                                </div>
+                                        )}
+                                </div>
+
+                                {galleryItems.length > 1 && (
+                                        <footer className="flex items-center justify-between gap-4 border-t border-white/60 px-4 py-4">
+                                                <button
+                                                        type="button"
+                                                        onClick={showPrevious}
+                                                        className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)]"
+                                                        aria-label="Imagen anterior"
+                                                >
+                                                        <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                                strokeWidth={2}
+                                                        >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                </button>
+
+                                                <div className="text-sm font-semibold text-[var(--text-dark)]">
+                                                        {activeIndex + 1} / {galleryItems.length}
+                                                </div>
+
+                                                <button
+                                                        type="button"
+                                                        onClick={showNext}
+                                                        className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.08)] text-[var(--text-dark)] transition hover:bg-[rgba(15,23,42,0.16)]"
+                                                        aria-label="Imagen siguiente"
+                                                >
+                                                        <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                                strokeWidth={2}
+                                                        >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                </button>
+                                        </footer>
+                                )}
+                        </motion.div>
+                </motion.div>
+        );
+};
 
 const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
-	const galleryItems = useMemo(() => {
-		return (images ?? [])
-			.map((image) => ({
-				url: image?.url ?? "",
-				alt: image?.alt ?? title ?? "Imagen del inmueble",
-			}))
-			.filter((image) => Boolean(image.url));
-	}, [images, title]);
+        const galleryItems = useMemo(() => {
+                return (images ?? [])
+                        .map((image) => ({
+                                url: image?.url ?? "",
+                                alt: image?.alt ?? title ?? "Imagen del inmueble",
+                        }))
+                        .filter((image) => Boolean(image.url));
+        }, [images, title]);
 
-	const thumbnailPrevButtonRef = useRef<HTMLButtonElement>(null);
-	const thumbnailNextButtonRef = useRef<HTMLButtonElement>(null);
-	const swiperRef = useRef<SwiperInstance | null>(null);
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [activeIndex, setActiveIndex] = useState(0);
-	const [isMounted, setIsMounted] = useState(false);
+        const thumbnailPrevButtonRef = useRef<HTMLButtonElement>(null);
+        const thumbnailNextButtonRef = useRef<HTMLButtonElement>(null);
+        const swiperRef = useRef<SwiperInstance | null>(null);
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [activeIndex, setActiveIndex] = useState(0);
+        const [isMounted, setIsMounted] = useState(false);
+        const [isDesktopViewport, setIsDesktopViewport] = useState(false);
 
-	useEffect(() => {
-		setIsMounted(true);
+        useEffect(() => {
+                setIsMounted(true);
 
-		return () => {
-			setIsMounted(false);
-		};
-	}, []);
+                return () => {
+                        setIsMounted(false);
+                };
+        }, []);
+
+        useEffect(() => {
+                if (typeof window === "undefined") {
+                        return;
+                }
+
+                const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+                const handleChange = (event: MediaQueryListEvent) => {
+                        setIsDesktopViewport(event.matches);
+                };
+
+                setIsDesktopViewport(mediaQuery.matches);
+
+                if (typeof mediaQuery.addEventListener === "function") {
+                        mediaQuery.addEventListener("change", handleChange);
+
+                        return () => {
+                                mediaQuery.removeEventListener("change", handleChange);
+                        };
+                }
+
+                mediaQuery.addListener(handleChange);
+
+                return () => {
+                        mediaQuery.removeListener(handleChange);
+                };
+        }, []);
 
 	const openModal = useCallback((index: number) => {
 		setActiveIndex(index);
@@ -330,210 +685,29 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 			{isMounted
 				? createPortal(
 						<AnimatePresence>
-							{isModalOpen ? (
-								<motion.div
-									className="property-gallery-modal fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-black/95"
-									style={{
-										paddingTop:
-											"calc(env(safe-area-inset-top, 0px) + 1.25rem)",
-										paddingBottom:
-											"calc(env(safe-area-inset-bottom, 0px) + 1.25rem)",
-										paddingLeft:
-											"calc(env(safe-area-inset-left, 0px) + 1rem)",
-										paddingRight:
-											"calc(env(safe-area-inset-right, 0px) + 1rem)",
-									}}
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0 }}
-									onClick={closeModal}
-									role="dialog"
-									aria-modal="true"
-									aria-label="Galería de imágenes"
-								>
-									<motion.div
-										className="relative flex h-full w-full max-h-[calc(100svh-2.5rem)] max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-black/75 shadow-[0_45px_120px_-40px_rgba(15,23,42,0.9)] backdrop-blur"
-										initial={{ scale: 0.96, opacity: 0 }}
-										animate={{ scale: 1, opacity: 1 }}
-										exit={{ scale: 0.96, opacity: 0 }}
-										transition={{
-											duration: 0.3,
-											ease: "easeOut",
-										}}
-										onClick={(event) =>
-											event.stopPropagation()
-										}
-									>
-										<header className="flex items-start justify-between gap-4 border-b border-white/10 px-4 py-4 text-white sm:px-6 sm:py-5">
-											<div className="min-w-0 space-y-1">
-												<p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
-													Galería
-												</p>
-												{title && (
-													<h2 className="truncate text-lg font-semibold sm:text-xl">
-														{title}
-													</h2>
-												)}
-											</div>
-
-											<button
-												type="button"
-												onClick={closeModal}
-												className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-												aria-label="Cerrar galería"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													className="h-5 w-5"
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
-													strokeWidth={2}
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M6 18L18 6M6 6l12 12"
-													/>
-												</svg>
-											</button>
-										</header>
-
-										<div className="relative flex flex-1 items-center justify-center bg-gradient-to-b from-black/30 via-black/50 to-black/70 px-3 py-6 sm:px-8 sm:py-10">
-											<motion.img
-												key={
-													galleryItems[activeIndex]
-														?.url
-												}
-												src={
-													galleryItems[activeIndex]
-														?.url
-												}
-												alt={
-													galleryItems[activeIndex]
-														?.alt ??
-													title ??
-													"Imagen del inmueble"
-												}
-												className="max-h-full w-full max-w-full cursor-zoom-in object-contain"
-												initial={{ opacity: 0, y: 20 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{
-													duration: 0.4,
-													ease: "easeOut",
-												}}
-											/>
-
-											{galleryItems.length > 1 && (
-												<>
-													<button
-														type="button"
-														onClick={showPrevious}
-														className="absolute left-4 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 sm:flex h-12 w-12 md:left-6 md:h-14 md:w-14"
-														aria-label="Imagen anterior"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															className="h-6 w-6 md:h-7 md:w-7"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															strokeWidth={2}
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																d="M15 19l-7-7 7-7"
-															/>
-														</svg>
-													</button>
-													<button
-														type="button"
-														onClick={showNext}
-														className="absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 transform items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:bg-white/25 sm:flex h-12 w-12 md:right-6 md:h-14 md:w-14"
-														aria-label="Imagen siguiente"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															className="h-6 w-6 md:h-7 md:w-7"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															strokeWidth={2}
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																d="M9 5l7 7-7 7"
-															/>
-														</svg>
-													</button>
-												</>
-											)}
-
-											{galleryItems.length > 1 && (
-												<div className="absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 transform rounded-full bg-black/60 px-4 py-2 text-center text-sm font-medium text-white backdrop-blur sm:block md:text-base">
-													{activeIndex + 1} /{" "}
-													{galleryItems.length}
-												</div>
-											)}
-										</div>
-
-										{galleryItems.length > 1 && (
-											<footer className="flex items-center justify-between gap-6 border-t border-white/10 px-4 py-4 text-white sm:hidden">
-												<button
-													type="button"
-													onClick={showPrevious}
-													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
-													aria-label="Imagen anterior"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M15 19l-7-7 7-7"
-														/>
-													</svg>
-												</button>
-
-												<div className="text-sm font-medium">
-													{activeIndex + 1} /{" "}
-													{galleryItems.length}
-												</div>
-
-												<button
-													type="button"
-													onClick={showNext}
-													className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
-													aria-label="Imagen siguiente"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														className="h-5 w-5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M9 5l7 7-7 7"
-														/>
-													</svg>
-												</button>
-											</footer>
-										)}
-									</motion.div>
-								</motion.div>
-							) : null}
+							{isModalOpen
+								? isDesktopViewport
+									? (
+										<DesktopGalleryModal
+											activeIndex={activeIndex}
+											closeModal={closeModal}
+											galleryItems={galleryItems}
+											showNext={showNext}
+											showPrevious={showPrevious}
+											title={title}
+										/>
+									)
+									: (
+										<MobileGalleryModal
+											activeIndex={activeIndex}
+											closeModal={closeModal}
+											galleryItems={galleryItems}
+											showNext={showNext}
+											showPrevious={showPrevious}
+											title={title}
+										/>
+									)
+							: null}
 						</AnimatePresence>,
 
 						document.body
