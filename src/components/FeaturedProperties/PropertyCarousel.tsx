@@ -29,10 +29,10 @@ export interface Property {
 }
 
 interface PropertyCarouselProps {
-        properties: Property[];
-        navigationPrevRef: RefObject<HTMLButtonElement | null>;
-        navigationNextRef: RefObject<HTMLButtonElement | null>;
-        paginationRef: RefObject<HTMLDivElement | null>;
+	properties: Property[];
+	navigationPrevRef: RefObject<HTMLButtonElement | null>;
+	navigationNextRef: RefObject<HTMLButtonElement | null>;
+	paginationRef: RefObject<HTMLDivElement | null>;
 }
 
 const PropertyCarousel = ({
@@ -42,18 +42,26 @@ const PropertyCarousel = ({
 	paginationRef,
 }: PropertyCarouselProps) => {
 	const swiperRef = useRef<SwiperInstance | null>(null);
-	const shouldLoop = properties.length > 3;
+	const totalProperties = properties.length;
+	const shouldLoop = totalProperties > 3;
+	const slidesPerViewFor = (desired: number) => {
+		if (totalProperties <= 0) {
+			return 1;
+		}
 
-        useEffect(() => {
-                const swiper = swiperRef.current;
+		return Math.min(desired, totalProperties);
+	};
 
-                if (!swiper) {
-                        return;
-                }
+	useEffect(() => {
+		const swiper = swiperRef.current;
 
-                if (swiper.params.loop !== shouldLoop) {
-                        swiper.params.loop = shouldLoop;
-                }
+		if (!swiper) {
+			return;
+		}
+
+		if (swiper.params.loop !== shouldLoop) {
+			swiper.params.loop = shouldLoop;
+		}
 
 		if (
 			swiper.params.navigation &&
@@ -88,16 +96,16 @@ const PropertyCarousel = ({
 			swiper.pagination.render();
 			swiper.pagination.update();
 		}
-        }, [shouldLoop, navigationPrevRef, navigationNextRef, paginationRef]);
+	}, [shouldLoop, navigationPrevRef, navigationNextRef, paginationRef]);
 
 	return (
-                <Swiper
+		<Swiper
 			modules={[Navigation, Pagination]}
 			className="swiper mySwiper"
 			spaceBetween={30}
 			slidesPerView={1}
 			loop={shouldLoop}
-			centeredSlides={properties.length < 3}
+			centeredSlides={properties.length < 2}
 			centerInsufficientSlides
 			navigation={{
 				prevEl: navigationPrevRef.current,
@@ -109,10 +117,10 @@ const PropertyCarousel = ({
 			}}
 			breakpoints={{
 				768: {
-					slidesPerView: 2,
+					slidesPerView: slidesPerViewFor(2),
 				},
 				1024: {
-					slidesPerView: 3,
+					slidesPerView: slidesPerViewFor(3),
 				},
 			}}
 			onBeforeInit={(swiper) => {
@@ -128,21 +136,21 @@ const PropertyCarousel = ({
 					navigation.nextEl = navigationNextRef.current;
 				}
 
-                                if (
-                                        swiper.params.pagination &&
-                                        typeof swiper.params.pagination !== "boolean"
-                                ) {
-                                        const pagination = swiper.params.pagination;
+				if (
+					swiper.params.pagination &&
+					typeof swiper.params.pagination !== "boolean"
+				) {
+					const pagination = swiper.params.pagination;
 
-                                        pagination.el = paginationRef.current;
-                                        pagination.clickable = true;
-                                }
-                        }}
+					pagination.el = paginationRef.current;
+					pagination.clickable = true;
+				}
+			}}
 			onSwiper={(swiper) => {
 				swiperRef.current = swiper;
 			}}
 		>
-                        {properties.map((property) => {
+			{properties.map((property) => {
 				const formattedPrice = Number.isFinite(property.price)
 					? currencyFormatter.format(property.price)
 					: "Consultar";
@@ -161,12 +169,12 @@ const PropertyCarousel = ({
 
 				const detailsLine = detailsLineItems.join(" · ");
 
-                                return (
-                                        <SwiperSlide
-                                                key={property.id}
-                                                className="swiper-slide flex justify-center"
-                                        >
-                                                <div className="card-3d flex h-full w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
+				return (
+					<SwiperSlide
+						key={property.id}
+						className="swiper-slide flex justify-center"
+					>
+						<div className="card-3d flex h-full w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
 							<div className="relative aspect-[16/9] md:aspect-auto md:h-56">
 								<img
 									src={property.coverImageUrl}
