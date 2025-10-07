@@ -91,12 +91,16 @@ html.gallery-modal-open body {
 }
 
 .swiper-slide {
-	z-index: 50;
+        z-index: 50;
+}
+
+.swiper.two-slides .swiper-wrapper {
+        justify-content: center;
 }
 
 .card-3d {
-	transform-style: preserve-3d;
-	transition: transform 0.4s ease, box-shadow 0.4s ease;
+        transform-style: preserve-3d;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .card-3d:hover {
