@@ -98,8 +98,6 @@ const PropertyCarousel = ({
 
         if (totalProperties === 1) {
                 swiperClassName.push("mx-auto max-w-sm");
-        } else if (totalProperties === 2) {
-                swiperClassName.push("mx-auto max-w-4xl");
         }
 
         return (
