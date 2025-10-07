@@ -44,7 +44,8 @@ const PropertyCarousel = ({
         const swiperRef = useRef<SwiperInstance | null>(null);
         const totalProperties = properties.length;
         const shouldLoop = totalProperties > 3;
-        const enableNavigation = totalProperties > 2;
+        const enableNavigation = totalProperties > 3;
+        const allowSwipe = totalProperties > 1;
         const slidesPerViewFor = (desired: number) => {
                 if (totalProperties <= 0) {
                         return 1;
@@ -124,6 +125,7 @@ const PropertyCarousel = ({
                                           }
                                         : false
                         }
+                        allowTouchMove={allowSwipe}
 			pagination={{
 				el: paginationRef.current,
 				clickable: true,

@@ -15,7 +15,7 @@ const FeaturedProperties = () => {
     [apiProperties],
   );
   const totalProperties = properties.length;
-  const showDesktopNavigation = totalProperties > 2;
+  const showDesktopNavigation = totalProperties > 3;
 
   return (
     <section id="propiedades" className="py-20">
@@ -87,7 +87,10 @@ const FeaturedProperties = () => {
         </div>
 
         <div className="mt-8 flex justify-center md:hidden">
-          <div ref={paginationRef} className="swiper-pagination !static" />
+          <div
+            ref={paginationRef}
+            className={`swiper-pagination !static ${totalProperties <= 1 ? "hidden" : ""}`}
+          />
         </div>
       </div>
     </section>
