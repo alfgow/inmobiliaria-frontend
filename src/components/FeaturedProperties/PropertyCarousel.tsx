@@ -29,10 +29,10 @@ export interface Property {
 }
 
 interface PropertyCarouselProps {
-	properties: Property[];
-	navigationPrevRef: RefObject<HTMLButtonElement>;
-	navigationNextRef: RefObject<HTMLButtonElement>;
-	paginationRef: RefObject<HTMLDivElement>;
+        properties: Property[];
+        navigationPrevRef: RefObject<HTMLButtonElement | null>;
+        navigationNextRef: RefObject<HTMLButtonElement | null>;
+        paginationRef: RefObject<HTMLDivElement | null>;
 }
 
 const PropertyCarousel = ({
