@@ -14,8 +14,6 @@ const FeaturedProperties = () => {
     () => mapPropertiesFromApi(apiProperties),
     [apiProperties],
   );
-  const totalProperties = properties.length;
-  const showDesktopNavigation = totalProperties > 2;
 
   return (
     <section id="propiedades" className="py-20">
@@ -38,7 +36,7 @@ const FeaturedProperties = () => {
               </div>
             )}
 
-            {!isLoading && !error && totalProperties === 0 && (
+            {!isLoading && !error && properties.length === 0 && (
               <div className="flex h-56 items-center justify-center">
                 <p className="text-gray-500">
                   No hay propiedades destacadas disponibles por ahora.
@@ -46,7 +44,7 @@ const FeaturedProperties = () => {
               </div>
             )}
 
-            {!isLoading && !error && totalProperties > 0 && (
+            {!isLoading && !error && properties.length > 0 && (
               <PropertyCarousel
                 properties={properties}
                 navigationPrevRef={prevRef}
@@ -58,7 +56,7 @@ const FeaturedProperties = () => {
 
           <button
             ref={prevRef}
-            className={`nav-prev absolute -left-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md ${showDesktopNavigation ? "md:flex" : "md:hidden"}`}
+            className="nav-prev absolute -left-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md md:flex"
             aria-label="Ver propiedad anterior"
             type="button"
           >
@@ -72,7 +70,7 @@ const FeaturedProperties = () => {
           </button>
           <button
             ref={nextRef}
-            className={`nav-next absolute -right-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md ${showDesktopNavigation ? "md:flex" : "md:hidden"}`}
+            className="nav-next absolute -right-16 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[var(--indigo)] shadow-xl transition hover:bg-[var(--lime)] hover:text-black backdrop-blur-md md:flex"
             aria-label="Ver siguiente propiedad"
             type="button"
           >
