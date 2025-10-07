@@ -41,10 +41,9 @@ const PropertyCarousel = ({
 	navigationNextRef,
 	paginationRef,
 }: PropertyCarouselProps) => {
-        const swiperRef = useRef<SwiperInstance | null>(null);
+	const swiperRef = useRef<SwiperInstance | null>(null);
         const totalProperties = properties.length;
         const shouldLoop = totalProperties > 3;
-        const enableNavigation = totalProperties > 2;
         const slidesPerViewFor = (desired: number) => {
                 if (totalProperties <= 0) {
                         return 1;
@@ -60,25 +59,22 @@ const PropertyCarousel = ({
 			return;
 		}
 
-                if (
-                        enableNavigation &&
-                        swiper.params.navigation &&
-                        typeof swiper.params.navigation !== "boolean" &&
-                        navigationPrevRef.current &&
-                        navigationNextRef.current
-                ) {
-                        swiper.params.navigation = {
-                                ...(swiper.params.navigation as NavigationOptions),
-                                prevEl: navigationPrevRef.current,
-                                nextEl: navigationNextRef.current,
-                        };
+		if (
+			swiper.params.navigation &&
+			typeof swiper.params.navigation !== "boolean" &&
+			navigationPrevRef.current &&
+			navigationNextRef.current
+		) {
+			swiper.params.navigation = {
+				...(swiper.params.navigation as NavigationOptions),
+				prevEl: navigationPrevRef.current,
+				nextEl: navigationNextRef.current,
+			};
 
-                        swiper.navigation.destroy();
-                        swiper.navigation.init();
-                        swiper.navigation.update();
-                } else if (!enableNavigation && swiper.navigation) {
-                        swiper.navigation.destroy();
-                }
+			swiper.navigation.destroy();
+			swiper.navigation.init();
+			swiper.navigation.update();
+		}
 
 		if (
 			swiper.params.pagination &&
@@ -96,7 +92,7 @@ const PropertyCarousel = ({
 			swiper.pagination.render();
 			swiper.pagination.update();
 		}
-        }, [enableNavigation, navigationPrevRef, navigationNextRef, paginationRef]);
+	}, [navigationPrevRef, navigationNextRef, paginationRef]);
 
         const swiperClassName = ["swiper mySwiper"];
 
@@ -104,26 +100,21 @@ const PropertyCarousel = ({
                 swiperClassName.push("mx-auto max-w-sm");
         } else if (totalProperties === 2) {
                 swiperClassName.push("mx-auto max-w-4xl");
-                swiperClassName.push("two-slides");
         }
 
         return (
                 <Swiper
-                        modules={enableNavigation ? [Navigation, Pagination] : [Pagination]}
+                        modules={[Navigation, Pagination]}
                         className={swiperClassName.join(" ")}
 			spaceBetween={30}
 			slidesPerView={1}
 			loop={shouldLoop}
 			centeredSlides={properties.length < 3}
 			centerInsufficientSlides
-                        navigation={
-                                enableNavigation
-                                        ? {
-                                                  prevEl: navigationPrevRef.current,
-                                                  nextEl: navigationNextRef.current,
-                                          }
-                                        : false
-                        }
+			navigation={{
+				prevEl: navigationPrevRef.current,
+				nextEl: navigationNextRef.current,
+			}}
 			pagination={{
 				el: paginationRef.current,
 				clickable: true,
@@ -139,18 +130,15 @@ const PropertyCarousel = ({
 			onBeforeInit={(swiper) => {
 				swiperRef.current = swiper;
 
-                                if (
-                                        enableNavigation &&
-                                        swiper.params.navigation &&
-                                        typeof swiper.params.navigation !== "boolean"
-                                ) {
-                                        const navigation = swiper.params.navigation;
+				if (
+					swiper.params.navigation &&
+					typeof swiper.params.navigation !== "boolean"
+				) {
+					const navigation = swiper.params.navigation;
 
-                                        navigation.prevEl = navigationPrevRef.current;
-                                        navigation.nextEl = navigationNextRef.current;
-                                } else if (!enableNavigation) {
-                                        swiper.params.navigation = false;
-                                }
+					navigation.prevEl = navigationPrevRef.current;
+					navigation.nextEl = navigationNextRef.current;
+				}
 
 				if (typeof swiper.params.pagination !== "boolean") {
 					swiper.params.pagination.el = paginationRef.current;
