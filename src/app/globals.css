@@ -74,20 +74,20 @@ html.gallery-modal-open body {
 }
 
 .swiper-container {
-	position: relative;
-	overflow: visible;
-	padding: 0;
-	border-radius: 0;
-	background: transparent;
+        position: relative;
+        overflow: hidden;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
 }
 
 .swiper {
-	overflow: visible !important;
-	padding: 0;
+        overflow: hidden;
+        padding: 0;
 }
 
 .swiper-wrapper {
-	overflow: visible !important;
+        overflow: hidden;
 }
 
 .swiper-slide {
@@ -96,6 +96,14 @@ html.gallery-modal-open body {
 
 .swiper.two-slides .swiper-wrapper {
         justify-content: center;
+}
+
+@media (min-width: 768px) {
+        .swiper-container,
+        .swiper,
+        .swiper-wrapper {
+                overflow: visible;
+        }
 }
 
 .card-3d {
