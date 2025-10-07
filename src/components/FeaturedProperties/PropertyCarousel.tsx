@@ -42,15 +42,7 @@ const PropertyCarousel = ({
 	paginationRef,
 }: PropertyCarouselProps) => {
 	const swiperRef = useRef<SwiperInstance | null>(null);
-        const totalProperties = properties.length;
-        const shouldLoop = totalProperties > 3;
-        const slidesPerViewFor = (desired: number) => {
-                if (totalProperties <= 0) {
-                        return 1;
-                }
-
-                return Math.min(desired, totalProperties);
-        };
+	const shouldLoop = properties.length > 3;
 
 	useEffect(() => {
 		const swiper = swiperRef.current;
@@ -111,14 +103,14 @@ const PropertyCarousel = ({
 				el: paginationRef.current,
 				clickable: true,
 			}}
-                        breakpoints={{
-                                768: {
-                                        slidesPerView: slidesPerViewFor(2),
-                                },
-                                1024: {
-                                        slidesPerView: slidesPerViewFor(3),
-                                },
-                        }}
+			breakpoints={{
+				768: {
+					slidesPerView: 2,
+				},
+				1024: {
+					slidesPerView: 3,
+				},
+			}}
 			onBeforeInit={(swiper) => {
 				swiperRef.current = swiper;
 
