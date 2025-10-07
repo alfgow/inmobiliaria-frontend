@@ -94,10 +94,16 @@ const PropertyCarousel = ({
 		}
 	}, [navigationPrevRef, navigationNextRef, paginationRef]);
 
-	return (
+        const swiperClassName = ["swiper mySwiper"];
+
+        if (totalProperties === 1) {
+                swiperClassName.push("mx-auto max-w-sm");
+        }
+
+        return (
                 <Swiper
-			modules={[Navigation, Pagination]}
-			className="swiper mySwiper"
+                        modules={[Navigation, Pagination]}
+                        className={swiperClassName.join(" ")}
 			spaceBetween={30}
 			slidesPerView={1}
 			loop={shouldLoop}
