@@ -44,12 +44,16 @@ const PropertyCarousel = ({
 	const swiperRef = useRef<SwiperInstance | null>(null);
 	const shouldLoop = properties.length > 3;
 
-	useEffect(() => {
-		const swiper = swiperRef.current;
+        useEffect(() => {
+                const swiper = swiperRef.current;
 
-		if (!swiper) {
-			return;
-		}
+                if (!swiper) {
+                        return;
+                }
+
+                if (swiper.params.loop !== shouldLoop) {
+                        swiper.params.loop = shouldLoop;
+                }
 
 		if (
 			swiper.params.navigation &&
@@ -84,7 +88,7 @@ const PropertyCarousel = ({
 			swiper.pagination.render();
 			swiper.pagination.update();
 		}
-	}, [navigationPrevRef, navigationNextRef, paginationRef]);
+        }, [shouldLoop, navigationPrevRef, navigationNextRef, paginationRef]);
 
 	return (
                 <Swiper
