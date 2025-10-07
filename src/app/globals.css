@@ -87,11 +87,15 @@ html.gallery-modal-open body {
 }
 
 .swiper-wrapper {
-	overflow: visible !important;
+        overflow: visible !important;
 }
 
 .swiper-slide {
-	z-index: 50;
+        z-index: 50;
+}
+
+.featured-properties .featured-properties-wrapper-centered {
+        justify-content: center;
 }
 
 .card-3d {

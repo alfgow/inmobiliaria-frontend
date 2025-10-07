@@ -42,8 +42,9 @@ const PropertyCarousel = ({
 	paginationRef,
 }: PropertyCarouselProps) => {
 	const swiperRef = useRef<SwiperInstance | null>(null);
-	const totalProperties = properties.length;
-	const shouldLoop = totalProperties > 3;
+        const totalProperties = properties.length;
+        const shouldLoop = totalProperties > 3;
+        const shouldCenterSlides = totalProperties <= 2;
 	const slidesPerViewFor = (desired: number) => {
 		if (totalProperties <= 0) {
 			return 1;
@@ -99,9 +100,10 @@ const PropertyCarousel = ({
 	}, [shouldLoop, navigationPrevRef, navigationNextRef, paginationRef]);
 
 	return (
-		<Swiper
-			modules={[Navigation, Pagination]}
-			className="swiper mySwiper"
+                <Swiper
+                        modules={[Navigation, Pagination]}
+                        className={`swiper mySwiper w-full ${shouldCenterSlides ? "md:mx-auto md:max-w-5xl" : ""}`}
+                        wrapperClass={shouldCenterSlides ? "featured-properties-wrapper-centered" : undefined}
 			spaceBetween={30}
 			slidesPerView={1}
 			loop={shouldLoop}
