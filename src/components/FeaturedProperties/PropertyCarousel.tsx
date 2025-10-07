@@ -128,10 +128,16 @@ const PropertyCarousel = ({
 					navigation.nextEl = navigationNextRef.current;
 				}
 
-				if (typeof swiper.params.pagination !== "boolean") {
-					swiper.params.pagination.el = paginationRef.current;
-				}
-			}}
+                                if (
+                                        swiper.params.pagination &&
+                                        typeof swiper.params.pagination !== "boolean"
+                                ) {
+                                        const pagination = swiper.params.pagination;
+
+                                        pagination.el = paginationRef.current;
+                                        pagination.clickable = true;
+                                }
+                        }}
 			onSwiper={(swiper) => {
 				swiperRef.current = swiper;
 			}}
