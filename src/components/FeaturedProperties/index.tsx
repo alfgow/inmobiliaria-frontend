@@ -22,8 +22,8 @@ const FeaturedProperties = () => {
           Propiedades Destacadas
         </h2>
 
-        <div className="featured-properties relative mx-auto flex max-w-6xl flex-col items-center ">
-          <div className="swiper-container w-full border border-red-500 ">
+        <div className="featured-properties relative mx-auto flex max-w-6xl flex-col items-center">
+          <div className="swiper-container w-full">
             {isLoading && (
               <div className="flex h-56 items-center justify-center">
                 <p className="text-gray-500">Cargando propiedades…</p>
