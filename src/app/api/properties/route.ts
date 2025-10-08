@@ -148,7 +148,9 @@ export async function GET() {
           createdAt: inmueble.createdAt
             ? inmueble.createdAt.toISOString()
             : null,
-          updatedAt: inmueble.updatedAt.toISOString(),
+          updatedAt: inmueble.updatedAt
+            ? inmueble.updatedAt.toISOString()
+            : null,
         };
       }),
     );
