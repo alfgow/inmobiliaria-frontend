@@ -2,6 +2,8 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextResponse } from 'next/server';
 
+import type { Prisma } from '@prisma/client';
+
 import { prisma } from '@/lib/prisma';
 import { PUBLIC_BUCKET, s3Client } from '@/lib/s3';
 
@@ -17,6 +19,38 @@ const normalizeSlug = (value?: string | null) => {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+};
+
+type ImageMetadata = {
+  title: string | null;
+  description: string | null;
+  isCover: boolean;
+  isPublic: boolean;
+};
+
+const parseImageMetadata = (metadata: Prisma.JsonValue | null | undefined): ImageMetadata => {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return {
+      title: null,
+      description: null,
+      isCover: false,
+      isPublic: true,
+    };
+  }
+
+  const data = metadata as Record<string, unknown>;
+
+  const title = typeof data.title === 'string' ? data.title : null;
+  const description = typeof data.description === 'string' ? data.description : null;
+  const isCover = typeof data.isCover === 'boolean' ? data.isCover : false;
+  const isPublic = typeof data.isPublic === 'boolean' ? data.isPublic : true;
+
+  return {
+    title,
+    description,
+    isCover,
+    isPublic,
+  };
 };
 
 export async function GET() {
@@ -40,6 +74,7 @@ export async function GET() {
         const images = await Promise.all(
           (inmueble.imagenes ?? []).map(async (imagen) => {
             let signedUrl: string | null = null;
+            const metadata = parseImageMetadata(imagen.metadata);
 
             if (imagen.s3Key && PUBLIC_BUCKET) {
               try {
@@ -61,11 +96,11 @@ export async function GET() {
 
             return {
               id: imagen.id.toString(),
-              title: imagen.titulo,
-              description: imagen.descripcion,
+              title: metadata.title,
+              description: metadata.description,
               order: imagen.orden,
-              isCover: imagen.esPortada,
-              isPublic: imagen.esPublica,
+              isCover: metadata.isCover,
+              isPublic: metadata.isPublic,
               s3Key: imagen.s3Key,
               signedUrl,
             };
