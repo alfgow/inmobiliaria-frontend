@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
 import type { Swiper as SwiperInstance } from "swiper";
@@ -93,12 +94,12 @@ const PropertyCarousel = ({
 				swiper.navigation.update();
 			}
 		} else {
-			if (swiper.navigation) {
-				try {
-					swiper.navigation.destroy();
-				} catch {}
-			}
-			swiper.params.navigation = false as any;
+                        if (swiper.navigation) {
+                                try {
+                                        swiper.navigation.destroy();
+                                } catch {}
+                        }
+                        swiper.params.navigation = false;
 		}
 
 		// Pagination dinámica (solo si hay 2+ propiedades)
@@ -117,18 +118,18 @@ const PropertyCarousel = ({
 				swiper.pagination.init();
 				swiper.pagination.render();
 				swiper.pagination.update();
-				paginationRef.current.style.display = ""; // visible
-			}
-		} else {
-			// ocultar bullets si solo hay 1
-			if (paginationRef.current)
-				paginationRef.current.style.display = "none";
-			if (swiper.pagination) {
-				try {
-					swiper.pagination.destroy();
-				} catch {}
-			}
-			swiper.params.pagination = false as any;
+                                paginationRef.current.style.display = ""; // visible
+                        }
+                } else {
+                        // ocultar bullets si solo hay 1
+                        if (paginationRef.current)
+                                paginationRef.current.style.display = "none";
+                        if (swiper.pagination) {
+                                try {
+                                        swiper.pagination.destroy();
+                                } catch {}
+                        }
+                        swiper.params.pagination = false;
 		}
 
 		swiper.update();
@@ -160,46 +161,46 @@ const PropertyCarousel = ({
 			centeredSlidesBounds
 			centerInsufficientSlides
 			watchOverflow
-			navigation={
-				showNav
-					? {
-							prevEl: navigationPrevRef.current,
-							nextEl: navigationNextRef.current,
-					  }
-					: false
-			}
-			pagination={
-				showPagination
-					? {
-							el: paginationRef.current,
-							clickable: true,
-					  }
-					: false
-			}
+                        navigation={
+                                showNav
+                                        ? {
+                                                  prevEl: navigationPrevRef.current,
+                                                  nextEl: navigationNextRef.current,
+                                          }
+                                        : false
+                        }
+                        pagination={
+                                showPagination
+                                        ? {
+                                                  el: paginationRef.current,
+                                                  clickable: true,
+                                          }
+                                        : false
+                        }
 			onBeforeInit={(swiper) => {
 				swiperRef.current = swiper;
 
-				if (
-					showNav &&
-					swiper.params.navigation &&
-					typeof swiper.params.navigation !== "boolean"
-				) {
-					swiper.params.navigation.prevEl = navigationPrevRef.current;
-					swiper.params.navigation.nextEl = navigationNextRef.current;
-				} else {
-					swiper.params.navigation = false as any;
-				}
+                                if (
+                                        showNav &&
+                                        swiper.params.navigation &&
+                                        typeof swiper.params.navigation !== "boolean"
+                                ) {
+                                        swiper.params.navigation.prevEl = navigationPrevRef.current;
+                                        swiper.params.navigation.nextEl = navigationNextRef.current;
+                                } else {
+                                        swiper.params.navigation = false;
+                                }
 
-				if (
-					showPagination &&
-					swiper.params.pagination &&
-					typeof swiper.params.pagination !== "boolean"
-				) {
-					swiper.params.pagination.el = paginationRef.current;
-					swiper.params.pagination.clickable = true;
-				} else {
-					swiper.params.pagination = false as any;
-				}
+                                if (
+                                        showPagination &&
+                                        swiper.params.pagination &&
+                                        typeof swiper.params.pagination !== "boolean"
+                                ) {
+                                        swiper.params.pagination.el = paginationRef.current;
+                                        swiper.params.pagination.clickable = true;
+                                } else {
+                                        swiper.params.pagination = false;
+                                }
 			}}
 			onSwiper={(swiper) => {
 				swiperRef.current = swiper;
@@ -225,13 +226,14 @@ const PropertyCarousel = ({
 					>
 						<div className="card-3d w-full md:w-[22rem] lg:w-[24rem] h-full flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
 							{/* Imagen con alto uniforme: relación 16:9 en todos los breakpoints */}
-							<div className="relative w-full aspect-[16/9] overflow-hidden">
-								<img
-									src={property.coverImageUrl}
-									alt={property.title}
-									className="absolute inset-0 h-full w-full object-cover"
-									loading="lazy"
-								/>
+                                                        <div className="relative w-full aspect-[16/9] overflow-hidden">
+                                                                <Image
+                                                                        fill
+                                                                        src={property.coverImageUrl}
+                                                                        alt={property.title}
+                                                                        className="object-cover"
+                                                                        sizes="(max-width: 768px) 100vw, 352px"
+                                                                />
 								<span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
 									{statusLabel}
 								</span>

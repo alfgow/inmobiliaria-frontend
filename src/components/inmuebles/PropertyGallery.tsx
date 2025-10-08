@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -44,12 +45,17 @@ type GalleryModalContentProps = {
 const DesktopGalleryModal = ({
         activeIndex,
         closeModal,
-        direction: _direction,
         galleryItems,
         showNext,
         showPrevious,
         title,
 }: GalleryModalContentProps) => {
+        const activeImage = galleryItems[activeIndex];
+
+        if (!activeImage) {
+                return null;
+        }
+
         return (
                 <motion.div
                         className="property-gallery-modal fixed inset-0 z-50 flex min-h-[100svh] w-full items-center justify-center bg-black/95"
@@ -108,22 +114,26 @@ const DesktopGalleryModal = ({
                                 </header>
 
                                 <div className="relative flex flex-1 items-center justify-center bg-gradient-to-b from-black/30 via-black/50 to-black/70 px-3 py-6 sm:px-8 sm:py-10">
-                                        <motion.img
-                                                key={galleryItems[activeIndex]?.url}
-                                                src={galleryItems[activeIndex]?.url}
-                                                alt={
-                                                        galleryItems[activeIndex]?.alt ??
-                                                        title ??
-                                                        "Imagen del inmueble"
-                                                }
-                                                className="max-h-full w-full max-w-full cursor-zoom-in object-contain"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{
-                                                        duration: 0.4,
-                                                        ease: "easeOut",
-                                                }}
-                                        />
+                                        {activeImage && (
+                                                <motion.div
+                                                        key={activeImage.url}
+                                                        className="relative flex h-full w-full items-center justify-center"
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{
+                                                                duration: 0.4,
+                                                                ease: "easeOut",
+                                                        }}
+                                                >
+                                                        <Image
+                                                                fill
+                                                                src={activeImage.url}
+                                                                alt={activeImage.alt ?? title ?? "Imagen del inmueble"}
+                                                                className="object-contain"
+                                                                sizes="(max-width: 1024px) 90vw, 960px"
+                                                        />
+                                                </motion.div>
+                                        )}
 
                                         {galleryItems.length > 1 && (
                                                 <>
@@ -489,25 +499,26 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 									}
 								}}
 							>
-								<motion.div
-									className="w-full overflow-hidden aspect-[16/11] sm:aspect-[16/9]"
-									whileHover={{ scale: 1.03 }}
-									transition={{ duration: 0.4 }}
-								>
-									<img
-										src={image.url}
-										alt={
-											image.alt ??
-											title ??
-											"Imagen del inmueble"
-										}
-										className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-										style={{
-											background: shimmerBackground,
-										}}
-										loading="lazy"
-									/>
-								</motion.div>
+                                                                <motion.div
+                                                                        className="relative w-full overflow-hidden aspect-[16/11] sm:aspect-[16/9]"
+                                                                        whileHover={{ scale: 1.03 }}
+                                                                        transition={{ duration: 0.4 }}
+                                                                >
+                                                                        <Image
+                                                                                fill
+                                                                                src={image.url}
+                                                                                alt={
+                                                                                        image.alt ??
+                                                                                        title ??
+                                                                                        "Imagen del inmueble"
+                                                                                }
+                                                                                className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                                                                                style={{
+                                                                                        background: shimmerBackground,
+                                                                                }}
+                                                                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 70vw, 960px"
+                                                                        />
+                                                                </motion.div>
 								<motion.div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 							</motion.figure>
 						</SwiperSlide>

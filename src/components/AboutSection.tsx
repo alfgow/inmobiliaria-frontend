@@ -5,9 +5,17 @@ import { Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Review = {
-	displayName: string;
-	comment?: string;
-	starRating?: number;
+        displayName: string;
+        comment?: string;
+        starRating?: number;
+};
+
+type RawReview = {
+        reviewer?: {
+                displayName?: string;
+        };
+        comment?: string | null;
+        starRating?: number | string | null;
 };
 
 const AboutSection = () => {
@@ -31,49 +39,49 @@ const AboutSection = () => {
 				if (!response.ok) {
 					throw new Error("No fue posible obtener las reseñas");
 				}
-				const data = await response.json();
-				const rawReviews = Array.isArray(data?.reviews)
-					? data.reviews
-					: data?.reviews ?? [];
+                                const data: unknown = await response.json();
+                                const reviewsPayload = (data as { reviews?: unknown }).reviews;
+                                const maybeReviewArray = Array.isArray(reviewsPayload)
+                                        ? reviewsPayload
+                                        : Array.isArray(data)
+                                                ? data
+                                                : [];
+                                const rawReviews = maybeReviewArray.filter(
+                                        (item): item is RawReview => typeof item === "object" && item !== null
+                                );
 
-				const ratingMap: Record<string, number> = {
-					ONE: 1,
+                                const ratingMap: Record<string, number> = {
+                                        ONE: 1,
 					TWO: 2,
 					THREE: 3,
 					FOUR: 4,
 					FIVE: 5,
 				};
 
-				const mappedReviews: Review[] = Array.isArray(rawReviews)
-					? rawReviews
-							.map((item: any) => {
-								const displayName = item?.reviewer?.displayName;
-								const comment = item?.comment;
-								const starRatingValue = item?.starRating;
+                                const mappedReviews: Review[] = rawReviews
+                                        .map((item) => {
+                                                const displayName = item.reviewer?.displayName;
+                                                const comment = item.comment ?? undefined;
+                                                const starRatingValue = item.starRating;
 
-								let starRating: number | undefined;
-								if (typeof starRatingValue === "string") {
-									starRating =
-										ratingMap[
-											starRatingValue.toUpperCase()
-										];
-								} else if (
-									typeof starRatingValue === "number"
-								) {
-									starRating = Math.max(
-										1,
-										Math.min(5, starRatingValue)
-									);
-								}
+                                                let starRating: number | undefined;
+                                                if (typeof starRatingValue === "string") {
+                                                        starRating = ratingMap[starRatingValue.toUpperCase()];
+                                                } else if (typeof starRatingValue === "number") {
+                                                        starRating = Math.max(1, Math.min(5, starRatingValue));
+                                                }
 
-								return {
-									displayName,
-									comment,
-									starRating,
-								};
-							})
-							.filter((item) => item.displayName)
-					: [];
+                                                if (!displayName) {
+                                                        return null;
+                                                }
+
+                                                return {
+                                                        displayName,
+                                                        comment,
+                                                        starRating,
+                                                };
+                                        })
+                                        .filter((item): item is Review => Boolean(item));
 
 				const shuffledReviews = mappedReviews
 					.map((item) => ({ item, sortKey: Math.random() }))
