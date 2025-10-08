@@ -24,21 +24,23 @@ type PropertyPageProps = {
 };
 
 const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
-  return (property?.imagenes ?? [])
-    .map((image) => {
-      const imageMetadata = (image.metadata ?? {}) as { alt?: string };
-      const url = image.signedUrl ?? image.url ?? image.path;
+  const openGraphImages = (property?.imagenes ?? []).flatMap((image) => {
+    const imageMetadata = (image.metadata ?? {}) as { alt?: string };
+    const url = image.signedUrl ?? image.url ?? image.path;
 
-      if (!url) {
-        return null;
-      }
+    if (!url) {
+      return [] as const;
+    }
 
-      return {
+    return [
+      {
         url,
         alt: imageMetadata?.alt ?? property?.titulo ?? "Imagen del inmueble",
-      };
-    })
-    .filter((image: { url: string } | null): image is { url: string; alt?: string } => Boolean(image));
+      },
+    ] as const;
+  });
+
+  return openGraphImages.length > 0 ? openGraphImages : undefined;
 };
 
 export async function generateStaticParams() {
