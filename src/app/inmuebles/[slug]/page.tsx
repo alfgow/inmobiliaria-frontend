@@ -9,7 +9,7 @@ import PropertyHighlights from "@/components/inmuebles/PropertyHighlights";
 import InterestForm from "@/components/inmuebles/InterestForm";
 import PropertyMap from "@/components/inmuebles/PropertyMap";
 import { prisma } from "@/lib/prisma";
-import { getPropertyBySlug } from "@/lib/properties";
+import { getPropertyBySlug, type ImageWithSignedUrl, type PropertyWithSignedImages } from "@/lib/properties";
 
 export const revalidate = 60;
 
@@ -23,9 +23,9 @@ type PropertyPageProps = {
       }>;
 };
 
-const buildOpenGraphImages = (property: any) => {
+const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
   return (property?.imagenes ?? [])
-    .map((image: any) => {
+    .map((image) => {
       const imageMetadata = (image.metadata ?? {}) as { alt?: string };
       const url = image.signedUrl ?? image.url ?? image.path;
 
@@ -44,11 +44,11 @@ const buildOpenGraphImages = (property: any) => {
 export async function generateStaticParams() {
   const properties = await prisma.inmueble.findMany({
     select: { slug: true },
-    where: { slug: { not: null } } as any,
-  } as any);
+    where: { slug: { not: null } },
+  });
 
-  return (properties ?? [])
-    .map((property: any) => property?.slug)
+  return properties
+    .map((property) => property.slug)
     .filter((slug: string | null | undefined): slug is string => Boolean(slug))
     .map((slug) => ({ slug }));
 }
@@ -97,7 +97,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
 
   const statusName = property.estatus?.nombre ?? "Sin estatus";
   const images = (property.imagenes ?? [])
-    .map((image) => ({
+    .map((image: ImageWithSignedUrl) => ({
       url: image?.signedUrl ?? image?.url ?? image?.path ?? "",
       alt: (image?.metadata as { alt?: string } | null)?.alt ?? property.titulo ?? "Imagen del inmueble",
     }))

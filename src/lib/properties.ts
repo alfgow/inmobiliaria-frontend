@@ -21,14 +21,14 @@ const propertyInclude = Prisma.validator<Prisma.InmuebleInclude>()({
         },
 });
 
-type PropertyWithRelations = Prisma.InmuebleGetPayload<{ include: typeof propertyInclude }>;
-type MetadataRecord = Record<string, unknown>;
+export type PropertyWithRelations = Prisma.InmuebleGetPayload<{ include: typeof propertyInclude }>;
+export type MetadataRecord = Record<string, unknown>;
 type PropertyWithMetadata = PropertyWithRelations & { metadata?: MetadataRecord[] };
-type ImageWithSignedUrl = Omit<InmuebleImagen, "url"> & {
+export type ImageWithSignedUrl = Omit<InmuebleImagen, "url"> & {
         url: string | null;
         signedUrl: string | null;
 };
-type PropertyWithSignedImages = Omit<PropertyWithMetadata, "imagenes"> & {
+export type PropertyWithSignedImages = Omit<PropertyWithMetadata, "imagenes"> & {
         imagenes: ImageWithSignedUrl[];
 };
 
