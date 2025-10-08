@@ -5,10 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Swiper as SwiperInstance } from "swiper";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import "@/styles/swiper-bundle.css";
 import {
         Autoplay,
         EffectCoverflow,
