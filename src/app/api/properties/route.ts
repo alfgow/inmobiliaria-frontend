@@ -3,7 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
-import { S3_PUBLIC_BUCKET, s3Client } from '@/lib/s3';
+import { PUBLIC_BUCKET, s3Client } from '@/lib/s3';
 
 const normalizeSlug = (value?: string | null) => {
   if (!value) {
@@ -41,12 +41,12 @@ export async function GET() {
           (inmueble.imagenes ?? []).map(async (imagen) => {
             let signedUrl: string | null = null;
 
-            if (imagen.s3Key && S3_PUBLIC_BUCKET) {
+            if (imagen.s3Key && PUBLIC_BUCKET) {
               try {
                 signedUrl = await getSignedUrl(
                   s3Client,
                   new GetObjectCommand({
-                    Bucket: S3_PUBLIC_BUCKET,
+                    Bucket: PUBLIC_BUCKET,
                     Key: imagen.s3Key,
                   }),
                   { expiresIn: 3600 },
