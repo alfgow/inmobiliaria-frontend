@@ -118,7 +118,7 @@ export async function GET() {
           price: inmueble.precio.toNumber(),
           address: inmueble.direccion,
           neighborhood: inmueble.colonia,
-          city: inmueble.ciudad,
+          city: inmueble.municipio,
           state: inmueble.estado,
           postalCode: inmueble.codigoPostal,
           location: {
