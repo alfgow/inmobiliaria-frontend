@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 type GalleryImage = {
@@ -44,9 +45,14 @@ const MobileGalleryModal = ({
 	showPrevious,
 	title,
 }: MobileGalleryModalProps) => {
-	const activeDirection = direction ?? "next";
+        const activeDirection = direction ?? "next";
+        const activeImage = galleryItems[activeIndex];
 
-	return (
+        if (!activeImage) {
+                return null;
+        }
+
+        return (
 		<motion.div
 			className="property-gallery-modal-mobile fixed inset-0 z-50 flex min-h-[100svh] w-full bg-black/95"
 			style={{
@@ -105,48 +111,46 @@ const MobileGalleryModal = ({
 				</header>
 
 				<div className="relative flex flex-1 items-center justify-center overflow-hidden">
-					<AnimatePresence
-						initial={false}
-						custom={activeDirection}
-						mode="wait"
-					>
-						<motion.img
-							key={galleryItems[activeIndex]?.url}
-							src={galleryItems[activeIndex]?.url}
-							alt={
-								galleryItems[activeIndex]?.alt ??
-								title ??
-								"Imagen del inmueble"
-							}
-							className="max-h-full w-full max-w-full select-none object-contain"
-							custom={activeDirection}
-							variants={imageVariants}
-							initial="enter"
-							animate="center"
-							exit="exit"
-							transition={{
-								type: "spring",
-								stiffness: 400,
-								damping: 32,
-							}}
-							drag="x"
-							dragConstraints={{ left: 0, right: 0 }}
-							dragElastic={0.2}
-							onDragEnd={(_, info) => {
-								if (
-									info.offset.x < -80 ||
-									info.velocity.x < -0.5
-								) {
-									showNext();
-								} else if (
-									info.offset.x > 80 ||
-									info.velocity.x > 0.5
-								) {
-									showPrevious();
-								}
-							}}
-						/>
-					</AnimatePresence>
+                                        <AnimatePresence initial={false} custom={activeDirection} mode="wait">
+                                                <motion.div
+                                                        key={activeImage.url}
+                                                        className="relative h-full w-full max-h-full max-w-full"
+                                                        custom={activeDirection}
+                                                        variants={imageVariants}
+                                                        initial="enter"
+                                                        animate="center"
+                                                        exit="exit"
+                                                        transition={{
+                                                                type: "spring",
+                                                                stiffness: 400,
+                                                                damping: 32,
+                                                        }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                                if (
+                                                                        info.offset.x < -80 ||
+                                                                        info.velocity.x < -0.5
+                                                                ) {
+                                                                        showNext();
+                                                                } else if (
+                                                                        info.offset.x > 80 ||
+                                                                        info.velocity.x > 0.5
+                                                                ) {
+                                                                        showPrevious();
+                                                                }
+                                                        }}
+                                                >
+                                                        <Image
+                                                                fill
+                                                                src={activeImage.url}
+                                                                alt={activeImage.alt ?? title ?? "Imagen del inmueble"}
+                                                                className="select-none object-contain"
+                                                                sizes="100vw"
+                                                        />
+                                                </motion.div>
+                                        </AnimatePresence>
 
 					{galleryItems.length > 1 && (
 						<>

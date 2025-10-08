@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { FALLBACK_IMAGE } from "@/components/FeaturedProperties/useProperties";
@@ -53,12 +54,18 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
   const imageWrapperClasses = isListMode
     ? "relative w-full shrink-0 aspect-[4/3] md:h-full md:w-5/12 md:aspect-auto"
     : "relative w-full shrink-0 aspect-[4/3]";
-  const imageClasses = "h-full w-full object-cover";
+  const imageClasses = "object-cover";
 
   return (
     <article className={articleClasses}>
       <div className={imageWrapperClasses}>
-        <img src={imageUrl} alt={property.title} className={imageClasses} />
+        <Image
+          fill
+          src={imageUrl}
+          alt={property.title}
+          className={imageClasses}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
 
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-semibold text-black">
