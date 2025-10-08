@@ -2,7 +2,7 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { prisma } from "./prisma";
-import { S3_PUBLIC_BUCKET, s3Client } from "@/lib/s3";
+import { PUBLIC_BUCKET, s3Client } from "@/lib/s3";
 
 export interface GetPropertyBySlugParams {
   slug: string;
@@ -61,12 +61,12 @@ const attachSignedUrls = async <
     (property.imagenes ?? []).map(async (imagen) => {
       let signedUrl: string | null = null;
 
-      if (imagen?.s3Key && S3_PUBLIC_BUCKET) {
+      if (imagen?.s3Key && PUBLIC_BUCKET) {
         try {
           signedUrl = await getSignedUrl(
             s3Client,
             new GetObjectCommand({
-              Bucket: S3_PUBLIC_BUCKET,
+              Bucket: PUBLIC_BUCKET,
               Key: imagen.s3Key,
             }),
             { expiresIn: 3600 },

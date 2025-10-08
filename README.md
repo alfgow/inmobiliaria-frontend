@@ -4,9 +4,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Set the following variables to enable image delivery from Amazon S3:
 
-- `AWS_REGION`: AWS region where your public bucket lives.
-- `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`: credentials with read access to the bucket.
-- `S3_PUBLIC_BUCKET`: name of the S3 bucket that stores public property images.
+- `REGION`: AWS region where your public bucket lives.
+- `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY`: credentials with read access to the bucket.
+- `PUBLIC_BUCKET`: name of the S3 bucket that stores public property images.
 
 When a signed URL cannot be generated or an image key is missing, the UI will fall back to the default image defined by `FALLBACK_IMAGE`.
 
