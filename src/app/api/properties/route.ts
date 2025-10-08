@@ -145,7 +145,9 @@ export async function GET() {
               }
             : null,
           images,
-          createdAt: inmueble.createdAt.toISOString(),
+          createdAt: inmueble.createdAt
+            ? inmueble.createdAt.toISOString()
+            : null,
           updatedAt: inmueble.updatedAt.toISOString(),
         };
       }),
