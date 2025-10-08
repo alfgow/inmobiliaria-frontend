@@ -62,15 +62,24 @@ const attachMetadata = async (
                 return property;
         }
 
-        const metadata = await metadataDelegate.findMany({
-                where: { inmuebleId: property.id },
-                orderBy: [{ orden: "asc" }],
-        });
+        try {
+                const metadata = await metadataDelegate.findMany({
+                        where: { inmuebleId: property.id },
+                        orderBy: [{ orden: "asc" }],
+                });
 
-        return {
-                ...property,
-                metadata,
-        };
+                return {
+                        ...property,
+                        metadata,
+                };
+        } catch (error) {
+                console.error(
+                        `Error fetching metadata for property ${property.id?.toString?.() ?? "unknown"}`,
+                        error
+                );
+
+                return property;
+        }
 };
 
 const attachSignedUrls = async (
@@ -119,24 +128,35 @@ const attachSignedUrls = async (
 };
 
 export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams): Promise<PropertyWithSignedImages | null> => {
-        const propertyBySlug = await prisma.inmueble.findUnique({
-                where: { slug },
-                include: propertyInclude,
-        });
+        try {
+                const propertyBySlug = await prisma.inmueble.findUnique({
+                        where: { slug },
+                        include: propertyInclude,
+                });
 
-        if (propertyBySlug || id === undefined) {
-                const propertyWithMetadata = await attachMetadata(propertyBySlug);
+                if (propertyBySlug || id === undefined) {
+                        const propertyWithMetadata = await attachMetadata(propertyBySlug);
+
+                        return attachSignedUrls(propertyWithMetadata);
+                }
+
+                const normalizedId = normalizeId(id);
+                const propertyById = await prisma.inmueble.findUnique({
+                        where: { id: normalizedId },
+                        include: propertyInclude,
+                });
+
+                const propertyWithMetadata = await attachMetadata(propertyById);
 
                 return attachSignedUrls(propertyWithMetadata);
+        } catch (error) {
+                console.error(
+                        `Error fetching property data for slug "${slug}"${
+                                id !== undefined ? ` or id "${id}"` : ""
+                        }`,
+                        error
+                );
+
+                return null;
         }
-
-        const normalizedId = normalizeId(id);
-        const propertyById = await prisma.inmueble.findUnique({
-                where: { id: normalizedId },
-                include: propertyInclude,
-        });
-
-        const propertyWithMetadata = await attachMetadata(propertyById);
-
-        return attachSignedUrls(propertyWithMetadata);
 };

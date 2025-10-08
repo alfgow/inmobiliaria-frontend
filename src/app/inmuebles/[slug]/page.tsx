@@ -44,15 +44,21 @@ const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
 };
 
 export async function generateStaticParams() {
-  const properties = await prisma.inmueble.findMany({
-    select: { slug: true },
-    where: { slug: { not: null } },
-  });
+  try {
+    const properties = await prisma.inmueble.findMany({
+      select: { slug: true },
+      where: { slug: { not: null } },
+    });
 
-  return properties
-    .map((property) => property.slug)
-    .filter((slug: string | null | undefined): slug is string => Boolean(slug))
-    .map((slug) => ({ slug }));
+    return properties
+      .map((property) => property.slug)
+      .filter((slug: string | null | undefined): slug is string => Boolean(slug))
+      .map((slug) => ({ slug }));
+  } catch (error) {
+    console.error("Error generating static params for properties", error);
+
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
