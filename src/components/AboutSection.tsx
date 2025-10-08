@@ -81,7 +81,7 @@ const AboutSection = () => {
                                                         starRating,
                                                 };
                                         })
-                                        .filter((item): item is Review => Boolean(item));
+                                        .filter((item): item is Review => item !== null);
 
 				const shuffledReviews = mappedReviews
 					.map((item) => ({ item, sortKey: Math.random() }))
