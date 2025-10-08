@@ -42,110 +42,163 @@ const PropertyCarousel = ({
 	paginationRef,
 }: PropertyCarouselProps) => {
 	const swiperRef = useRef<SwiperInstance | null>(null);
-        const totalProperties = properties.length;
-        const shouldLoop = totalProperties > 3;
-        const shouldCenterSlides = totalProperties <= 2;
-	const slidesPerViewFor = (desired: number) => {
-		if (totalProperties <= 0) {
-			return 1;
-		}
 
-		return Math.min(desired, totalProperties);
-	};
+	const totalProperties = properties.length;
+	const showNav = totalProperties > 3; // flechas solo con 4+
+	const shouldLoop = totalProperties > 3; // loop solo con 4+
+	const showPagination = totalProperties > 1; // bullets solo si hay 2+
 
 	useEffect(() => {
 		const swiper = swiperRef.current;
+		if (!swiper) return;
 
-		if (!swiper) {
-			return;
+		// Mostrar/ocultar flechas externas
+		if (navigationPrevRef.current) {
+			navigationPrevRef.current.style.display = showNav ? "" : "none";
+			navigationPrevRef.current.setAttribute(
+				"aria-hidden",
+				showNav ? "false" : "true"
+			);
+			navigationPrevRef.current.tabIndex = showNav ? 0 : -1;
+		}
+		if (navigationNextRef.current) {
+			navigationNextRef.current.style.display = showNav ? "" : "none";
+			navigationNextRef.current.setAttribute(
+				"aria-hidden",
+				showNav ? "false" : "true"
+			);
+			navigationNextRef.current.tabIndex = showNav ? 0 : -1;
 		}
 
+		// Loop dinámico
 		if (swiper.params.loop !== shouldLoop) {
 			swiper.params.loop = shouldLoop;
 		}
 
-		if (
-			swiper.params.navigation &&
-			typeof swiper.params.navigation !== "boolean" &&
-			navigationPrevRef.current &&
-			navigationNextRef.current
-		) {
-			swiper.params.navigation = {
-				...(swiper.params.navigation as NavigationOptions),
-				prevEl: navigationPrevRef.current,
-				nextEl: navigationNextRef.current,
-			};
-
-			swiper.navigation.destroy();
-			swiper.navigation.init();
-			swiper.navigation.update();
+		// Navigation dinámico
+		if (showNav) {
+			if (
+				swiper.params.navigation &&
+				typeof swiper.params.navigation !== "boolean" &&
+				navigationPrevRef.current &&
+				navigationNextRef.current
+			) {
+				swiper.params.navigation = {
+					...(swiper.params.navigation as NavigationOptions),
+					prevEl: navigationPrevRef.current,
+					nextEl: navigationNextRef.current,
+				};
+				swiper.navigation.destroy();
+				swiper.navigation.init();
+				swiper.navigation.update();
+			}
+		} else {
+			if (swiper.navigation) {
+				try {
+					swiper.navigation.destroy();
+				} catch {}
+			}
+			swiper.params.navigation = false as any;
 		}
 
-		if (
-			swiper.params.pagination &&
-			typeof swiper.params.pagination !== "boolean" &&
-			paginationRef.current
-		) {
-			swiper.params.pagination = {
-				...(swiper.params.pagination as PaginationOptions),
-				el: paginationRef.current,
-				clickable: true,
-			};
-
-			swiper.pagination.destroy();
-			swiper.pagination.init();
-			swiper.pagination.render();
-			swiper.pagination.update();
+		// Pagination dinámica (solo si hay 2+ propiedades)
+		if (showPagination) {
+			if (
+				swiper.params.pagination &&
+				typeof swiper.params.pagination !== "boolean" &&
+				paginationRef.current
+			) {
+				swiper.params.pagination = {
+					...(swiper.params.pagination as PaginationOptions),
+					el: paginationRef.current,
+					clickable: true,
+				};
+				swiper.pagination.destroy();
+				swiper.pagination.init();
+				swiper.pagination.render();
+				swiper.pagination.update();
+				paginationRef.current.style.display = ""; // visible
+			}
+		} else {
+			// ocultar bullets si solo hay 1
+			if (paginationRef.current)
+				paginationRef.current.style.display = "none";
+			if (swiper.pagination) {
+				try {
+					swiper.pagination.destroy();
+				} catch {}
+			}
+			swiper.params.pagination = false as any;
 		}
-	}, [shouldLoop, navigationPrevRef, navigationNextRef, paginationRef]);
+
+		swiper.update();
+	}, [
+		showNav,
+		shouldLoop,
+		showPagination,
+		totalProperties,
+		navigationPrevRef,
+		navigationNextRef,
+		paginationRef,
+	]);
 
 	return (
-                <Swiper
-                        modules={[Navigation, Pagination]}
-                        className={`swiper mySwiper w-full ${shouldCenterSlides ? "md:mx-auto md:max-w-5xl" : ""}`}
-                        wrapperClass={shouldCenterSlides ? "featured-properties-wrapper-centered" : undefined}
-			spaceBetween={30}
+		<Swiper
+			modules={[Navigation, Pagination]}
+			className="swiper mySwiper w-full px-4 md:px-0 md:mx-auto md:max-w-6xl"
+			spaceBetween={16} // un poco menos en mobile
+			// *** Mobile: 1 por vista | Desktop: auto-width ***
 			slidesPerView={1}
-			loop={shouldLoop}
-			centeredSlides={properties.length < 2}
-			centerInsufficientSlides
-			navigation={{
-				prevEl: navigationPrevRef.current,
-				nextEl: navigationNextRef.current,
-			}}
-			pagination={{
-				el: paginationRef.current,
-				clickable: true,
-			}}
 			breakpoints={{
 				768: {
-					slidesPerView: slidesPerViewFor(2),
-				},
-				1024: {
-					slidesPerView: slidesPerViewFor(3),
+					slidesPerView: "auto",
+					spaceBetween: 24,
 				},
 			}}
+			loop={shouldLoop}
+			centeredSlides
+			centeredSlidesBounds
+			centerInsufficientSlides
+			watchOverflow
+			navigation={
+				showNav
+					? {
+							prevEl: navigationPrevRef.current,
+							nextEl: navigationNextRef.current,
+					  }
+					: false
+			}
+			pagination={
+				showPagination
+					? {
+							el: paginationRef.current,
+							clickable: true,
+					  }
+					: false
+			}
 			onBeforeInit={(swiper) => {
 				swiperRef.current = swiper;
 
 				if (
+					showNav &&
 					swiper.params.navigation &&
 					typeof swiper.params.navigation !== "boolean"
 				) {
-					const navigation = swiper.params.navigation;
-
-					navigation.prevEl = navigationPrevRef.current;
-					navigation.nextEl = navigationNextRef.current;
+					swiper.params.navigation.prevEl = navigationPrevRef.current;
+					swiper.params.navigation.nextEl = navigationNextRef.current;
+				} else {
+					swiper.params.navigation = false as any;
 				}
 
 				if (
+					showPagination &&
 					swiper.params.pagination &&
 					typeof swiper.params.pagination !== "boolean"
 				) {
-					const pagination = swiper.params.pagination;
-
-					pagination.el = paginationRef.current;
-					pagination.clickable = true;
+					swiper.params.pagination.el = paginationRef.current;
+					swiper.params.pagination.clickable = true;
+				} else {
+					swiper.params.pagination = false as any;
 				}
 			}}
 			onSwiper={(swiper) => {
@@ -160,35 +213,31 @@ const PropertyCarousel = ({
 				const statusLabel =
 					property.status ?? property.operation ?? "Disponible";
 				const detailsLineItems = [formattedPrice];
-
-				if (property.operation) {
+				if (property.operation)
 					detailsLineItems.push(property.operation);
-				}
-
-				if (property.location) {
-					detailsLineItems.push(property.location);
-				}
-
+				if (property.location) detailsLineItems.push(property.location);
 				const detailsLine = detailsLineItems.join(" · ");
 
 				return (
 					<SwiperSlide
 						key={property.id}
-						className="swiper-slide flex justify-center"
+						className="w-full md:!w-auto" // móvil: ancho completo | desktop: auto
 					>
-						<div className="card-3d flex h-full w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
-							<div className="relative aspect-[16/9] md:aspect-auto md:h-56">
+						<div className="card-3d w-full md:w-[22rem] lg:w-[24rem] h-full flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-none backdrop-blur">
+							{/* Imagen con alto uniforme: relación 16:9 en todos los breakpoints */}
+							<div className="relative w-full aspect-[16/9] overflow-hidden">
 								<img
 									src={property.coverImageUrl}
 									alt={property.title}
-									className="h-full w-full object-cover"
+									className="absolute inset-0 h-full w-full object-cover"
+									loading="lazy"
 								/>
 								<span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
 									{statusLabel}
 								</span>
 							</div>
 							<div className="flex h-full flex-col p-6">
-								<h3 className="mb-2 overflow-hidden text-ellipsis text-xl font-semibold text-[var(--text-dark)] whitespace-nowrap">
+								<h3 className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold text-[var(--text-dark)]">
 									{property.title}
 								</h3>
 								<p className="mb-4 text-gray-600">
