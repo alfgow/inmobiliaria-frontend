@@ -58,30 +58,30 @@ const AboutSection = () => {
 					FIVE: 5,
 				};
 
-                                const mappedReviews: Review[] = rawReviews
-                                        .map((item) => {
-                                                const displayName = item.reviewer?.displayName;
-                                                const comment = item.comment ?? undefined;
-                                                const starRatingValue = item.starRating;
+                                const mappedReviews = rawReviews.reduce<Review[]>((acc, item) => {
+                                        const displayName = item.reviewer?.displayName;
+                                        const comment = item.comment ?? undefined;
+                                        const starRatingValue = item.starRating;
 
-                                                let starRating: number | undefined;
-                                                if (typeof starRatingValue === "string") {
-                                                        starRating = ratingMap[starRatingValue.toUpperCase()];
-                                                } else if (typeof starRatingValue === "number") {
-                                                        starRating = Math.max(1, Math.min(5, starRatingValue));
-                                                }
+                                        let starRating: number | undefined;
+                                        if (typeof starRatingValue === "string") {
+                                                starRating = ratingMap[starRatingValue.toUpperCase()];
+                                        } else if (typeof starRatingValue === "number") {
+                                                starRating = Math.max(1, Math.min(5, starRatingValue));
+                                        }
 
-                                                if (!displayName) {
-                                                        return null;
-                                                }
+                                        if (!displayName) {
+                                                return acc;
+                                        }
 
-                                                return {
-                                                        displayName,
-                                                        comment,
-                                                        starRating,
-                                                };
-                                        })
-                                        .filter((item): item is Review => item !== null);
+                                        acc.push({
+                                                displayName,
+                                                comment,
+                                                starRating,
+                                        });
+
+                                        return acc;
+                                }, []);
 
 				const shuffledReviews = mappedReviews
 					.map((item) => ({ item, sortKey: Math.random() }))
