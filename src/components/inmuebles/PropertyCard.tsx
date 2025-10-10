@@ -37,9 +37,9 @@ const getPrimaryImage = (property: ApiProperty) => {
 const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
   const imageUrl = getPrimaryImage(property);
   const locationLabel = getLocationLabel(property);
-  const formattedPrice = Number.isFinite(property.price)
-    ? currencyFormatter.format(property.price)
-    : "Consultar";
+  const priceValue = property.price;
+  const hasValidPrice = typeof priceValue === "number" && Number.isFinite(priceValue);
+  const formattedPrice = hasValidPrice ? currencyFormatter.format(priceValue) : "Consultar";
 
   const statusLabel = property.status?.name ?? property.operation ?? "Disponible";
   const operationLabel = property.operation ?? "";
