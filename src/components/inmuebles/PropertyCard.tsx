@@ -56,13 +56,15 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
     : "relative w-full shrink-0 aspect-[4/3]";
   const imageClasses = "object-cover";
 
+  const imageAltText = property.title?.trim() || "Imagen del inmueble";
+
   return (
     <article className={articleClasses}>
       <div className={imageWrapperClasses}>
         <Image
           fill
           src={imageUrl}
-          alt={property.title}
+          alt={imageAltText}
           className={imageClasses}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
