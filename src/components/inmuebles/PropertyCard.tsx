@@ -24,17 +24,29 @@ const getLocationLabel = (property: ApiProperty) => {
 
 const getPrimaryImage = (property: ApiProperty) => {
   const coverImage = property.images?.find((image) => image.isCover);
+  const coverImageUrl = coverImage?.signedUrl ?? coverImage?.url;
 
-  if (coverImage?.signedUrl) {
-    return coverImage.signedUrl;
+  if (coverImageUrl) {
+    return coverImageUrl;
   }
 
   const firstImage = property.images?.[0];
+  const firstImageUrl = firstImage?.signedUrl ?? firstImage?.url;
 
-  return firstImage?.signedUrl ?? FALLBACK_IMAGE;
+  return firstImageUrl ?? FALLBACK_IMAGE;
 };
 
 const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
+  console.log("[PropertyCard] Rendering property", property.id, {
+    images: (property.images ?? []).map((image) => ({
+      id: image.id,
+      signedUrl: image.signedUrl,
+      url: image.url,
+      path: image.path,
+      isCover: image.isCover ?? false,
+    })),
+  });
+
   const imageUrl = getPrimaryImage(property);
   const locationLabel = getLocationLabel(property);
   const priceValue = property.price;

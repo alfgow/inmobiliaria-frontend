@@ -8,6 +8,7 @@ export interface ApiPropertyImage {
   id: string;
   signedUrl?: string | null;
   url?: string | null;
+  path?: string | null;
   isCover?: boolean;
 }
 
@@ -110,6 +111,21 @@ export const useProperties = () => {
         const items = Array.isArray(data) ? data : [];
 
         if (isMounted) {
+          console.log("[useProperties] Fetched properties from API:", items);
+
+          const imagesSummary = items.map((property) => ({
+            id: property.id,
+            images: (property.images ?? []).map((image) => ({
+              id: image.id,
+              signedUrl: image.signedUrl,
+              url: image.url,
+              path: image.path,
+              isCover: image.isCover ?? false,
+            })),
+          }));
+
+          console.log("[useProperties] Images summary:", imagesSummary);
+
           setProperties(items);
         }
       } catch (fetchError) {
