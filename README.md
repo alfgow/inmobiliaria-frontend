@@ -2,13 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Environment Variables
 
-Set the following variables to enable image delivery from Amazon S3:
+Set the following variables to enable data fetching from the Villanueva García API:
 
-- `REGION`: AWS region where your public bucket lives.
-- `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY`: credentials with read access to the bucket.
-- `PUBLIC_BUCKET`: name of the S3 bucket that stores public property images.
+- `INMUEBLES_API_KEY`: API token provided for authenticating requests.
+- `INMUEBLES_API_BASE_URL` (opcional): sobrescribe la URL base si necesitas apuntar a otro entorno. Por defecto se usa `https://vg.g210512.com/api/v1`.
 
-When a signed URL cannot be generated or an image key is missing, the UI will fall back to the default image defined by `FALLBACK_IMAGE`.
+El listado de propiedades usa una imagen de respaldo definida en `FALLBACK_IMAGE` cuando el recurso remoto no incluye fotografías públicas.
 
 ## Getting Started
 
