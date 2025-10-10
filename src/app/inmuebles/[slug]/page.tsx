@@ -8,8 +8,7 @@ import PropertyGallery from "@/components/inmuebles/PropertyGallery";
 import PropertyHighlights from "@/components/inmuebles/PropertyHighlights";
 import InterestForm from "@/components/inmuebles/InterestForm";
 import PropertyMap from "@/components/inmuebles/PropertyMap";
-import { prisma } from "@/lib/prisma";
-import { getPropertyBySlug, type ImageWithSignedUrl, type PropertyWithSignedImages } from "@/lib/properties";
+import { getPropertyBySlug, getPropertySlugs, type ImageWithSignedUrl, type PropertyWithSignedImages } from "@/lib/properties";
 
 export const revalidate = 60;
 
@@ -45,15 +44,9 @@ const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
 
 export async function generateStaticParams() {
   try {
-    const properties = await prisma.inmueble.findMany({
-      select: { slug: true },
-      where: { slug: { not: null } },
-    });
+    const slugs = await getPropertySlugs();
 
-    return properties
-      .map((property) => property.slug)
-      .filter((slug: string | null | undefined): slug is string => Boolean(slug))
-      .map((slug) => ({ slug }));
+    return slugs.map((slug) => ({ slug }));
   } catch (error) {
     console.error("Error generating static params for properties", error);
 
@@ -111,13 +104,14 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
     }))
     .filter((image) => Boolean(image.url));
 
-  const price = property.precio
-    ? new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "MXN",
-        maximumFractionDigits: 0,
-      }).format(Number(property.precio))
-    : "No disponible";
+  const price =
+    property.precio !== null && property.precio !== undefined
+      ? new Intl.NumberFormat("es-MX", {
+          style: "currency",
+          currency: "MXN",
+          maximumFractionDigits: 0,
+        }).format(Number(property.precio))
+      : property.precioFormateado ?? "No disponible";
 
   const updatedAtLabel = property.updatedAt
     ? new Date(property.updatedAt).toLocaleDateString("es-MX", {

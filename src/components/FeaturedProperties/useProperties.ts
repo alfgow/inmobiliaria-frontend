@@ -5,22 +5,24 @@ import { useEffect, useState } from "react";
 import type { Property } from "./PropertyCarousel";
 
 export interface ApiPropertyImage {
-  s3Key: string;
+  id: string;
   signedUrl?: string | null;
+  url?: string | null;
   isCover?: boolean;
 }
 
 export interface ApiPropertyStatus {
   id: number | string;
-  name: string;
+  name?: string | null;
   color?: string | null;
 }
 
 export interface ApiProperty {
   id: string;
-  title: string;
-  slug: string;
-  price: number;
+  title?: string | null;
+  slug?: string | null;
+  price?: number | null;
+  priceFormatted?: string | null;
   operation?: string | null;
   status?: ApiPropertyStatus | null;
   city?: string | null;
@@ -41,10 +43,27 @@ export const formatOperation = (operation?: string | null) => {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
+const toNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return fallback;
+};
+
 export const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
   items
     .filter((item) => {
-      const hasActiveStatus = Number(item.status?.id ?? 0) === 1;
+      const statusId = toNumber(item.status?.id, 0);
+      const hasActiveStatus = statusId === 1;
       const isFeatured = item.featured === true;
 
       return hasActiveStatus && isFeatured;
@@ -57,12 +76,13 @@ export const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
 
       return {
         id: item.id,
-        title: item.title,
-        slug: item.slug,
-        price: item.price,
+        title: item.title ?? "Inmueble sin título",
+        slug: item.slug ?? null,
+        price: toNumber(item.price, 0),
         operation: formatOperation(item.operation),
         status: item.status?.name ?? null,
-        coverImageUrl: coverImage?.signedUrl ?? FALLBACK_IMAGE,
+        coverImageUrl:
+          coverImage?.signedUrl ?? coverImage?.url ?? FALLBACK_IMAGE,
         location: locationParts.length > 0 ? locationParts.join(", ") : null,
       };
     });
