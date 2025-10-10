@@ -70,8 +70,8 @@ const InmueblesExplorer = () => {
     const copy = [...filteredProperties];
 
     copy.sort((a, b) => {
-      const priceA = Number.isFinite(a.price) ? a.price : 0;
-      const priceB = Number.isFinite(b.price) ? b.price : 0;
+      const priceA = typeof a.price === "number" ? a.price : 0;
+      const priceB = typeof b.price === "number" ? b.price : 0;
 
       if (sortOption === "price-asc") {
         return priceA - priceB;
