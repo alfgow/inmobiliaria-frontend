@@ -1,3 +1,8 @@
+import { PrismaClient } from '@prisma/client';
+
+type PrismaClientConstructor = typeof PrismaClient;
+type PrismaClientInstance = InstanceType<PrismaClientConstructor>;
+
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClientInstance;
 };
@@ -7,31 +12,19 @@ const logOptions: string[] =
     ? ['query', 'error', 'warn']
     : ['error'];
 
-type PrismaClientConstructor = new (...args: unknown[]) => PrismaClientInstance;
-type PrismaClientInstance = Record<string, unknown>;
-
 let prismaInstance: PrismaClientInstance | undefined;
-let PrismaClientCtor: PrismaClientConstructor | undefined;
 
-const loadPrismaClient = (): PrismaClientConstructor => {
-  if (PrismaClientCtor) {
-    return PrismaClientCtor;
-  }
-
+const createPrismaClient = (): PrismaClientInstance => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
-    const { PrismaClient } = require('@prisma/client') as {
-      PrismaClient: PrismaClientConstructor;
-    };
-
-    PrismaClientCtor = PrismaClient;
-    return PrismaClientCtor;
+    return new PrismaClient({
+      log: logOptions,
+    });
   } catch (error) {
     const installCommand = 'npm install @prisma/client prisma';
     const generateCommand = 'npx prisma generate';
 
     const message =
-      `No se pudo cargar "@prisma/client". Ejecuta "${installCommand}" ` +
+      `No se pudo crear una instancia de PrismaClient. Ejecuta "${installCommand}" ` +
       `y después "${generateCommand}" para generar el cliente de Prisma.`;
 
     if (process.env.NODE_ENV !== 'production') {
@@ -40,14 +33,6 @@ const loadPrismaClient = (): PrismaClientConstructor => {
 
     throw new Error(message);
   }
-};
-
-const createPrismaClient = (): PrismaClientInstance => {
-  const PrismaClient = loadPrismaClient();
-
-  return new PrismaClient({
-    log: logOptions,
-  });
 };
 
 export const getPrismaClient = (): PrismaClientInstance => {
