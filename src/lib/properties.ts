@@ -64,6 +64,38 @@ const parseNullableString = (value: unknown): string | null => {
         return null;
 };
 
+const pickMetadataString = (
+        metadata: Record<string, unknown> | null | undefined,
+        candidatePaths: string[][]
+): string | null => {
+        if (!metadata) {
+                return null;
+        }
+
+        for (const path of candidatePaths) {
+                let current: unknown = metadata;
+
+                for (const segment of path) {
+                        if (typeof current !== "object" || current === null) {
+                                current = null;
+                                break;
+                        }
+
+                        current = (current as Record<string, unknown>)[segment];
+                }
+
+                if (typeof current === "string") {
+                        const normalized = current.trim();
+
+                        if (normalized.length > 0) {
+                                return normalized;
+                        }
+                }
+        }
+
+        return null;
+};
+
 const slugify = (value: string): string =>
         value
                 .normalize("NFD")
@@ -207,21 +239,59 @@ export type RawProperty = {
 const mapImage = (image: RawImage): ImageWithSignedUrl => {
         const idValue = image.id ?? randomUUID();
         const id = typeof idValue === "string" ? idValue : idValue !== undefined ? String(idValue) : randomUUID();
-        const url =
-                parseNullableString(image.url) ??
-                parseNullableString(image.signed_url) ??
-                parseNullableString(image.signedUrl);
-        const path = parseNullableString(image.path);
-
         const metadata =
                 image.metadata && typeof image.metadata === "object" && !Array.isArray(image.metadata)
                         ? (image.metadata as Record<string, unknown>)
                         : null;
 
+        const metadataUrl = pickMetadataString(metadata, [
+                ["url"],
+                ["publicUrl"],
+                ["public_url"],
+                ["urls", "default"],
+                ["urls", "public"],
+                ["file", "url"],
+                ["variants", "original"],
+                ["original"],
+        ]);
+        const metadataSignedUrl = pickMetadataString(metadata, [
+                ["signedUrl"],
+                ["signed_url"],
+                ["signed-url"],
+                ["presignedUrl"],
+                ["presigned_url"],
+                ["urls", "signed"],
+                ["file", "signedUrl"],
+                ["file", "signed_url"],
+                ["link", "signed"],
+        ]);
+        const metadataPath = pickMetadataString(metadata, [
+                ["path"],
+                ["file", "path"],
+                ["file", "key"],
+                ["key"],
+                ["s3Key"],
+        ]);
+
+        const rawUrl =
+                parseNullableString(image.url) ??
+                parseNullableString(metadataUrl) ??
+                (metadataSignedUrl && !metadataSignedUrl.includes("X-Amz-")
+                        ? metadataSignedUrl
+                        : null);
+        const rawSignedUrl =
+                parseNullableString(image.signed_url) ??
+                parseNullableString(image.signedUrl) ??
+                parseNullableString(metadataSignedUrl) ??
+                (rawUrl && rawUrl.includes("X-Amz-") ? rawUrl : null);
+        const path =
+                parseNullableString(image.path) ??
+                parseNullableString(metadataPath);
+
         return {
                 id,
-                url,
-                signedUrl: url,
+                url: rawUrl,
+                signedUrl: rawSignedUrl,
                 path,
                 metadata,
                 orden: typeof image.orden === "number" ? image.orden : typeof image.order === "number" ? image.order : null,
