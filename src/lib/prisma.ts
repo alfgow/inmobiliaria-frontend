@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 type PrismaClientConstructor = typeof PrismaClient;
 type PrismaClientInstance = InstanceType<PrismaClientConstructor>;
@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClientInstance;
 };
 
-const logOptions: string[] =
+const logOptions: Prisma.LogLevel[] =
   process.env.NODE_ENV === 'development'
     ? ['query', 'error', 'warn']
     : ['error'];
