@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-        { href: "/", label: "Inicio" },
-        { href: "/inmuebles", label: "Inmuebles" },
-        { href: "/#nosotros", label: "Nosotros" },
+	{ href: "/", label: "Inicio" },
+	{ href: "/inmuebles", label: "Inmuebles" },
+	{ href: "/#nosotros", label: "Nosotros" },
 ];
 
 const Navbar = () => {
@@ -22,26 +22,26 @@ const Navbar = () => {
 			<header className="fixed inset-x-0 top-0 z-50 border-b border-white/20 bg-gradient-to-r from-green-50/80 via-white/60 to-green-50/80 backdrop-blur-xl shadow-lg">
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 					{/* Logo */}
-                                        <Link
-                                                href="/"
-                                                className="flex items-center gap-3"
-                                                onClick={closeMenu}
-                                        >
+					<Link
+						href="/"
+						className="flex items-center gap-3"
+						onClick={closeMenu}
+					>
 						<div className="relative h-12 w-12 overflow-hidden rounded-full shadow-lg">
-                                                        <Image
-                                                                src="/logo.png"
-                                                                alt="Villanueva García"
-                                                                fill
-                                                                sizes="48px"
-                                                                className="object-contain"
-                                                                loading="lazy"
-                                                        />
+							<Image
+								src="/logo.png"
+								alt="Villanueva García"
+								fill
+								sizes="48px"
+								className="object-contain"
+								loading="lazy"
+							/>
 						</div>
 					</Link>
 
 					{/* Links Desktop */}
 					<nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
-						{links.map(({ href, label, badge }) => (
+						{links.map(({ href, label }) => (
 							<Link
 								key={label}
 								href={href}
@@ -49,23 +49,19 @@ const Navbar = () => {
 								onClick={closeMenu}
 							>
 								{label}
-								{badge && (
-									<span className="ml-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-										{badge}
-									</span>
-								)}
+
 								<span className="absolute left-0 bottom-0 h-0.5 w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
 							</Link>
 						))}
 					</nav>
 
 					{/* Acciones Desktop: Búsqueda, Teléfono, CTA */}
-                                        <div className="hidden md:flex items-center gap-4">
-                                                <a
-                                                        href="tel:+525584438656"
-                                                        className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition text-sm"
-                                                >
-                                                        <Phone size={16} />
+					<div className="hidden md:flex items-center gap-4">
+						<a
+							href="tel:+525584438656"
+							className="flex items-center gap-1 text-gray-600 hover:text-green-600 transition text-sm"
+						>
+							<Phone size={16} />
 							Llamar
 						</a>
 						<Link
@@ -112,7 +108,7 @@ const Navbar = () => {
 					</button>
 				</div>
 				<div className="flex flex-col gap-4 p-6 pt-4 text-sm font-medium">
-					{links.map(({ href, label, badge }) => (
+					{links.map(({ href, label }) => (
 						<Link
 							key={label}
 							href={href}
@@ -120,18 +116,13 @@ const Navbar = () => {
 							className="flex items-center justify-between rounded-lg px-4 py-3 hover:bg-green-50 hover:text-green-600 transition"
 						>
 							<span>{label}</span>
-							{badge && (
-								<span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-									{badge}
-								</span>
-							)}
 						</Link>
 					))}
-                                        <a
-                                                href="tel:+525584438656"
-                                                className="flex items-center gap-2 rounded-lg px-4 py-3 hover:bg-green-50 text-green-600 transition mt-2"
-                                        >
-                                                <Phone size={20} />
+					<a
+						href="tel:+525584438656"
+						className="flex items-center gap-2 rounded-lg px-4 py-3 hover:bg-green-50 text-green-600 transition mt-2"
+					>
+						<Phone size={20} />
 						Llamar ahora
 					</a>
 					<Link
