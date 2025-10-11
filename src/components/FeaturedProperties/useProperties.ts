@@ -112,8 +112,8 @@ export const useProperties = () => {
 					throw new Error("No se pudieron cargar las propiedades");
 				}
 
-				const { data } = await response.json();
-				const items = Array.isArray(data) ? data : [];
+                                const { data }: { data?: ApiProperty[] } = await response.json();
+                                const items: ApiProperty[] = Array.isArray(data) ? data : [];
 
 				if (isMounted) {
 					console.log(
