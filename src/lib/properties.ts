@@ -444,21 +444,67 @@ const fetchPropertyDetail = async (
         }
 };
 
+const extractSlugFromRawProperty = (property: RawProperty): string | null => {
+        if (!property) {
+                return null;
+        }
+
+        if (typeof property.slug === "string") {
+                const directSlug = parseNullableString(property.slug);
+
+                if (directSlug) {
+                        return directSlug;
+                }
+        }
+
+        if (typeof property.slug === "number") {
+                return String(property.slug);
+        }
+
+        if (property.slug && typeof property.slug === "object") {
+                const slugObject = property.slug as Record<string, unknown>;
+                const objectSlug =
+                        parseNullableString(slugObject.slug) ??
+                        parseNullableString(slugObject.current) ??
+                        parseNullableString(slugObject.value);
+
+                if (objectSlug) {
+                        return objectSlug;
+                }
+        }
+
+        const metadataSlug = pickMetadataString(
+                typeof property.metadata === "object" && property.metadata !== null
+                        ? (property.metadata as Record<string, unknown>)
+                        : null,
+                [
+                        ["slug"],
+                        ["seo", "slug"],
+                        ["meta", "slug"],
+                        ["metadata", "slug"],
+                ]
+        );
+
+        if (metadataSlug) {
+                return metadataSlug;
+        }
+
+        const titleValue =
+                parseNullableString(property.titulo) ?? parseNullableString(property.title);
+
+        return titleValue ? slugify(titleValue) : null;
+};
+
 const findPropertyCandidate = (items: RawProperty[], slug: string): RawProperty | null => {
         const normalizedSlug = slug.trim().toLowerCase();
+
         const directMatch = items.find((item) => {
-                const itemSlug =
-                        parseNullableString(item.slug) ??
-                        (typeof item.slug === "number" ? String(item.slug) : null);
+                const itemSlug = extractSlugFromRawProperty(item);
 
                 return itemSlug?.toLowerCase() === normalizedSlug;
         });
 
-        if (directMatch) {
-                return directMatch;
-        }
-
-        return items[0] ?? null;
+        return directMatch ?? null;
 };
 
 export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams): Promise<PropertyWithSignedImages | null> => {
