@@ -5,31 +5,46 @@ import { useEffect, useState } from "react";
 import type { Property } from "./PropertyCarousel";
 
 export interface ApiPropertyImage {
-	id: string;
-	signedUrl?: string | null;
-	url?: string | null;
-	path?: string | null;
-	isCover?: boolean;
+        id: string;
+        signedUrl?: string | null;
+        url?: string | null;
+        path?: string | null;
+        isCover?: boolean;
 }
 
 export interface ApiPropertyStatus {
-	id: number | string;
-	name?: string | null;
-	color?: string | null;
+        id: number | string;
+        name?: string | null;
+        color?: string | null;
+}
+
+export interface ApiPropertyLocation {
+        latitude?: number | null;
+        longitude?: number | null;
 }
 
 export interface ApiProperty {
-	id: string;
-	title?: string | null;
-	slug?: string | null;
-	price?: number | null;
-	priceFormatted?: string | null;
-	operation?: string | null;
-	status?: ApiPropertyStatus | null;
-	city?: string | null;
-	state?: string | null;
-	images?: ApiPropertyImage[];
-	featured?: boolean;
+        id: string;
+        title?: string | null;
+        slug?: string | null;
+        price?: number | null;
+        priceFormatted?: string | null;
+        operation?: string | null;
+        status?: ApiPropertyStatus | null;
+        city?: string | null;
+        state?: string | null;
+        address?: string | null;
+        neighborhood?: string | null;
+        postalCode?: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
+        location?: ApiPropertyLocation | null;
+        isAvailable?: boolean;
+        is_available?: boolean;
+        active?: boolean;
+        images?: ApiPropertyImage[];
+        featured?: boolean;
+        metadata?: Record<string, unknown> | null;
 }
 
 export const FALLBACK_IMAGE = "/1.png";
@@ -45,9 +60,9 @@ export const formatOperation = (operation?: string | null) => {
 };
 
 const toNumber = (value: unknown, fallback = 0): number => {
-	if (typeof value === "number" && Number.isFinite(value)) {
-		return value;
-	}
+        if (typeof value === "number" && Number.isFinite(value)) {
+                return value;
+        }
 
 	if (typeof value === "string") {
 		const parsed = Number(value);
@@ -57,7 +72,47 @@ const toNumber = (value: unknown, fallback = 0): number => {
 		}
 	}
 
-	return fallback;
+return fallback;
+};
+
+const toNullableNumber = (value: unknown): number | null => {
+        if (typeof value === "number" && Number.isFinite(value)) {
+                return value;
+        }
+
+        if (typeof value === "string") {
+                const parsed = Number(value);
+
+                if (Number.isFinite(parsed)) {
+                        return parsed;
+                }
+        }
+
+        return null;
+};
+
+const normalizeApiProperty = (item: ApiProperty): ApiProperty => {
+        const latitude = toNullableNumber(item.latitude ?? item.location?.latitude);
+        const longitude = toNullableNumber(item.longitude ?? item.location?.longitude);
+        const hasCoordinates = latitude !== null || longitude !== null;
+        const isAvailable =
+                typeof item.isAvailable === "boolean"
+                        ? item.isAvailable
+                        : typeof item.is_available === "boolean"
+                        ? item.is_available
+                        : typeof item.active === "boolean"
+                        ? item.active
+                        : false;
+
+        return {
+                ...item,
+                latitude,
+                longitude,
+                location: hasCoordinates ? { latitude, longitude } : null,
+                isAvailable,
+                is_available: isAvailable,
+                active: isAvailable,
+        };
 };
 
 export const mapPropertiesFromApi = (items: ApiProperty[]): Property[] =>
@@ -114,32 +169,33 @@ export const useProperties = () => {
 
                                 const { data }: { data?: ApiProperty[] } = await response.json();
                                 const items: ApiProperty[] = Array.isArray(data) ? data : [];
+                                const normalizedItems = items.map((item) => normalizeApiProperty(item));
 
-				if (isMounted) {
-					console.log(
-						"[useProperties] Fetched properties from API:",
-						items
-					);
+                                if (isMounted) {
+                                        console.log(
+                                                "[useProperties] Fetched properties from API:",
+                                                normalizedItems
+                                        );
 
-					const imagesSummary = items.map((property) => ({
-						id: property.id,
-						images: (property.images ?? []).map((image) => ({
-							id: image.id,
-							signedUrl: image.signedUrl,
-							url: image.url,
-							path: image.path,
-							isCover: image.isCover ?? false,
-						})),
-					}));
+                                        const imagesSummary = normalizedItems.map((property) => ({
+                                                id: property.id,
+                                                images: (property.images ?? []).map((image) => ({
+                                                        id: image.id,
+                                                        signedUrl: image.signedUrl,
+                                                        url: image.url,
+                                                        path: image.path,
+                                                        isCover: image.isCover ?? false,
+                                                })),
+                                        }));
 
-					console.log(
-						"[useProperties] Images summary:",
-						imagesSummary
-					);
+                                        console.log(
+                                                "[useProperties] Images summary:",
+                                                imagesSummary
+                                        );
 
-					setProperties(items);
-				}
-			} catch (fetchError) {
+                                        setProperties(normalizedItems);
+                                }
+                        } catch (fetchError) {
 				const message =
 					fetchError instanceof Error
 						? fetchError.message
