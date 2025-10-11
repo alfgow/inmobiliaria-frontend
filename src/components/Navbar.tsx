@@ -6,9 +6,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-	{ href: "/", label: "Inicio" },
-	{ href: "/inmuebles", label: "Inmuebles" },
-	{ href: "/#nosotros", label: "Nosotros" },
+        { href: "/", label: "Inicio" },
+        { href: "/inmuebles", label: "Inmuebles" },
+        { href: "/mapa", label: "Mapa" },
+        { href: "/#nosotros", label: "Nosotros" },
 ];
 
 const Navbar = () => {
