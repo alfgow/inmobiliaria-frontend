@@ -182,6 +182,11 @@ type RawStatus = {
         color?: unknown;
 };
 
+type RawLocation = {
+        latitud?: unknown;
+        longitud?: unknown;
+} | null;
+
 export type RawProperty = {
         id?: unknown;
         slug?: unknown;
@@ -206,6 +211,7 @@ export type RawProperty = {
         postal_code?: unknown;
         latitud?: unknown;
         longitud?: unknown;
+        ubicacion?: RawLocation;
         habitaciones?: unknown;
         rooms?: unknown;
         banos?: unknown;
@@ -357,6 +363,18 @@ export const normalizeProperty = (
         const surfaceTerreno = parseNumber(property.superficie_terreno);
         const surfaceConstruida = parseNumber(property.superficie_construida);
 
+        const locationSource =
+                property.ubicacion && typeof property.ubicacion === "object"
+                        ? (property.ubicacion as Record<string, unknown>)
+                        : null;
+
+        const latitudeValue =
+                parseNumber(property.latitud) ??
+                (locationSource ? parseNumber(locationSource.latitud) : null);
+        const longitudeValue =
+                parseNumber(property.longitud) ??
+                (locationSource ? parseNumber(locationSource.longitud) : null);
+
         const fallbackId = slugValue ?? (titleValue ? slugify(titleValue) : randomUUID());
         const finalId = id || fallbackId;
 
@@ -387,8 +405,8 @@ export const normalizeProperty = (
                         parseNullableString(property.codigo_postal) ??
                         parseNullableString(property.codigoPostal) ??
                         parseNullableString(property.postal_code),
-                latitud: parseNumber(property.latitud),
-                longitud: parseNumber(property.longitud),
+                latitud: latitudeValue,
+                longitud: longitudeValue,
                 habitaciones:
                         parseNumber(property.habitaciones) ??
                         parseNumber(property.rooms),
