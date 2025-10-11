@@ -444,6 +444,24 @@ const fetchPropertyDetail = async (
         }
 };
 
+const fetchPropertyBySlugFromApi = async (slug: string): Promise<PropertyWithSignedImages | null> => {
+        try {
+                const client = getInmueblesApiClient();
+                const response = await client.get(`/inmuebles/search-by-slug/${encodeURIComponent(slug)}`);
+                const payload = (response.data?.data ?? response.data) as RawProperty | null | undefined;
+
+                return normalizeProperty(payload);
+        } catch (error) {
+                if (isAxiosError(error) && error.response?.status === 404) {
+                        return null;
+                }
+
+                console.error(`Error fetching property by slug "${slug}"`, error);
+
+                return null;
+        }
+};
+
 const extractSlugFromRawProperty = (property: RawProperty): string | null => {
         if (!property) {
                 return null;
@@ -531,6 +549,12 @@ export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams): 
 
         if (directProperty) {
                 return directProperty;
+        }
+
+        const slugProperty = await fetchPropertyBySlugFromApi(slug);
+
+        if (slugProperty) {
+                return slugProperty;
         }
 
         try {
