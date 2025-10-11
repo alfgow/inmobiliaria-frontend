@@ -69,10 +69,10 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
     let isMounted = true;
 
     const loadLeaflet = async () => {
-      const module = await import("leaflet");
+      const leafletModule = await import("leaflet");
 
       if (isMounted) {
-        setLeaflet((module.default ?? module) as LeafletModule);
+        setLeaflet((leafletModule.default ?? leafletModule) as LeafletModule);
       }
     };
 
