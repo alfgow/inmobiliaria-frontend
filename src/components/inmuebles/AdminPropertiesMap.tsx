@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+import { useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
 
@@ -64,6 +65,24 @@ const normalizeCoordinate = (value?: number | null): number | null => {
 const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
   const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const [mapInstance, setMapInstance] = useState<LeafletMapInstance | null>(null);
+
+  const MapInstanceBridge = ({
+    onMapReady,
+  }: {
+    onMapReady: (map: LeafletMapInstance | null) => void;
+  }) => {
+    const map = useMap();
+
+    useEffect(() => {
+      onMapReady(map);
+
+      return () => {
+        onMapReady(null);
+      };
+    }, [map, onMapReady]);
+
+    return null;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -208,8 +227,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
             minZoom={4}
             scrollWheelZoom
             className="h-full w-full"
-            whenCreated={setMapInstance}
           >
+            <MapInstanceBridge onMapReady={setMapInstance} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
