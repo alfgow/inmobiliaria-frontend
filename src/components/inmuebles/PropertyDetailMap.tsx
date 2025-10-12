@@ -1,7 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   MAPBOX_ATTRIBUTION,
@@ -9,26 +8,6 @@ import {
   getMapboxAccessToken,
   getPublicMapboxStyle,
 } from "@/lib/mapboxConfig";
-
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false },
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false },
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false },
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false },
-);
-
-type LeafletModule = typeof import("leaflet");
-type LeafletDivIcon = import("leaflet").DivIcon;
 
 type PropertyDetailMapProps = {
   latitude?: number | null;
@@ -125,29 +104,79 @@ const PropertyDetailMap = ({
   statusId,
   operation,
 }: PropertyDetailMapProps) => {
-  const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [mapbox, setMapbox] = useState<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
   const mapboxToken = getMapboxAccessToken();
   const mapboxStylePath = getPublicMapboxStyle();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadLeaflet = async () => {
-      const leafletModule = await import("leaflet");
-
-      if (isMounted) {
-        setLeaflet((leafletModule.default ?? leafletModule) as LeafletModule);
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      void loadLeaflet();
+    if (typeof window === "undefined") {
+      return;
     }
 
+    const win = window as typeof window & { mapboxgl?: any };
+
+    if (win.mapboxgl) {
+      setMapbox(win.mapboxgl);
+      return;
+    }
+
+    const existingScript = document.getElementById("mapbox-gl-js") as HTMLScriptElement | null;
+    const existingStylesheet = document.getElementById("mapbox-gl-css") as HTMLLinkElement | null;
+
+    if (!existingStylesheet) {
+      const stylesheet = document.createElement("link");
+      stylesheet.id = "mapbox-gl-css";
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css";
+      document.head.appendChild(stylesheet);
+    }
+
+    const handleScriptLoad = () => {
+      setMapbox(win.mapboxgl ?? null);
+    };
+
+    if (existingScript) {
+      if (existingScript.dataset.loaded === "true") {
+        handleScriptLoad();
+      } else {
+        existingScript.addEventListener("load", handleScriptLoad, { once: true });
+      }
+
+      return () => {
+        existingScript.removeEventListener("load", handleScriptLoad);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.id = "mapbox-gl-js";
+    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js";
+    script.async = true;
+
+    script.addEventListener("load", () => {
+      script.dataset.loaded = "true";
+      handleScriptLoad();
+    });
+
+    document.head.appendChild(script);
+
     return () => {
-      isMounted = false;
+      script.removeEventListener("load", handleScriptLoad);
     };
   }, []);
+
+  const mapboxStyleUrl = useMemo(() => {
+    if (!mapboxStylePath) {
+      return null;
+    }
+
+    return mapboxStylePath.startsWith("mapbox://")
+      ? mapboxStylePath
+      : `mapbox://styles/${mapboxStylePath}`;
+  }, [mapboxStylePath]);
 
   const normalizedLatitude = normalizeCoordinate(latitude ?? null);
   const normalizedLongitude = normalizeCoordinate(longitude ?? null);
@@ -164,6 +193,14 @@ const PropertyDetailMap = ({
     () => buildMapboxTilesUrl(mapboxToken, mapboxStylePath),
     [mapboxToken, mapboxStylePath],
   );
+
+  const mapboxCenter = useMemo(() => {
+    if (!position) {
+      return null;
+    }
+
+    return [position[1], position[0]] as [number, number];
+  }, [position]);
 
   const numericStatusId = useMemo(() => {
     if (typeof statusId === "number") {
@@ -203,30 +240,112 @@ const PropertyDetailMap = ({
 
   const markerTokens = useMemo(() => buildMarkerTokens(statusColor), [statusColor]);
 
-  const markerIcon = useMemo<LeafletDivIcon | null>(() => {
-    if (!leaflet || !position) {
-      return null;
+  const canRenderMap = Boolean(mapbox && mapboxCenter && mapboxToken && mapboxStyleUrl);
+
+  useEffect(() => {
+    if (!mapbox || !mapContainerRef.current || !mapboxToken || !mapboxStyleUrl || !mapboxCenter) {
+      return;
     }
+
+    mapbox.accessToken = mapboxToken;
+
+    const map = new mapbox.Map({
+      container: mapContainerRef.current,
+      style: mapboxStyleUrl,
+      center: mapboxCenter,
+      zoom: 16,
+      pitch: 0,
+      bearing: 0,
+      interactive: false,
+      attributionControl: false,
+      cooperativeGestures: false,
+    });
+
+    map.scrollZoom?.disable?.();
+    map.boxZoom?.disable?.();
+    map.dragPan?.disable?.();
+    map.dragRotate?.disable?.();
+    map.doubleClickZoom?.disable?.();
+    map.touchZoomRotate?.disable?.();
+    map.touchZoomRotate?.disableRotation?.();
+    map.touchPitch?.disable?.();
+    map.keyboard?.disable?.();
+
+    map.addControl(
+      new mapbox.AttributionControl({
+        compact: true,
+        customAttribution: MAPBOX_ATTRIBUTION,
+      }),
+    );
+
+    const resizeMap = () => {
+      map.resize();
+    };
+
+    map.once("load", () => {
+      resizeMap();
+      setIsMapReady(true);
+    });
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+      setIsMapReady(false);
+    };
+  }, [mapbox, mapboxCenter, mapboxStyleUrl, mapboxToken]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+
+    if (!map || !mapboxCenter) {
+      return;
+    }
+
+    map.setCenter(mapboxCenter);
+
+    if (!map.isStyleLoaded()) {
+      map.once("load", () => {
+        map.resize();
+      });
+    } else {
+      map.resize();
+    }
+
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+
+    const markerElement = document.createElement("div");
+    markerElement.className = "admin-property-marker";
 
     const markerColorAttributes = markerTokens && isAvailable
       ? ` data-marker-color="true" style="--marker-color: ${markerTokens.core}; --marker-shadow: ${markerTokens.shadow}; --marker-pulse: ${markerTokens.pulse}; --marker-pulse-border: ${markerTokens.pulseBorder};"`
       : "";
 
-    return leaflet.divIcon({
-      className: "admin-property-marker",
-      html: `
-        <div class="admin-marker ${isAvailable ? "admin-marker--available" : "admin-marker--unavailable"}"${markerColorAttributes}>
-          <span class="admin-marker__pulse"></span>
-          <span class="admin-marker__core"></span>
-        </div>
-      `,
-      iconSize: [46, 60],
-      iconAnchor: [23, 58],
-      popupAnchor: [0, -54],
-    });
-  }, [isAvailable, leaflet, markerTokens, position]);
+    markerElement.innerHTML = `
+      <div class="admin-marker ${isAvailable ? "admin-marker--available" : "admin-marker--unavailable"}"${markerColorAttributes}>
+        <span class="admin-marker__pulse"></span>
+        <span class="admin-marker__core"></span>
+      </div>
+    `;
 
-  const canRenderMap = Boolean(position && tileLayerUrl && markerIcon);
+    const marker = new mapbox.Marker({ element: markerElement, anchor: "bottom" })
+      .setLngLat(mapboxCenter)
+      .addTo(map);
+
+    markerRef.current = marker;
+
+    return () => {
+      marker.remove();
+
+      if (markerRef.current === marker) {
+        markerRef.current = null;
+      }
+    };
+  }, [isAvailable, mapbox, mapboxCenter, markerTokens]);
 
   const fallbackCopy = useMemo(() => {
     if (!mapboxToken || !tileLayerUrl) {
@@ -246,7 +365,7 @@ const PropertyDetailMap = ({
     }
 
     return {
-      title: "Preparando mapa interactivo…",
+      title: "Preparando mapa panorámico…",
       message: "Estamos cargando la nueva experiencia del mapa, esto puede tardar unos segundos.",
     };
   }, [mapboxToken, position, tileLayerUrl]);
@@ -297,62 +416,18 @@ const PropertyDetailMap = ({
       </div>
       <div className="relative h-[420px] w-full">
         {canRenderMap ? (
-          <MapContainer
-            center={position!}
-            zoom={16}
-            scrollWheelZoom
-            className="h-full w-full"
-          >
-            <TileLayer
-              attribution={MAPBOX_ATTRIBUTION}
-              url={tileLayerUrl!}
-              tileSize={512}
-              zoomOffset={-1}
-              maxZoom={20}
-            />
-            <Marker position={position!} icon={markerIcon!}>
-              <Popup>
-                <div className="space-y-2">
-                  {title ? (
-                    <p className="text-sm font-semibold text-[var(--text-dark)]">{title}</p>
-                  ) : null}
-                  {locationLabel ? <p className="text-xs text-gray-500">{locationLabel}</p> : null}
-                  {priceLabel ? (
-                    <p className="text-sm font-bold text-[var(--indigo)]">{priceLabel}</p>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
-                    {statusName ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-                        <span aria-hidden="true">●</span>
-                        {statusName}
-                      </span>
-                    ) : null}
-                    {operation ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-                        {operation}
-                      </span>
-                    ) : null}
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
-                        isAvailable
-                          ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <span aria-hidden="true">{isAvailable ? "✅" : "⛔"}</span>
-                      {isAvailable ? "Disponible" : "No disponible"}
-                    </span>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          </MapContainer>
+          <div className="h-full w-full" ref={mapContainerRef} />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/70 px-6 text-center">
             <p className="text-lg font-semibold text-[var(--text-dark)]">{fallbackCopy.title}</p>
             <p className="max-w-md text-sm text-gray-500">{fallbackCopy.message}</p>
           </div>
         )}
+        {canRenderMap && !isMapReady ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/40">
+            <span className="animate-pulse text-sm font-medium text-gray-600">Cargando mapa…</span>
+          </div>
+        ) : null}
       </div>
     </section>
   );

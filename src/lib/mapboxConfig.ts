@@ -2,7 +2,7 @@ const DEFAULT_PUBLIC_STYLE = "mapbox/streets-v12";
 const DEFAULT_ADMIN_STYLE = "mapbox/dark-v11";
 
 export const MAPBOX_ATTRIBUTION =
-  '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> colaboradores';
+  '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a>';
 
 const sanitizeStyle = (style?: string, fallback = DEFAULT_PUBLIC_STYLE) => {
   if (!style || typeof style !== "string") {
