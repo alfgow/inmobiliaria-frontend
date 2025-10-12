@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import L, { type LatLngTuple } from "leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
-import {
-  MAPBOX_ATTRIBUTION,
-  buildMapboxTilesUrl,
-  getMapboxAccessToken,
-  getAdminMapboxStyle,
-} from "@/lib/mapboxConfig";
-
-type MapboxGl = (typeof import("mapbox-gl"))["default"];
-type MapboxMap = import("mapbox-gl").Map;
-type MapboxMarker = import("mapbox-gl").Marker;
 
 type AdminPropertiesMapProps = {
   properties: ApiProperty[];
@@ -21,7 +13,7 @@ type AdminPropertiesMapProps = {
 
 type MapMarker = {
   id: string;
-  position: [number, number];
+  position: LatLngTuple;
   title: string;
   address: string | null;
   city: string | null;
@@ -33,8 +25,11 @@ type MapMarker = {
   isAvailable: boolean;
 };
 
-const DEFAULT_CENTER: [number, number] = [23.6345, -102.5528];
-const DEFAULT_CENTER_LNG_LAT: [number, number] = [DEFAULT_CENTER[1], DEFAULT_CENTER[0]];
+const DEFAULT_CENTER: LatLngTuple = [23.6345, -102.5528];
+const DEFAULT_ZOOM = 4;
+const TILE_LAYER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_LAYER_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -50,89 +45,91 @@ const normalizeCoordinate = (value?: number | null): number | null => {
   return null;
 };
 
-const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
-  const [mapbox, setMapbox] = useState<MapboxGl | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<MapboxMap | null>(null);
-  const markersRef = useRef<MapboxMarker[]>([]);
-  const mapboxToken = getMapboxAccessToken();
-  const mapboxStylePath = getAdminMapboxStyle();
-  const tileLayerUrl = useMemo(
-    () => buildMapboxTilesUrl(mapboxToken, mapboxStylePath),
-    [mapboxToken, mapboxStylePath],
-  );
-  const mapboxStyleUrl = useMemo(() => {
-    if (!mapboxStylePath) {
-      return null;
-    }
+type MapBoundsControllerProps = {
+  positions: LatLngTuple[];
+};
 
-    return mapboxStylePath.startsWith("mapbox://")
-      ? mapboxStylePath
-      : `mapbox://styles/${mapboxStylePath}`;
-  }, [mapboxStylePath]);
+const MapBoundsController = ({ positions }: MapBoundsControllerProps) => {
+  const map = useMap();
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    const mapInstance = map;
+
+    if (!mapInstance) {
       return;
     }
 
-    const win = window as Window & { mapboxgl?: MapboxGl };
+    const hasMarkers = positions.length > 0;
 
-    if (win.mapboxgl) {
-      setMapbox(win.mapboxgl);
+    if (!hasMarkers) {
+      mapInstance.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: true });
       return;
     }
 
-    const existingScript = document.getElementById("mapbox-gl-js") as HTMLScriptElement | null;
-    const existingStylesheet = document.getElementById("mapbox-gl-css") as HTMLLinkElement | null;
+    const bounds = L.latLngBounds(positions);
+    const paddingValue =
+      typeof window !== "undefined" && window.innerWidth < 640 ? 32 : 60;
 
-    if (!existingStylesheet) {
-      const stylesheet = document.createElement("link");
-      stylesheet.id = "mapbox-gl-css";
-      stylesheet.rel = "stylesheet";
-      stylesheet.href = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css";
-      document.head.appendChild(stylesheet);
+    mapInstance.fitBounds(bounds, {
+      padding: L.point(paddingValue, paddingValue),
+      maxZoom: 14,
+    });
+  }, [map, positions]);
+
+  useEffect(() => {
+    const mapInstance = map;
+
+    if (!mapInstance) {
+      return;
     }
 
-    const handleScriptLoad = () => {
-      setMapbox(win.mapboxgl ?? null);
+    mapInstance.invalidateSize();
+  }, [map]);
+
+  return null;
+};
+
+const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  const markerIcons = useMemo(() => {
+    const baseIconOptions = {
+      className: "admin-property-marker",
+      iconSize: [36, 36] as [number, number],
+      iconAnchor: [18, 36] as [number, number],
+      popupAnchor: [0, -32] as [number, number],
     };
 
-    if (existingScript) {
-      if (existingScript.dataset.loaded === "true") {
-        handleScriptLoad();
-      } else {
-        existingScript.addEventListener("load", handleScriptLoad, { once: true });
-      }
+    const createMarkerHtml = (isAvailable: boolean) => `
+      <div class="admin-marker ${
+        isAvailable ? "admin-marker--available" : "admin-marker--unavailable"
+      }">
+        <span class="admin-marker__pulse"></span>
+        <span class="admin-marker__core"></span>
+      </div>
+    `;
 
-      return () => {
-        existingScript.removeEventListener("load", handleScriptLoad);
-      };
-    }
-
-    const script = document.createElement("script");
-    script.id = "mapbox-gl-js";
-    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js";
-    script.async = true;
-
-    script.addEventListener("load", () => {
-      script.dataset.loaded = "true";
-      handleScriptLoad();
-    });
-
-    document.head.appendChild(script);
-
-    return () => {
-      script.removeEventListener("load", handleScriptLoad);
+    return {
+      available: L.divIcon({
+        ...baseIconOptions,
+        html: createMarkerHtml(true),
+      }),
+      unavailable: L.divIcon({
+        ...baseIconOptions,
+        html: createMarkerHtml(false),
+      }),
     };
   }, []);
 
   const markers = useMemo(() => {
     return properties
       .map((property) => {
-        const latitude = normalizeCoordinate(property.latitude ?? property.location?.latitude);
-        const longitude = normalizeCoordinate(property.longitude ?? property.location?.longitude);
+        const latitude = normalizeCoordinate(
+          property.latitude ?? property.location?.latitude,
+        );
+        const longitude = normalizeCoordinate(
+          property.longitude ?? property.location?.longitude,
+        );
 
         if (latitude === null || longitude === null) {
           return null;
@@ -160,7 +157,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
 
         return {
           id: property.id,
-          position: [latitude, longitude] as [number, number],
+          position: [latitude, longitude] as LatLngTuple,
           title: property.title ?? "Inmueble sin título",
           address: property.address ?? null,
           city: property.city ?? null,
@@ -175,184 +172,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       .filter((marker): marker is MapMarker => Boolean(marker));
   }, [properties]);
 
-  useEffect(() => {
-    const mapContainer = mapContainerRef.current;
-
-    if (!mapContainer || !mapbox || !mapboxToken || !mapboxStyleUrl) {
-      return;
-    }
-
-    mapbox.accessToken = mapboxToken;
-
-    const map = new mapbox.Map({
-      container: mapContainer,
-      style: mapboxStyleUrl,
-      center: DEFAULT_CENTER_LNG_LAT,
-      zoom: 4,
-      pitch: 0,
-      bearing: 0,
-      attributionControl: false,
-      cooperativeGestures: true,
-    });
-
-    map.addControl(new mapbox.NavigationControl({ visualizePitch: true }), "top-right");
-    map.addControl(
-      new mapbox.AttributionControl({
-        compact: true,
-        customAttribution: MAPBOX_ATTRIBUTION,
-      }),
-    );
-
-    const handleLoad = () => {
-      map.resize();
-      setIsMapReady(true);
-    };
-
-    map.once("load", handleLoad);
-
-    mapInstanceRef.current = map;
-
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-      markersRef.current.forEach((marker) => {
-        marker.remove();
-      });
-      markersRef.current = [];
-      setIsMapReady(false);
-    };
-  }, [mapbox, mapboxStyleUrl, mapboxToken]);
-
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-
-    if (!map || !mapbox || !isMapReady) {
-      return;
-    }
-
-    markersRef.current.forEach((marker) => {
-      marker.remove();
-    });
-    markersRef.current = [];
-
-    if (markers.length === 0) {
-      map.easeTo({ center: DEFAULT_CENTER_LNG_LAT, zoom: 4 });
-      return;
-    }
-
-    const bounds = new mapbox.LngLatBounds();
-
-    markers.forEach((marker) => {
-      const [lat, lng] = marker.position;
-      const lngLat: [number, number] = [lng, lat];
-
-      bounds.extend(lngLat);
-
-      const markerElement = document.createElement("div");
-      markerElement.className = "admin-property-marker";
-      markerElement.innerHTML = `
-        <div class="admin-marker ${marker.isAvailable ? "admin-marker--available" : "admin-marker--unavailable"}">
-          <span class="admin-marker__pulse"></span>
-          <span class="admin-marker__core"></span>
-        </div>
-      `;
-
-      const popupContent = document.createElement("div");
-      popupContent.className = "space-y-2";
-
-      const title = document.createElement("p");
-      title.className = "text-sm font-semibold text-[var(--text-dark)]";
-      title.textContent = marker.title;
-      popupContent.appendChild(title);
-
-      if (marker.address || marker.city || marker.state) {
-        const address = document.createElement("p");
-        address.className = "text-xs text-gray-500";
-        address.textContent = [marker.address, marker.city, marker.state]
-          .filter(Boolean)
-          .join(", ");
-        popupContent.appendChild(address);
-      }
-
-      if (marker.priceLabel) {
-        const price = document.createElement("p");
-        price.className = "text-sm font-bold text-[var(--indigo)]";
-        price.textContent = marker.priceLabel;
-        popupContent.appendChild(price);
-      }
-
-      const badges = document.createElement("div");
-      badges.className = "flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600";
-
-      if (marker.statusName) {
-        const status = document.createElement("span");
-        status.className = "inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1";
-
-        if (marker.statusColor) {
-          status.style.color = marker.statusColor;
-          status.style.border = `1px solid ${marker.statusColor}`;
-        }
-
-        const statusBullet = document.createElement("span");
-        statusBullet.setAttribute("aria-hidden", "true");
-        statusBullet.textContent = "●";
-
-        status.appendChild(statusBullet);
-        status.append(marker.statusName);
-        badges.appendChild(status);
-      }
-
-      if (marker.operation) {
-        const operation = document.createElement("span");
-        operation.className = "inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1";
-        operation.textContent = marker.operation;
-        badges.appendChild(operation);
-      }
-
-      const availability = document.createElement("span");
-      availability.className = `inline-flex items-center gap-1 rounded-full px-2 py-1 ${
-        marker.isAvailable
-          ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
-          : "bg-gray-200 text-gray-600"
-      }`;
-
-      const availabilityIcon = document.createElement("span");
-      availabilityIcon.setAttribute("aria-hidden", "true");
-      availabilityIcon.textContent = marker.isAvailable ? "✅" : "⛔";
-
-      availability.appendChild(availabilityIcon);
-      availability.append(marker.isAvailable ? "Disponible" : "No disponible");
-      badges.appendChild(availability);
-
-      popupContent.appendChild(badges);
-
-      const popup = new mapbox.Popup({ offset: 24, maxWidth: "240px" }).setDOMContent(popupContent);
-
-      const mapMarker = new mapbox.Marker({ element: markerElement, anchor: "bottom" })
-        .setLngLat(lngLat)
-        .setPopup(popup)
-        .addTo(map);
-
-      markersRef.current.push(mapMarker);
-    });
-
-    if (!bounds.isEmpty()) {
-      const padding = window.innerWidth < 640 ? 32 : 60;
-      map.fitBounds(bounds, { padding, maxZoom: 14 });
-    } else {
-      map.easeTo({ center: DEFAULT_CENTER_LNG_LAT, zoom: 4 });
-    }
-
-    map.resize();
-  }, [isMapReady, mapbox, markers]);
-
-  const canRenderMap = Boolean(mapboxToken && mapboxStyleUrl);
+  const markerPositions = useMemo(() => markers.map((marker) => marker.position), [markers]);
 
   const fallbackMessage = (() => {
-    if (!mapboxToken || !tileLayerUrl) {
-      return "Configura la variable NEXT_PUBLIC_API_MAPBOX para visualizar el mapa administrativo.";
-    }
-
     if (isLoading) {
       return "Cargando coordenadas de los inmuebles…";
     }
@@ -361,7 +183,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       return "No hay propiedades con ubicación georreferenciada por ahora.";
     }
 
-    if (!mapbox) {
+    if (!isMapReady) {
       return "Preparando mapa interactivo…";
     }
 
@@ -387,13 +209,81 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       </div>
 
       <div className="relative mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
-        <div
-          ref={mapContainerRef}
+        <MapContainer
           className={`h-full w-full transition-opacity duration-300 ${
-            canRenderMap && isMapReady && markers.length > 0 ? "opacity-100" : "opacity-0"
+            isMapReady && markers.length > 0 ? "opacity-100" : "opacity-0"
           }`}
-        />
-        {!canRenderMap || !isMapReady || markers.length === 0 ? (
+          center={DEFAULT_CENTER}
+          zoom={DEFAULT_ZOOM}
+          minZoom={2}
+          maxZoom={18}
+          scrollWheelZoom
+          zoomControl
+          whenCreated={(mapInstance) => {
+            mapInstance.whenReady(() => {
+              setIsMapReady(true);
+              mapInstance.invalidateSize();
+            });
+          }}
+        >
+          <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />
+          <MapBoundsController positions={markerPositions} />
+          {markers.map((marker) => (
+            <Marker
+              key={marker.id}
+              position={marker.position}
+              icon={marker.isAvailable ? markerIcons.available : markerIcons.unavailable}
+            >
+              <Popup maxWidth={240} offset={[0, -24]}>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-[var(--text-dark)]">
+                    {marker.title}
+                  </p>
+                  {marker.address || marker.city || marker.state ? (
+                    <p className="text-xs text-gray-500">
+                      {[marker.address, marker.city, marker.state].filter(Boolean).join(", ")}
+                    </p>
+                  ) : null}
+                  {marker.priceLabel ? (
+                    <p className="text-sm font-bold text-[var(--indigo)]">{marker.priceLabel}</p>
+                  ) : null}
+                  <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
+                    {marker.statusName ? (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1"
+                        style={
+                          marker.statusColor
+                            ? { color: marker.statusColor, border: `1px solid ${marker.statusColor}` }
+                            : undefined
+                        }
+                      >
+                        <span aria-hidden="true">●</span>
+                        {marker.statusName}
+                      </span>
+                    ) : null}
+                    {marker.operation ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
+                        {marker.operation}
+                      </span>
+                    ) : null}
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
+                        marker.isAvailable
+                          ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      <span aria-hidden="true">{marker.isAvailable ? "✅" : "⛔"}</span>
+                      {marker.isAvailable ? "Disponible" : "No disponible"}
+                    </span>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+
+        {!isMapReady || markers.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-gray-500">
             {fallbackMessage}
           </div>
