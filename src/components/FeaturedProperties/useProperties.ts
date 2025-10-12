@@ -18,6 +18,12 @@ export interface ApiPropertyStatus {
         color?: string | null;
 }
 
+export interface ApiPropertyLegacyStatus {
+        id: number | string;
+        nombre?: string | null;
+        color?: string | null;
+}
+
 export interface ApiPropertyLocation {
         latitude?: number | null;
         longitude?: number | null;
@@ -31,6 +37,7 @@ export interface ApiProperty {
         priceFormatted?: string | null;
         operation?: string | null;
         status?: ApiPropertyStatus | null;
+        estatus?: ApiPropertyLegacyStatus | null;
         city?: string | null;
         state?: string | null;
         address?: string | null;
@@ -95,6 +102,22 @@ const normalizeApiProperty = (item: ApiProperty): ApiProperty => {
         const latitude = toNullableNumber(item.latitude ?? item.location?.latitude);
         const longitude = toNullableNumber(item.longitude ?? item.location?.longitude);
         const hasCoordinates = latitude !== null || longitude !== null;
+        const statusId = toNumber(item.status?.id ?? item.estatus?.id, 0);
+        const statusName = item.status?.name ?? item.estatus?.nombre ?? null;
+        const statusColor = item.status?.color ?? item.estatus?.color ?? null;
+        const normalizedStatus: ApiPropertyStatus | null = item.status
+                ? {
+                          id: item.status.id,
+                          name: item.status.name ?? statusName ?? undefined,
+                          color: item.status.color ?? statusColor ?? undefined,
+                  }
+                : item.estatus
+                ? {
+                          id: item.estatus.id,
+                          name: item.estatus.nombre ?? undefined,
+                          color: item.estatus.color ?? undefined,
+                  }
+                : null;
         const isAvailable =
                 typeof item.isAvailable === "boolean"
                         ? item.isAvailable
@@ -102,13 +125,16 @@ const normalizeApiProperty = (item: ApiProperty): ApiProperty => {
                         ? item.is_available
                         : typeof item.active === "boolean"
                         ? item.active
-                        : false;
+                        : statusName
+                        ? statusName.toLowerCase().includes("disponible")
+                        : statusId === 1;
 
         return {
                 ...item,
                 latitude,
                 longitude,
                 location: hasCoordinates ? { latitude, longitude } : null,
+                status: normalizedStatus,
                 isAvailable,
                 is_available: isAvailable,
                 active: isAvailable,
