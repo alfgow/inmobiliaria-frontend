@@ -235,8 +235,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           >
             <MapInstanceBridge onMapReady={setMapInstance} />
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Tiles courtesy of <a href="https://memomaps.de/">ÖPNVKarte</a>'
+              url="https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png"
             />
             {markers.map((marker) => (
               <Marker
