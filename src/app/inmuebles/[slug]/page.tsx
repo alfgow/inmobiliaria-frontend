@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import PropertyGallery from "@/components/inmuebles/PropertyGallery";
 import PropertyHighlights from "@/components/inmuebles/PropertyHighlights";
 import InterestForm from "@/components/inmuebles/InterestForm";
-import PropertyMap from "@/components/inmuebles/PropertyMap";
+import PropertyDetailMap from "@/components/inmuebles/PropertyDetailMap";
 import { getPropertyBySlug, getPropertySlugs, type ImageWithSignedUrl, type PropertyWithSignedImages } from "@/lib/properties";
 
 export const revalidate = 60;
@@ -97,6 +97,8 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
   }
 
   const statusName = property.estatus?.nombre ?? "Sin estatus";
+  const statusColor = property.estatus?.color ?? null;
+  const statusId = property.estatus?.id ?? null;
   const images = (property.imagenes ?? [])
     .map((image: ImageWithSignedUrl) => ({
       url: image?.signedUrl ?? image?.url ?? image?.path ?? "",
@@ -272,11 +274,18 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
             <InterestForm propertyTitle={property.titulo} />
           </section>
 
-          <PropertyMap
+          <PropertyDetailMap
             latitude={latitude}
             longitude={longitude}
             title={property.titulo}
             address={property.direccion}
+            city={property.municipio}
+            state={property.estado}
+            priceLabel={price}
+            statusName={statusName}
+            statusColor={statusColor ?? undefined}
+            statusId={statusId}
+            operation={property.operacion}
           />
 
           <div className="mt-4">

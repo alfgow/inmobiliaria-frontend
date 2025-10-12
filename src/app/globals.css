@@ -224,6 +224,16 @@ html.gallery-modal-open body {
         display: none;
 }
 
+.admin-property-marker .admin-marker[data-marker-color] .admin-marker__core {
+        background: var(--marker-color);
+        box-shadow: 0 12px 30px var(--marker-shadow, rgba(124, 58, 237, 0.45));
+}
+
+.admin-property-marker .admin-marker[data-marker-color] .admin-marker__pulse {
+        background: var(--marker-pulse, rgba(34, 197, 94, 0.3));
+        border: 1px solid var(--marker-pulse-border, rgba(34, 197, 94, 0.45));
+}
+
 @keyframes markerPulse {
         0% {
                 transform: scale(0.5);
