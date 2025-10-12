@@ -48,6 +48,9 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
   });
 
   const imageUrl = getPrimaryImage(property);
+  const isAvailable =
+    property.isAvailable ?? property.is_available ?? property.active ?? true;
+  const isUnavailable = isAvailable === false;
   const locationLabel = getLocationLabel(property);
   const priceValue = property.price;
   const hasValidPrice = typeof priceValue === "number" && Number.isFinite(priceValue);
@@ -55,6 +58,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
 
   const statusLabel = property.status?.name ?? property.operation ?? "Disponible";
   const operationLabel = property.operation ?? "";
+  const unavailableOverlayLabel = property.status?.name ?? "No disponible";
   const propertyHref = `/inmuebles/${property.slug}`;
 
   const isListMode = viewMode === "list";
@@ -91,6 +95,14 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
             </span>
           )}
         </div>
+
+        {isUnavailable && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="-rotate-45 transform rounded-full border-2 border-[color:rgba(210,255,30,0.5)] bg-[color:rgba(210,255,30,0.65)] px-6 py-2 text-sm font-bold uppercase tracking-wide text-[var(--indigo)] shadow-lg backdrop-blur-sm md:text-base lg:px-8 lg:py-3 lg:text-lg">
+              {unavailableOverlayLabel}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col justify-between gap-6 p-6">
