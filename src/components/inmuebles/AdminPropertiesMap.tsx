@@ -35,13 +35,13 @@ type MapMarker = {
   id: string;
   position: [number, number];
   title: string;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
   priceLabel: string | null;
-  statusName?: string | null;
-  statusColor?: string | null;
-  operation?: string | null;
+  statusName: string | null;
+  statusColor: string | null;
+  operation: string | null;
   isAvailable: boolean;
 };
 
@@ -114,9 +114,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           id: property.id,
           position: [latitude, longitude] as [number, number],
           title: property.title ?? "Inmueble sin título",
-          address: property.address,
-          city: property.city,
-          state: property.state,
+          address: property.address ?? null,
+          city: property.city ?? null,
+          state: property.state ?? null,
           priceLabel,
           statusName: property.status?.name ?? null,
           statusColor: property.status?.color ?? null,
