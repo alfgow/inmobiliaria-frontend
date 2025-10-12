@@ -90,17 +90,12 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
             <span className="rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-semibold text-black">
               {statusLabel}
             </span>
-            {operationLabel && (
-              <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white">
-                {operationLabel}
-              </span>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {isUnavailable && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="-rotate-45 inline-flex w-[80%] transform items-center justify-center rounded-full border-2 border-[color:rgba(210,255,30,0.5)] bg-[color:rgba(210,255,30,0.65)] px-6 py-4 text-center text-sm font-bold uppercase tracking-wide text-[var(--indigo)] shadow-lg backdrop-blur-sm md:text-base lg:px-10 lg:py-5 lg:text-lg">
+            <span className="-rotate-45 transform rounded-full border-2 border-[color:rgba(210,255,30,0.5)] bg-[color:rgba(210,255,30,0.65)] px-6 py-2 text-sm font-bold uppercase tracking-wide text-[var(--indigo)] shadow-lg backdrop-blur-sm md:text-base lg:px-8 lg:py-3 lg:text-lg">
               {unavailableOverlayLabel}
             </span>
           </div>
