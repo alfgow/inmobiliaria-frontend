@@ -8,8 +8,8 @@ import type { ApiProperty } from "@/components/FeaturedProperties/useProperties"
 import {
   MAPBOX_ATTRIBUTION,
   buildMapboxTilesUrl,
-  getAdminMapboxStyle,
   getMapboxAccessToken,
+  getPublicMapboxStyle,
 } from "@/lib/mapboxConfig";
 
 const MapContainer = dynamic(
@@ -72,7 +72,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
   const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const [mapInstance, setMapInstance] = useState<LeafletMapInstance | null>(null);
   const mapboxToken = getMapboxAccessToken();
-  const mapboxStylePath = getAdminMapboxStyle();
+  const mapboxStylePath = getPublicMapboxStyle();
   const tileLayerUrl = useMemo(() => buildMapboxTilesUrl(mapboxToken, mapboxStylePath), [mapboxToken, mapboxStylePath]);
 
   const MapInstanceBridge = ({

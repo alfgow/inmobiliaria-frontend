@@ -1,5 +1,5 @@
-const DEFAULT_PUBLIC_STYLE = "mapbox/streets-v12";
-const DEFAULT_ADMIN_STYLE = "mapbox/dark-v11";
+const DEFAULT_PUBLIC_STYLE = "alfgow/cmgnbz7aw000u01ry7bnx7rzp";
+const DEFAULT_ADMIN_STYLE = DEFAULT_PUBLIC_STYLE;
 
 export const MAPBOX_ATTRIBUTION =
   '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a>';
