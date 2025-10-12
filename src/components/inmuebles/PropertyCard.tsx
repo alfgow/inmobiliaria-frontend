@@ -85,13 +85,10 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-semibold text-black">
-            {statusLabel}
-          </span>
-          {operationLabel && (
-            <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white">
-              {operationLabel}
+        {!isUnavailable && (
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-semibold text-black">
+              {statusLabel}
             </span>
           )}
         </div>
@@ -121,12 +118,12 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
           <p className="text-lg font-bold text-[var(--indigo)]">{formattedPrice}</p>
 
           <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-            {property.status?.name && (
+            {!isUnavailable && property.status?.name && (
               <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">
                 {property.status.name}
               </span>
             )}
-            {property.operation && (
+            {!isUnavailable && property.operation && (
               <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">
                 {property.operation}
               </span>
