@@ -1,37 +1,18 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
-import { useMap } from "react-leaflet";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
 import {
   MAPBOX_ATTRIBUTION,
   buildMapboxTilesUrl,
   getMapboxAccessToken,
-  getPublicMapboxStyle,
+  getAdminMapboxStyle,
 } from "@/lib/mapboxConfig";
 
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
-
-type LeafletModule = typeof import("leaflet");
-type LeafletMapInstance = import("leaflet").Map;
-type LeafletDivIcon = import("leaflet").DivIcon;
+type MapboxGl = (typeof import("mapbox-gl"))["default"];
+type MapboxMap = import("mapbox-gl").Map;
+type MapboxMarker = import("mapbox-gl").Marker;
 
 type AdminPropertiesMapProps = {
   properties: ApiProperty[];
@@ -53,6 +34,7 @@ type MapMarker = {
 };
 
 const DEFAULT_CENTER: [number, number] = [23.6345, -102.5528];
+const DEFAULT_CENTER_LNG_LAT: [number, number] = [DEFAULT_CENTER[1], DEFAULT_CENTER[0]];
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -69,47 +51,80 @@ const normalizeCoordinate = (value?: number | null): number | null => {
 };
 
 const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
-  const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
-  const [mapInstance, setMapInstance] = useState<LeafletMapInstance | null>(null);
+  const [mapbox, setMapbox] = useState<MapboxGl | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<MapboxMap | null>(null);
+  const markersRef = useRef<MapboxMarker[]>([]);
   const mapboxToken = getMapboxAccessToken();
-  const mapboxStylePath = getPublicMapboxStyle();
-  const tileLayerUrl = useMemo(() => buildMapboxTilesUrl(mapboxToken, mapboxStylePath), [mapboxToken, mapboxStylePath]);
-
-  const MapInstanceBridge = ({
-    onMapReady,
-  }: {
-    onMapReady: (map: LeafletMapInstance | null) => void;
-  }) => {
-    const map = useMap();
-
-    useEffect(() => {
-      onMapReady(map);
-
-      return () => {
-        onMapReady(null);
-      };
-    }, [map, onMapReady]);
-
-    return null;
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadLeaflet = async () => {
-      const leafletModule = await import("leaflet");
-
-      if (isMounted) {
-        setLeaflet((leafletModule.default ?? leafletModule) as LeafletModule);
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      void loadLeaflet();
+  const mapboxStylePath = getAdminMapboxStyle();
+  const tileLayerUrl = useMemo(
+    () => buildMapboxTilesUrl(mapboxToken, mapboxStylePath),
+    [mapboxToken, mapboxStylePath],
+  );
+  const mapboxStyleUrl = useMemo(() => {
+    if (!mapboxStylePath) {
+      return null;
     }
 
+    return mapboxStylePath.startsWith("mapbox://")
+      ? mapboxStylePath
+      : `mapbox://styles/${mapboxStylePath}`;
+  }, [mapboxStylePath]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const win = window as Window & { mapboxgl?: MapboxGl };
+
+    if (win.mapboxgl) {
+      setMapbox(win.mapboxgl);
+      return;
+    }
+
+    const existingScript = document.getElementById("mapbox-gl-js") as HTMLScriptElement | null;
+    const existingStylesheet = document.getElementById("mapbox-gl-css") as HTMLLinkElement | null;
+
+    if (!existingStylesheet) {
+      const stylesheet = document.createElement("link");
+      stylesheet.id = "mapbox-gl-css";
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css";
+      document.head.appendChild(stylesheet);
+    }
+
+    const handleScriptLoad = () => {
+      setMapbox(win.mapboxgl ?? null);
+    };
+
+    if (existingScript) {
+      if (existingScript.dataset.loaded === "true") {
+        handleScriptLoad();
+      } else {
+        existingScript.addEventListener("load", handleScriptLoad, { once: true });
+      }
+
+      return () => {
+        existingScript.removeEventListener("load", handleScriptLoad);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.id = "mapbox-gl-js";
+    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js";
+    script.async = true;
+
+    script.addEventListener("load", () => {
+      script.dataset.loaded = "true";
+      handleScriptLoad();
+    });
+
+    document.head.appendChild(script);
+
     return () => {
-      isMounted = false;
+      script.removeEventListener("load", handleScriptLoad);
     };
   }, []);
 
@@ -160,48 +175,178 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       .filter((marker): marker is MapMarker => Boolean(marker));
   }, [properties]);
 
-  const markerIcons = useMemo<{ available: LeafletDivIcon | null; unavailable: LeafletDivIcon | null }>(() => {
-    if (!leaflet) {
-      return { available: null, unavailable: null };
-    }
-
-    const createIconHtml = (variant: "available" | "unavailable") => `
-      <div class="admin-marker ${variant === "available" ? "admin-marker--available" : "admin-marker--unavailable"}">
-        <span class="admin-marker__pulse"></span>
-        <span class="admin-marker__core"></span>
-      </div>
-    `;
-
-    const createIcon = (variant: "available" | "unavailable") =>
-      leaflet.divIcon({
-        className: "admin-property-marker",
-        html: createIconHtml(variant),
-        iconSize: [46, 60],
-        iconAnchor: [23, 58],
-        popupAnchor: [0, -54],
-      });
-
-    return {
-      available: createIcon("available"),
-      unavailable: createIcon("unavailable"),
-    };
-  }, [leaflet]);
-
   useEffect(() => {
-    if (!leaflet || !mapInstance || markers.length === 0) {
+    const mapContainer = mapContainerRef.current;
+
+    if (!mapContainer || !mapbox || !mapboxToken || !mapboxStyleUrl) {
       return;
     }
 
-    const bounds = leaflet.latLngBounds(markers.map((marker) => marker.position));
+    mapbox.accessToken = mapboxToken;
 
-    if (bounds.isValid()) {
-      mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    const map = new mapbox.Map({
+      container: mapContainer,
+      style: mapboxStyleUrl,
+      center: DEFAULT_CENTER_LNG_LAT,
+      zoom: 4,
+      pitch: 0,
+      bearing: 0,
+      attributionControl: false,
+      cooperativeGestures: true,
+    });
+
+    map.addControl(new mapbox.NavigationControl({ visualizePitch: true }), "top-right");
+    map.addControl(
+      new mapbox.AttributionControl({
+        compact: true,
+        customAttribution: MAPBOX_ATTRIBUTION,
+      }),
+    );
+
+    const handleLoad = () => {
+      map.resize();
+      setIsMapReady(true);
+    };
+
+    map.once("load", handleLoad);
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+      markersRef.current.forEach((marker) => {
+        marker.remove();
+      });
+      markersRef.current = [];
+      setIsMapReady(false);
+    };
+  }, [mapbox, mapboxStyleUrl, mapboxToken]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+
+    if (!map || !mapbox || !isMapReady) {
+      return;
     }
-  }, [leaflet, mapInstance, markers]);
 
-  const hasMarkerIcons = Boolean(markerIcons.available) && Boolean(markerIcons.unavailable);
-  const canRenderMap = leaflet && hasMarkerIcons && markers.length > 0 && Boolean(tileLayerUrl);
-  const initialCenter = markers[0]?.position ?? DEFAULT_CENTER;
+    markersRef.current.forEach((marker) => {
+      marker.remove();
+    });
+    markersRef.current = [];
+
+    if (markers.length === 0) {
+      map.easeTo({ center: DEFAULT_CENTER_LNG_LAT, zoom: 4 });
+      return;
+    }
+
+    const bounds = new mapbox.LngLatBounds();
+
+    markers.forEach((marker) => {
+      const [lat, lng] = marker.position;
+      const lngLat: [number, number] = [lng, lat];
+
+      bounds.extend(lngLat);
+
+      const markerElement = document.createElement("div");
+      markerElement.className = "admin-property-marker";
+      markerElement.innerHTML = `
+        <div class="admin-marker ${marker.isAvailable ? "admin-marker--available" : "admin-marker--unavailable"}">
+          <span class="admin-marker__pulse"></span>
+          <span class="admin-marker__core"></span>
+        </div>
+      `;
+
+      const popupContent = document.createElement("div");
+      popupContent.className = "space-y-2";
+
+      const title = document.createElement("p");
+      title.className = "text-sm font-semibold text-[var(--text-dark)]";
+      title.textContent = marker.title;
+      popupContent.appendChild(title);
+
+      if (marker.address || marker.city || marker.state) {
+        const address = document.createElement("p");
+        address.className = "text-xs text-gray-500";
+        address.textContent = [marker.address, marker.city, marker.state]
+          .filter(Boolean)
+          .join(", ");
+        popupContent.appendChild(address);
+      }
+
+      if (marker.priceLabel) {
+        const price = document.createElement("p");
+        price.className = "text-sm font-bold text-[var(--indigo)]";
+        price.textContent = marker.priceLabel;
+        popupContent.appendChild(price);
+      }
+
+      const badges = document.createElement("div");
+      badges.className = "flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600";
+
+      if (marker.statusName) {
+        const status = document.createElement("span");
+        status.className = "inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1";
+
+        if (marker.statusColor) {
+          status.style.color = marker.statusColor;
+          status.style.border = `1px solid ${marker.statusColor}`;
+        }
+
+        const statusBullet = document.createElement("span");
+        statusBullet.setAttribute("aria-hidden", "true");
+        statusBullet.textContent = "●";
+
+        status.appendChild(statusBullet);
+        status.append(marker.statusName);
+        badges.appendChild(status);
+      }
+
+      if (marker.operation) {
+        const operation = document.createElement("span");
+        operation.className = "inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1";
+        operation.textContent = marker.operation;
+        badges.appendChild(operation);
+      }
+
+      const availability = document.createElement("span");
+      availability.className = `inline-flex items-center gap-1 rounded-full px-2 py-1 ${
+        marker.isAvailable
+          ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
+          : "bg-gray-200 text-gray-600"
+      }`;
+
+      const availabilityIcon = document.createElement("span");
+      availabilityIcon.setAttribute("aria-hidden", "true");
+      availabilityIcon.textContent = marker.isAvailable ? "✅" : "⛔";
+
+      availability.appendChild(availabilityIcon);
+      availability.append(marker.isAvailable ? "Disponible" : "No disponible");
+      badges.appendChild(availability);
+
+      popupContent.appendChild(badges);
+
+      const popup = new mapbox.Popup({ offset: 24, maxWidth: "240px" }).setDOMContent(popupContent);
+
+      const mapMarker = new mapbox.Marker({ element: markerElement, anchor: "bottom" })
+        .setLngLat(lngLat)
+        .setPopup(popup)
+        .addTo(map);
+
+      markersRef.current.push(mapMarker);
+    });
+
+    if (!bounds.isEmpty()) {
+      const padding = window.innerWidth < 640 ? 32 : 60;
+      map.fitBounds(bounds, { padding, maxZoom: 14 });
+    } else {
+      map.easeTo({ center: DEFAULT_CENTER_LNG_LAT, zoom: 4 });
+    }
+
+    map.resize();
+  }, [isMapReady, mapbox, markers]);
+
+  const canRenderMap = Boolean(mapboxToken && mapboxStyleUrl);
 
   const fallbackMessage = (() => {
     if (!mapboxToken || !tileLayerUrl) {
@@ -216,7 +361,11 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       return "No hay propiedades con ubicación georreferenciada por ahora.";
     }
 
-    return "Preparando mapa interactivo…";
+    if (!mapbox) {
+      return "Preparando mapa interactivo…";
+    }
+
+    return "Estamos renderizando el nuevo mapa administrativo, aguarda un momento.";
   })();
 
   return (
@@ -237,84 +386,18 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
         </div>
       </div>
 
-      <div className="mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
-        {canRenderMap ? (
-          <MapContainer
-            center={initialCenter}
-            zoom={13}
-            minZoom={4}
-            scrollWheelZoom
-            className="h-full w-full"
-          >
-            <MapInstanceBridge onMapReady={setMapInstance} />
-            <TileLayer
-              attribution={MAPBOX_ATTRIBUTION}
-              url={tileLayerUrl!}
-              tileSize={512}
-              zoomOffset={-1}
-              maxZoom={20}
-            />
-            {markers.map((marker) => (
-              <Marker
-                key={marker.id}
-                position={marker.position}
-                icon={(
-                  marker.isAvailable ? markerIcons.available : markerIcons.unavailable
-                )!}
-              >
-                <Popup>
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-[var(--text-dark)]">{marker.title}</p>
-                    {(marker.address || marker.city || marker.state) && (
-                      <p className="text-xs text-gray-500">
-                        {[marker.address, marker.city, marker.state]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </p>
-                    )}
-                    {marker.priceLabel && (
-                      <p className="text-sm font-bold text-[var(--indigo)]">{marker.priceLabel}</p>
-                    )}
-                    <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
-                      {marker.statusName && (
-                        <span
-                          className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1"
-                          style={
-                            marker.statusColor
-                              ? { color: marker.statusColor, border: `1px solid ${marker.statusColor}` }
-                              : undefined
-                          }
-                        >
-                          <span aria-hidden="true">●</span>
-                          {marker.statusName}
-                        </span>
-                      )}
-                      {marker.operation && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-                          {marker.operation}
-                        </span>
-                      )}
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
-                          marker.isAvailable
-                            ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
-                            : "bg-gray-200 text-gray-600"
-                        }`}
-                      >
-                        <span aria-hidden="true">{marker.isAvailable ? "✅" : "⛔"}</span>
-                        {marker.isAvailable ? "Disponible" : "No disponible"}
-                      </span>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        ) : (
-          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-500">
+      <div className="relative mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
+        <div
+          ref={mapContainerRef}
+          className={`h-full w-full transition-opacity duration-300 ${
+            canRenderMap && isMapReady && markers.length > 0 ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        {!canRenderMap || !isMapReady || markers.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-gray-500">
             {fallbackMessage}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
