@@ -303,7 +303,7 @@ const PropertyDetailMap = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
 
-    if (!map || !mapboxCenter) {
+    if (!map || !mapboxCenter || !mapbox) {
       return;
     }
 
