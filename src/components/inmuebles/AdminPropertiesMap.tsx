@@ -5,6 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
+import {
+  MAPBOX_ATTRIBUTION,
+  buildMapboxTilesUrl,
+  getAdminMapboxStyle,
+  getMapboxAccessToken,
+} from "@/lib/mapboxConfig";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -65,6 +71,9 @@ const normalizeCoordinate = (value?: number | null): number | null => {
 const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
   const [leaflet, setLeaflet] = useState<LeafletModule | null>(null);
   const [mapInstance, setMapInstance] = useState<LeafletMapInstance | null>(null);
+  const mapboxToken = getMapboxAccessToken();
+  const mapboxStylePath = getAdminMapboxStyle();
+  const tileLayerUrl = useMemo(() => buildMapboxTilesUrl(mapboxToken, mapboxStylePath), [mapboxToken, mapboxStylePath]);
 
   const MapInstanceBridge = ({
     onMapReady,
@@ -191,10 +200,14 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
   }, [leaflet, mapInstance, markers]);
 
   const hasMarkerIcons = Boolean(markerIcons.available) && Boolean(markerIcons.unavailable);
-  const canRenderMap = leaflet && hasMarkerIcons && markers.length > 0;
+  const canRenderMap = leaflet && hasMarkerIcons && markers.length > 0 && Boolean(tileLayerUrl);
   const initialCenter = markers[0]?.position ?? DEFAULT_CENTER;
 
   const fallbackMessage = (() => {
+    if (!mapboxToken || !tileLayerUrl) {
+      return "Configura la variable NEXT_PUBLIC_API_MAPBOX para visualizar el mapa administrativo.";
+    }
+
     if (isLoading) {
       return "Cargando coordenadas de los inmuebles…";
     }
@@ -235,8 +248,11 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           >
             <MapInstanceBridge onMapReady={setMapInstance} />
             <TileLayer
-              attribution={`&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Tiles courtesy of <a href="https://stadiamaps.com/">Stadia Maps</a> &amp; <a href="https://openmaptiles.org/">OpenMapTiles</a>`}
-              url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+              attribution={MAPBOX_ATTRIBUTION}
+              url={tileLayerUrl!}
+              tileSize={512}
+              zoomOffset={-1}
+              maxZoom={20}
             />
             {markers.map((marker) => (
               <Marker

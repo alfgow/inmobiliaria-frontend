@@ -3,6 +3,13 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  MAPBOX_ATTRIBUTION,
+  buildMapboxTilesUrl,
+  getMapboxAccessToken,
+  getPublicMapboxStyle,
+} from "@/lib/mapboxConfig";
+
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -65,6 +72,9 @@ const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) 
     return [numericLatitude, numericLongitude] as [number, number];
   }, [numericLatitude, numericLongitude]);
 
+  const mapboxToken = getMapboxAccessToken();
+  const mapboxStylePath = getPublicMapboxStyle();
+
   const markerIcon = useMemo(() => {
     if (!leaflet) {
       return null;
@@ -84,13 +94,29 @@ const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) 
     });
   }, [leaflet]);
 
-  if (!position || !markerIcon) {
+  const tileLayerUrl = useMemo(() => buildMapboxTilesUrl(mapboxToken, mapboxStylePath), [mapboxToken, mapboxStylePath]);
+
+  const fallbackCopy = useMemo(() => {
+    if (!mapboxToken) {
+      return {
+        title: "Configura tu token de Mapbox",
+        message:
+          "Para mostrar el mapa necesitamos la variable NEXT_PUBLIC_API_MAPBOX definida en tu archivo de entorno.",
+      };
+    }
+
+    return {
+      title: "Mapa no disponible",
+      message:
+        "En cuanto recibamos las coordenadas de este inmueble, podrás explorar la zona y calcular rutas fácilmente.",
+    };
+  }, [mapboxToken]);
+
+  if (!position || !markerIcon || !tileLayerUrl) {
     return (
       <div className="flex h-80 w-full flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-[var(--indigo)]/30 bg-white/70 text-center text-gray-600">
-        <p className="text-lg font-semibold text-[var(--text-dark)]">Mapa no disponible</p>
-        <p className="max-w-md text-sm text-gray-500">
-          En cuanto recibamos las coordenadas de este inmueble, podrás explorar la zona y calcular rutas fácilmente.
-        </p>
+        <p className="text-lg font-semibold text-[var(--text-dark)]">{fallbackCopy.title}</p>
+        <p className="max-w-md text-sm text-gray-500">{fallbackCopy.message}</p>
       </div>
     );
   }
@@ -113,8 +139,11 @@ const PropertyMap = ({ latitude, longitude, title, address }: PropertyMapProps) 
         style={{ height: "420px", width: "100%" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+          attribution={MAPBOX_ATTRIBUTION}
+          url={tileLayerUrl}
+          tileSize={512}
+          zoomOffset={-1}
+          maxZoom={20}
         />
         <Marker position={position} icon={markerIcon}>
           <Popup>
