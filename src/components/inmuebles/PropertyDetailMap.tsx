@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type MapboxGl = typeof import("mapbox-gl");
+type MapboxGl = (typeof import("mapbox-gl"))["default"];
 type MapboxMap = import("mapbox-gl").Map;
 type MapboxMarker = import("mapbox-gl").Marker;
 
