@@ -114,6 +114,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           return null;
         }
 
+        const statusName = property.status?.name ?? property.estatus?.nombre ?? null;
+        const statusColor = property.status?.color ?? property.estatus?.color ?? null;
+        const statusId = Number(property.status?.id ?? property.estatus?.id ?? NaN);
         const isAvailable =
           typeof property.isAvailable === "boolean"
             ? property.isAvailable
@@ -121,7 +124,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
             ? property.is_available
             : typeof property.active === "boolean"
             ? property.active
-            : false;
+            : typeof statusName === "string"
+            ? statusName.toLowerCase().includes("disponible")
+            : statusId === 1;
 
         const priceLabel = property.priceFormatted
           ? property.priceFormatted
@@ -137,8 +142,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           city: property.city ?? null,
           state: property.state ?? null,
           priceLabel,
-          statusName: property.status?.name ?? null,
-          statusColor: property.status?.color ?? null,
+          statusName,
+          statusColor,
           operation: property.operation ?? null,
           isAvailable,
         } satisfies MapMarker;
