@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type mapboxgl from "mapbox-gl";
 
 import {
   MAPBOX_ATTRIBUTION,
@@ -105,10 +106,10 @@ const PropertyDetailMap = ({
   operation,
 }: PropertyDetailMapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
-  const [mapbox, setMapbox] = useState<any>(null);
+  const [mapbox, setMapbox] = useState<typeof mapboxgl | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
   const mapboxToken = getMapboxAccessToken();
   const mapboxStylePath = getPublicMapboxStyle();
 
@@ -117,7 +118,7 @@ const PropertyDetailMap = ({
       return;
     }
 
-    const win = window as typeof window & { mapboxgl?: any };
+    const win = window as Window & { mapboxgl?: typeof mapboxgl };
 
     if (win.mapboxgl) {
       setMapbox(win.mapboxgl);
