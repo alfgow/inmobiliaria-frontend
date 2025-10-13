@@ -1,11 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L, { type LatLngTuple } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
-import { FALLBACK_IMAGE } from "@/components/FeaturedProperties/useProperties";
+import {
+  FALLBACK_IMAGE,
+  formatOperation,
+} from "@/components/FeaturedProperties/useProperties";
 
 type AdminPropertiesMapProps = {
   properties: ApiProperty[];
@@ -14,6 +18,7 @@ type AdminPropertiesMapProps = {
 
 type MapMarker = {
   id: string;
+  slug: string | null;
   position: LatLngTuple;
   title: string;
   address: string | null;
@@ -192,8 +197,11 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           .join(", ")
           .trim();
 
+        const operationLabel = formatOperation(property.operation ?? null);
+
         return {
           id: property.id,
+          slug: property.slug ?? null,
           position: [latitude, longitude] as LatLngTuple,
           title: property.title ?? "Inmueble sin título",
           address: property.address ?? null,
@@ -202,7 +210,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           priceLabel,
           statusName,
           statusColor,
-          operation: property.operation ?? null,
+          operation: operationLabel,
           isAvailable,
           imageUrl,
           locationLabel: locationLabel.length > 0 ? locationLabel : null,
@@ -308,7 +316,13 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                         }
                       >
                         <span aria-hidden="true">●</span>
-                        {marker.statusName}
+                        <span>{marker.statusName}</span>
+                        {marker.operation ? (
+                          <>
+                            <span aria-hidden="true">•</span>
+                            <span>{marker.operation}</span>
+                          </>
+                        ) : null}
                       </span>
                     ) : null}
                   </div>
@@ -319,7 +333,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                         {marker.title}
                       </p>
                       {marker.locationLabel ? (
-                        <p className="hidden items-center gap-1 text-xs text-gray-500 md:flex">
+                        <p className="flex items-center gap-1 text-xs text-gray-500">
                           <span aria-hidden="true">📍</span>
                           {marker.locationLabel}
                         </p>
@@ -332,11 +346,14 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                       </p>
                     ) : null}
 
-                    <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600 md:text-xs">
-                      {marker.operation ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-                          {marker.operation}
-                        </span>
+                    <div className="flex flex-wrap items-center gap-3 text-[0.65rem] font-medium text-gray-600 md:text-xs">
+                      {marker.slug ? (
+                        <Link
+                          href={`/inmuebles/${marker.slug}`}
+                          className="inline-flex items-center justify-center rounded-full bg-[var(--indigo)] px-3 py-1 text-xs font-semibold text-white shadow transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--indigo)]"
+                        >
+                          Ver Inmueble
+                        </Link>
                       ) : null}
                       <span
                         className={`hidden items-center gap-1 rounded-full px-2 py-1 md:inline-flex ${
