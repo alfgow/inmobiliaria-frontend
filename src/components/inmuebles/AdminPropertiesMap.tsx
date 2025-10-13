@@ -286,8 +286,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                 maxWidth={320}
                 offset={[0, -24]}
               >
-                <article className="flex w-[80vw] max-w-[320px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5">
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                <article className="flex w-[68vw] max-w-[260px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5 md:w-[80vw] md:max-w-[320px]">
+                  <div className="relative aspect-[3/2] w-full overflow-hidden bg-gray-100 md:aspect-[4/3]">
                     <img
                       src={marker.imageUrl}
                       alt={`Imagen de ${marker.title}`}
@@ -313,13 +313,13 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                     ) : null}
                   </div>
 
-                  <div className="space-y-3 p-4">
+                  <div className="space-y-3 p-3 md:p-4">
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-[var(--text-dark)]">
+                      <p className="truncate text-sm font-semibold text-[var(--text-dark)]">
                         {marker.title}
                       </p>
                       {marker.locationLabel ? (
-                        <p className="flex items-center gap-1 text-xs text-gray-500">
+                        <p className="hidden items-center gap-1 text-xs text-gray-500 md:flex">
                           <span aria-hidden="true">📍</span>
                           {marker.locationLabel}
                         </p>
@@ -327,19 +327,19 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                     </div>
 
                     {marker.priceLabel ? (
-                      <p className="text-sm font-bold text-[var(--indigo)]">
+                      <p className="text-sm font-bold text-[var(--indigo)] md:text-base">
                         {marker.priceLabel}
                       </p>
                     ) : null}
 
-                    <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
+                    <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600 md:text-xs">
                       {marker.operation ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
                           {marker.operation}
                         </span>
                       ) : null}
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
+                        className={`hidden items-center gap-1 rounded-full px-2 py-1 md:inline-flex ${
                           marker.isAvailable
                             ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
                             : "bg-gray-200 text-gray-600"
