@@ -89,32 +89,6 @@ const MapBoundsController = ({ positions }: MapBoundsControllerProps) => {
   return null;
 };
 
-type MapReadyHandlerProps = {
-  onReady: (map: L.Map) => void;
-};
-
-const MapReadyHandler = ({ onReady }: MapReadyHandlerProps) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!map) {
-      return;
-    }
-
-    const handleReady = () => {
-      onReady(map);
-    };
-
-    map.whenReady(handleReady);
-
-    return () => {
-      map.off("load", handleReady);
-    };
-  }, [map, onReady]);
-
-  return null;
-};
-
 const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -122,6 +96,15 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
     setIsMapReady(true);
     mapInstance.invalidateSize();
   }, []);
+
+  const handleMapCreated = useCallback(
+    (mapInstance: L.Map) => {
+      mapInstance.whenReady(() => {
+        handleMapReady(mapInstance);
+      });
+    },
+    [handleMapReady],
+  );
 
   const markerIcons = useMemo(() => {
     const baseIconOptions = {
@@ -259,9 +242,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           maxZoom={18}
           scrollWheelZoom
           zoomControl
+          whenCreated={handleMapCreated}
         >
           <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />
-          <MapReadyHandler onReady={handleMapReady} />
           <MapBoundsController positions={markerPositions} />
           {markers.map((marker) => (
             <Marker
