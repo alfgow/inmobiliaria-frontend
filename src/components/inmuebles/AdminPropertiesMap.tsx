@@ -5,6 +5,7 @@ import L, { type LatLngTuple } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
+import { FALLBACK_IMAGE } from "@/components/FeaturedProperties/useProperties";
 
 type AdminPropertiesMapProps = {
   properties: ApiProperty[];
@@ -23,6 +24,8 @@ type MapMarker = {
   statusColor: string | null;
   operation: string | null;
   isAvailable: boolean;
+  imageUrl: string;
+  locationLabel: string | null;
 };
 
 const DEFAULT_CENTER: LatLngTuple = [23.6345, -102.5528];
@@ -176,6 +179,19 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           ? currencyFormatter.format(property.price)
           : null;
 
+        const coverImage = property.images?.find((image) => image.isCover);
+        const coverImageUrl =
+          coverImage?.signedUrl ?? coverImage?.url ?? coverImage?.path ?? null;
+        const firstImage = property.images?.[0];
+        const firstImageUrl =
+          firstImage?.signedUrl ?? firstImage?.url ?? firstImage?.path ?? null;
+        const imageUrl = coverImageUrl ?? firstImageUrl ?? FALLBACK_IMAGE;
+
+        const locationLabel = [property.address, property.city, property.state]
+          .filter(Boolean)
+          .join(", ")
+          .trim();
+
         return {
           id: property.id,
           position: [latitude, longitude] as LatLngTuple,
@@ -188,6 +204,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           statusColor,
           operation: property.operation ?? null,
           isAvailable,
+          imageUrl,
+          locationLabel: locationLabel.length > 0 ? locationLabel : null,
         } satisfies MapMarker;
       })
       .filter((marker): marker is MapMarker => Boolean(marker));
@@ -263,26 +281,29 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
               position={marker.position}
               icon={marker.isAvailable ? markerIcons.available : markerIcons.unavailable}
             >
-              <Popup maxWidth={240} offset={[0, -24]}>
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-[var(--text-dark)]">
-                    {marker.title}
-                  </p>
-                  {marker.address || marker.city || marker.state ? (
-                    <p className="text-xs text-gray-500">
-                      {[marker.address, marker.city, marker.state].filter(Boolean).join(", ")}
-                    </p>
-                  ) : null}
-                  {marker.priceLabel ? (
-                    <p className="text-sm font-bold text-[var(--indigo)]">{marker.priceLabel}</p>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
+              <Popup
+                className="admin-property-popup"
+                maxWidth={320}
+                offset={[0, -24]}
+              >
+                <article className="flex w-[80vw] max-w-[320px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                    <img
+                      src={marker.imageUrl}
+                      alt={`Imagen de ${marker.title}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
                     {marker.statusName ? (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1"
+                        className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-[var(--text-dark)] shadow"
                         style={
                           marker.statusColor
-                            ? { color: marker.statusColor, border: `1px solid ${marker.statusColor}` }
+                            ? {
+                                color: marker.statusColor,
+                                border: `1px solid ${marker.statusColor}`,
+                                backgroundColor: "#ffffffcc",
+                              }
                             : undefined
                         }
                       >
@@ -290,23 +311,46 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
                         {marker.statusName}
                       </span>
                     ) : null}
-                    {marker.operation ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-                        {marker.operation}
-                      </span>
-                    ) : null}
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
-                        marker.isAvailable
-                          ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <span aria-hidden="true">{marker.isAvailable ? "✅" : "⛔"}</span>
-                      {marker.isAvailable ? "Disponible" : "No disponible"}
-                    </span>
                   </div>
-                </div>
+
+                  <div className="space-y-3 p-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-[var(--text-dark)]">
+                        {marker.title}
+                      </p>
+                      {marker.locationLabel ? (
+                        <p className="flex items-center gap-1 text-xs text-gray-500">
+                          <span aria-hidden="true">📍</span>
+                          {marker.locationLabel}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    {marker.priceLabel ? (
+                      <p className="text-sm font-bold text-[var(--indigo)]">
+                        {marker.priceLabel}
+                      </p>
+                    ) : null}
+
+                    <div className="flex flex-wrap gap-2 text-[0.65rem] font-medium text-gray-600">
+                      {marker.operation ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
+                          {marker.operation}
+                        </span>
+                      ) : null}
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 ${
+                          marker.isAvailable
+                            ? "bg-[var(--lime)]/20 text-[var(--text-dark)]"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        <span aria-hidden="true">{marker.isAvailable ? "✅" : "⛔"}</span>
+                        {marker.isAvailable ? "Disponible" : "No disponible"}
+                      </span>
+                    </div>
+                  </div>
+                </article>
               </Popup>
             </Marker>
           ))}
