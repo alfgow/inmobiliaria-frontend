@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import L, { type LatLngTuple } from "leaflet";
+import L, { type LatLngTuple, type LeafletEvent } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
@@ -97,11 +97,13 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
     mapInstance.invalidateSize();
   }, []);
 
-  const handleMapCreated = useCallback(
-    (mapInstance: L.Map) => {
-      mapInstance.whenReady(() => {
+  const handleMapReadyEvent = useCallback(
+    (event: LeafletEvent) => {
+      const mapInstance = event.target;
+
+      if (mapInstance instanceof L.Map) {
         handleMapReady(mapInstance);
-      });
+      }
     },
     [handleMapReady],
   );
@@ -242,7 +244,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           maxZoom={18}
           scrollWheelZoom
           zoomControl
-          whenCreated={handleMapCreated}
+          whenReady={handleMapReadyEvent}
         >
           <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />
           <MapBoundsController positions={markerPositions} />
