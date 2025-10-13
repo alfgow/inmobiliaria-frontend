@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import L, { type LatLngTuple, type LeafletEvent } from "leaflet";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import L, { type LatLngTuple } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
@@ -89,8 +89,31 @@ const MapBoundsController = ({ positions }: MapBoundsControllerProps) => {
   return null;
 };
 
+type MapReadyHandlerProps = {
+  onReady: (map: L.Map) => void;
+};
+
+const MapReadyHandler = ({ onReady }: MapReadyHandlerProps) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) {
+      return;
+    }
+
+    onReady(map);
+  }, [map, onReady]);
+
+  return null;
+};
+
 const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMapProps) => {
   const [isMapReady, setIsMapReady] = useState(false);
+
+  const handleMapReady = useCallback((mapInstance: L.Map) => {
+    setIsMapReady(true);
+    mapInstance.invalidateSize();
+  }, []);
 
   const markerIcons = useMemo(() => {
     const baseIconOptions = {
@@ -219,12 +242,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           maxZoom={18}
           scrollWheelZoom
           zoomControl
-          whenReady={(event: LeafletEvent) => {
-            setIsMapReady(true);
-            event.target.invalidateSize();
-          }}
         >
           <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />
+          <MapReadyHandler onReady={handleMapReady} />
           <MapBoundsController positions={markerPositions} />
           {markers.map((marker) => (
             <Marker
