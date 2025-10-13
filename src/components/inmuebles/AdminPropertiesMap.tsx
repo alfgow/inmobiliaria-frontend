@@ -219,9 +219,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           maxZoom={18}
           scrollWheelZoom
           zoomControl
-          whenReady={(event) => {
-            const mapInstance = event.target as LeafletMap;
-
+          whenCreated={(mapInstance: LeafletMap) => {
             setIsMapReady(true);
             mapInstance.invalidateSize();
           }}
