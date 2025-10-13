@@ -106,19 +106,29 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
   const markerIcons = useMemo(() => {
     const baseIconOptions = {
       className: "admin-property-marker",
-      iconSize: [36, 36] as [number, number],
-      iconAnchor: [18, 36] as [number, number],
-      popupAnchor: [0, -32] as [number, number],
+      iconSize: [48, 64] as [number, number],
+      iconAnchor: [24, 60] as [number, number],
+      popupAnchor: [0, -48] as [number, number],
     };
 
-    const createMarkerHtml = (isAvailable: boolean) => `
-      <div class="admin-marker ${
-        isAvailable ? "admin-marker--available" : "admin-marker--unavailable"
-      }">
-        <span class="admin-marker__pulse"></span>
-        <span class="admin-marker__core"></span>
-      </div>
-    `;
+    const createMarkerHtml = (isAvailable: boolean) => {
+      const icon = isAvailable
+        ? `<svg class="admin-marker__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 13.5 9.5 18 19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        : `<svg class="admin-marker__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7 17 17M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+      return `
+        <div class="admin-marker ${
+          isAvailable ? "admin-marker--available" : "admin-marker--unavailable"
+        }">
+          <span class="admin-marker__pulse" aria-hidden="true"></span>
+          <span class="admin-marker__pin" role="presentation">
+            <span class="admin-marker__inner" aria-hidden="true">
+              ${icon}
+            </span>
+          </span>
+        </div>
+      `;
+    };
 
     return {
       available: L.divIcon({

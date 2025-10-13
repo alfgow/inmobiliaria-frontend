@@ -181,57 +181,101 @@ html.gallery-modal-open body {
 
 .admin-property-marker .admin-marker {
         position: relative;
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 60px;
         display: grid;
         place-items: center;
-}
-
-.admin-property-marker .admin-marker__core {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        border: 4px solid #ffffff;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        transform-origin: center bottom;
+        --admin-marker-color: #7c3aed;
+        --admin-marker-shadow: rgba(124, 58, 237, 0.45);
+        --admin-marker-pulse: rgba(34, 197, 94, 0.3);
+        --admin-marker-pulse-border: rgba(34, 197, 94, 0.45);
+        --admin-marker-inner-bg: #ffffff;
+        --admin-marker-icon-color: #16a34a;
 }
 
 .admin-property-marker .admin-marker__pulse {
         position: absolute;
+        top: 4px;
         width: 44px;
         height: 44px;
         border-radius: 50%;
+        background: var(--admin-marker-pulse);
+        border: 1px solid var(--admin-marker-pulse-border);
         animation: markerPulse 2.5s ease-in-out infinite;
+        opacity: 0.95;
+        z-index: 0;
 }
 
-.admin-property-marker .admin-marker--available .admin-marker__core {
-        background: #7c3aed;
-        box-shadow: 0 12px 30px rgba(124, 58, 237, 0.45);
+.admin-property-marker .admin-marker__pin {
+        position: relative;
+        width: 38px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px 20px 14px 14px;
+        background: var(--admin-marker-color);
+        box-shadow: 0 18px 34px var(--admin-marker-shadow);
+        z-index: 1;
+}
+
+.admin-property-marker .admin-marker__pin::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        background: inherit;
+        transform: translateX(-50%) rotate(45deg);
+        border-radius: 4px;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+        z-index: -1;
+}
+
+.admin-property-marker .admin-marker__inner {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: var(--admin-marker-inner-bg);
+        display: grid;
+        place-items: center;
+        color: var(--admin-marker-icon-color);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.admin-property-marker .admin-marker__icon {
+        width: 16px;
+        height: 16px;
+        display: block;
+}
+
+.admin-property-marker .admin-marker--available .admin-marker__pin {
+        background: var(--admin-marker-color);
 }
 
 .admin-property-marker .admin-marker--available .admin-marker__pulse {
-        background: rgba(34, 197, 94, 0.3);
-        border: 1px solid rgba(34, 197, 94, 0.45);
-        opacity: 0.95;
-        animation: markerPulse 2.5s ease-in-out infinite;
+        display: block;
 }
 
-.admin-property-marker .admin-marker--unavailable .admin-marker__core {
-        background: #ef4444;
-        box-shadow: 0 12px 24px rgba(239, 68, 68, 0.45);
+.admin-property-marker .admin-marker--unavailable {
+        --admin-marker-color: #ef4444;
+        --admin-marker-shadow: rgba(239, 68, 68, 0.38);
+        --admin-marker-pulse: transparent;
+        --admin-marker-pulse-border: transparent;
+        --admin-marker-inner-bg: #fee2e2;
+        --admin-marker-icon-color: #b91c1c;
 }
 
 .admin-property-marker .admin-marker--unavailable .admin-marker__pulse {
         display: none;
 }
 
-.admin-property-marker .admin-marker[data-marker-color] .admin-marker__core {
-        background: var(--marker-color);
-        box-shadow: 0 12px 30px var(--marker-shadow, rgba(124, 58, 237, 0.45));
-}
-
-.admin-property-marker .admin-marker[data-marker-color] .admin-marker__pulse {
-        background: var(--marker-pulse, rgba(34, 197, 94, 0.3));
-        border: 1px solid var(--marker-pulse-border, rgba(34, 197, 94, 0.45));
+.admin-property-marker .admin-marker[data-marker-color] {
+        --admin-marker-color: var(--marker-color);
+        --admin-marker-shadow: var(--marker-shadow, rgba(124, 58, 237, 0.45));
+        --admin-marker-pulse: var(--marker-pulse, rgba(34, 197, 94, 0.3));
+        --admin-marker-pulse-border: var(--marker-pulse-border, rgba(34, 197, 94, 0.45));
 }
 
 @keyframes markerPulse {
