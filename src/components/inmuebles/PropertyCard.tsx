@@ -136,9 +136,6 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
 								{property.operation}
 							</span>
 						)}
-						<span className="rounded-full bg-gray-100 px-3 py-1 font-medium">
-							ID: {property.id}
-						</span>
 					</div>
 				</div>
 
