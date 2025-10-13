@@ -203,22 +203,31 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       .filter((marker): marker is MapMarker => Boolean(marker));
   }, [properties]);
 
+  const hasMarkers = markers.length > 0;
   const markerPositions = useMemo(() => markers.map((marker) => marker.position), [markers]);
 
-  const fallbackMessage = (() => {
-    if (isLoading) {
-      return "Cargando coordenadas de los inmuebles…";
+  const overlayMessage = !isMapReady
+    ? isLoading
+      ? "Cargando coordenadas de los inmuebles…"
+      : "Preparando mapa interactivo…"
+    : null;
+
+  const floatingMessage = (() => {
+    if (isMapReady && isLoading) {
+      return {
+        tone: "loading" as const,
+        text: "Cargando coordenadas de los inmuebles…",
+      };
     }
 
-    if (markers.length === 0) {
-      return "No hay propiedades con ubicación georreferenciada por ahora.";
+    if (isMapReady && !isLoading && !hasMarkers) {
+      return {
+        tone: "empty" as const,
+        text: "No hay propiedades con ubicación georreferenciada por ahora.",
+      };
     }
 
-    if (!isMapReady) {
-      return "Preparando mapa interactivo…";
-    }
-
-    return "Estamos renderizando el nuevo mapa administrativo, aguarda un momento.";
+    return null;
   })();
 
   return (
@@ -233,7 +242,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           </h2>
         </div>
         <div className="text-sm text-gray-500">
-          {markers.length > 0
+          {hasMarkers
             ? `${markers.length} propiedades con ubicación disponible`
             : "Sin propiedades georreferenciadas"}
         </div>
@@ -242,7 +251,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       <div className="relative mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
         <MapContainer
           className={`h-full w-full transition-opacity duration-300 ${
-            isMapReady && markers.length > 0 ? "opacity-100" : "opacity-0"
+            isMapReady ? "opacity-100" : "opacity-0"
           }`}
           center={DEFAULT_CENTER}
           zoom={DEFAULT_ZOOM}
@@ -309,9 +318,21 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           ))}
         </MapContainer>
 
-        {!isMapReady || markers.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-gray-500">
-            {fallbackMessage}
+        {overlayMessage ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
+            {overlayMessage}
+          </div>
+        ) : null}
+
+        {floatingMessage ? (
+          <div
+            className={`pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl px-4 py-3 text-sm shadow-lg backdrop-blur ${
+              floatingMessage.tone === "loading"
+                ? "bg-white/75 text-gray-600"
+                : "bg-white/90 text-gray-500"
+            }`}
+          >
+            {floatingMessage.text}
           </div>
         ) : null}
       </div>
