@@ -329,10 +329,18 @@ const PropertyDetailMap = ({
       ? ` data-marker-color="true" style="--marker-color: ${markerTokens.core}; --marker-shadow: ${markerTokens.shadow}; --marker-pulse: ${markerTokens.pulse}; --marker-pulse-border: ${markerTokens.pulseBorder};"`
       : "";
 
+    const icon = isAvailable
+      ? `<svg class="admin-marker__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 13.5 9.5 18 19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg class="admin-marker__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7 17 17M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
     markerElement.innerHTML = `
       <div class="admin-marker ${isAvailable ? "admin-marker--available" : "admin-marker--unavailable"}"${markerColorAttributes}>
-        <span class="admin-marker__pulse"></span>
-        <span class="admin-marker__core"></span>
+        <span class="admin-marker__pulse" aria-hidden="true"></span>
+        <span class="admin-marker__pin" role="presentation">
+          <span class="admin-marker__inner" aria-hidden="true">
+            ${icon}
+          </span>
+        </span>
       </div>
     `;
 
