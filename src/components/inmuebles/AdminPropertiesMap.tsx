@@ -101,7 +101,15 @@ const MapReadyHandler = ({ onReady }: MapReadyHandlerProps) => {
       return;
     }
 
-    onReady(map);
+    const handleReady = () => {
+      onReady(map);
+    };
+
+    map.whenReady(handleReady);
+
+    return () => {
+      map.off("load", handleReady);
+    };
   }, [map, onReady]);
 
   return null;
