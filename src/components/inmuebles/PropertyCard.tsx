@@ -92,6 +92,12 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
           </div>
         )}
 
+        <div className="absolute left-3 bottom-3">
+          <span className="inline-flex items-center rounded-full bg-[var(--indigo)] px-4 py-1 text-sm font-bold text-white shadow-lg">
+            {formattedPrice}
+          </span>
+        </div>
+
         {isUnavailable && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="flex w-[80%] -rotate-45 transform items-center justify-center rounded-full border-2 border-[color:rgba(210,255,30,0.5)] bg-[color:rgba(210,255,30,0.65)] px-6 py-2 text-center text-sm font-bold uppercase tracking-wide text-[var(--indigo)] shadow-lg backdrop-blur-sm md:text-base lg:px-8 lg:py-3 lg:text-lg">
@@ -113,8 +119,6 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
               {locationLabel}
             </p>
           )}
-
-          <p className="text-lg font-bold text-[var(--indigo)]">{formattedPrice}</p>
 
           <div className="flex flex-wrap gap-3 text-sm text-gray-600">
             {!isUnavailable && property.status?.name && (
@@ -140,7 +144,7 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
         >
           <Link
             href={propertyHref}
-            className="flex-1 rounded-full bg-[var(--indigo)] px-5 py-3 text-center text-white transition hover:bg-[var(--lime)] hover:text-black"
+            className="mx-auto w-4/5 rounded-full bg-[var(--indigo)] px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-[var(--lime)] hover:text-black"
           >
             Ver información
           </Link>
