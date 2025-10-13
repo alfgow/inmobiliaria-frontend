@@ -229,19 +229,22 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       </div>
 
       <div className="relative mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
-        <MapContainer
+        <div
           className={`h-full w-full transition-opacity duration-300 ${
             isMapReady ? "opacity-100" : "opacity-0"
           }`}
-          center={DEFAULT_CENTER}
-          zoom={DEFAULT_ZOOM}
-          minZoom={2}
-          maxZoom={18}
-          scrollWheelZoom
-          zoomControl
-          ref={mapRef}
-          whenReady={handleMapReady}
         >
+          <MapContainer
+            className="h-full w-full"
+            center={DEFAULT_CENTER}
+            zoom={DEFAULT_ZOOM}
+            minZoom={2}
+            maxZoom={18}
+            scrollWheelZoom
+            zoomControl
+            ref={mapRef}
+            whenReady={handleMapReady}
+          >
           <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />
           <MapBoundsController positions={markerPositions} />
           {markers.map((marker) => (
@@ -297,7 +300,8 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
               </Popup>
             </Marker>
           ))}
-        </MapContainer>
+          </MapContainer>
+        </div>
 
         {overlayMessage ? (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
