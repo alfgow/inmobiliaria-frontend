@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import L, { type LatLngTuple } from "leaflet";
+import L, { type LatLngTuple, type Map as LeafletMap } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
@@ -219,11 +219,11 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           maxZoom={18}
           scrollWheelZoom
           zoomControl
-          whenCreated={(mapInstance) => {
-            mapInstance.whenReady(() => {
-              setIsMapReady(true);
-              mapInstance.invalidateSize();
-            });
+          whenReady={(event) => {
+            const mapInstance = event.target as LeafletMap;
+
+            setIsMapReady(true);
+            mapInstance.invalidateSize();
           }}
         >
           <TileLayer url={TILE_LAYER_URL} attribution={TILE_LAYER_ATTRIBUTION} />

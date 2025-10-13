@@ -57,7 +57,6 @@ const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
   const formattedPrice = hasValidPrice ? currencyFormatter.format(priceValue) : "Consultar";
 
   const statusLabel = property.status?.name ?? property.operation ?? "Disponible";
-  const operationLabel = property.operation ?? "";
   const unavailableOverlayLabel = property.status?.name ?? "No disponible";
   const propertyHref = `/inmuebles/${property.slug}`;
 
