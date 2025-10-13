@@ -106,9 +106,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
   const markerIcons = useMemo(() => {
     const baseIconOptions = {
       className: "admin-property-marker",
-      iconSize: [48, 64] as [number, number],
-      iconAnchor: [24, 60] as [number, number],
-      popupAnchor: [0, -48] as [number, number],
+      iconSize: [24, 32] as [number, number],
+      iconAnchor: [12, 30] as [number, number],
+      popupAnchor: [0, -24] as [number, number],
     };
 
     const createMarkerHtml = (isAvailable: boolean) => {
