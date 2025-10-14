@@ -20,7 +20,7 @@ const Navbar = () => {
 
 	return (
 		<>
-			<header className="fixed inset-x-0 top-0 z-100 border-b border-white/20 bg-gradient-to-r from-green-50/80 via-white/60 to-green-50/80 backdrop-blur-xl shadow-lg">
+                        <header className="fixed inset-x-0 top-0 z-[1100] border-b border-white/20 bg-gradient-to-r from-green-50/80 via-white/60 to-green-50/80 backdrop-blur-xl shadow-lg">
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 					{/* Logo */}
 					<Link
@@ -91,8 +91,8 @@ const Navbar = () => {
 			</header>
 
 			{/* Menú Mobile (Drawer lateral) */}
-			<nav
-				className={`fixed inset-y-0 right-0 z-40 w-80 bg-white/95 backdrop-blur-lg shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
+                        <nav
+                                className={`fixed inset-y-0 right-0 z-[1200] w-80 bg-white/95 backdrop-blur-lg shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
 					isMenuOpen ? "translate-x-0" : "translate-x-full"
 				}`}
 			>
@@ -138,8 +138,8 @@ const Navbar = () => {
 
 			{/* Overlay para mobile */}
 			{isMenuOpen && (
-				<div
-					className="fixed inset-0 bg-black/50 md:hidden z-30"
+                                <div
+                                        className="fixed inset-0 z-[1150] bg-black/50 md:hidden"
 					onClick={toggleMenu}
 				/>
 			)}
