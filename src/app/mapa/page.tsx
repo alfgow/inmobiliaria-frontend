@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const PropertiesMapPage = () => {
 	return (
 		<div className="bg-[var(--bg-base)] text-[var(--text-dark)]">
-			<header className="fixed left-0 right-0 top-0 z-20">
+                        <header className="fixed left-0 right-0 top-0 z-[1200]">
 				<Navbar />
 			</header>
 			<main className="min-h-screen pt-20 pb-16 md:pt-28 md:pb-20">
