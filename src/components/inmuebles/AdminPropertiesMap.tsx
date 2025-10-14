@@ -363,7 +363,7 @@ const AdminPropertiesMap = ({
 											</span>
 										) : null}
 										{marker.priceLabel ? (
-											<span className="absolute right-3 top-3 rounded-full bg-[#d2ff1e] px-3 py-1 text-xs font-bold text-black shadow-md">
+											<span className="absolute right-3 bottom-3 rounded-full bg-[#d2ff1e] px-3 py-1 text-xs font-bold text-black shadow-md">
 												{marker.priceLabel}
 											</span>
 										) : null}
