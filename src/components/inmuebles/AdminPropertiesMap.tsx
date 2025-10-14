@@ -278,14 +278,10 @@ const AdminPropertiesMap = ({
 	})();
 
 	return (
-		<div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] ">
-			<div
-				className={`h-full w-full transition-opacity duration-300 ${
-					isMapReady ? "opacity-100" : "opacity-0"
-				}`}
-			>
+		<div className="relative mt-6 h-[560px] w-full overflow-hidden ">
+			<div className="h-full w-full transition-opacity duration-300">
 				<MapContainer
-					className="h-full w-full"
+					className="h-full w-full  border border-red-600"
 					center={DEFAULT_CENTER}
 					zoom={DEFAULT_ZOOM}
 					minZoom={2}
