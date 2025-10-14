@@ -243,12 +243,12 @@ const PropertyCarousel = ({
 								<p className="mb-4 text-gray-600">
 									{detailsLine}
 								</p>
-								<a
-									href="#"
-									className="mt-auto font-medium text-indigo-600 hover:underline"
-								>
-									Ver Detalles
-								</a>
+                                                                <a
+                                                                        href="#"
+                                                                        className="mt-auto inline-flex items-center justify-center rounded-full bg-lime-400 px-5 py-2 text-sm font-semibold text-sky-700 shadow-sm transition hover:bg-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500"
+                                                                >
+                                                                        Ver Detalles
+                                                                </a>
 							</div>
 						</div>
 					</SwiperSlide>
