@@ -279,11 +279,15 @@ const AdminPropertiesMap = ({
 
 	return (
 		<div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] ">
-			<div
-				className={`h-full w-full transition-opacity duration-300 ${
-					isMapReady ? "opacity-100" : "opacity-0"
-				}`}
-			>
+                        <div
+                                className={`h-full w-full transition-opacity duration-300 ${
+                                        isMapReady ? "opacity-100" : "opacity-0"
+                                }`}
+                                style={{
+                                        boxShadow:
+                                                "10px 10px 20px #babecc, -10px -10px 20px #ffffff",
+                                }}
+                        >
 				<MapContainer
 					className="h-full w-full"
 					center={DEFAULT_CENTER}
