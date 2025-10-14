@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-        { href: "/", label: "Inicio" },
-        { href: "/inmuebles", label: "Inmuebles" },
-        { href: "/mapa", label: "Mapa" },
-        { href: "/#nosotros", label: "Nosotros" },
+	{ href: "/", label: "Inicio" },
+	{ href: "/inmuebles", label: "Inmuebles" },
+	{ href: "/mapa", label: "Mapa" },
+	{ href: "/#nosotros", label: "Nosotros" },
 ];
 
 const Navbar = () => {
@@ -20,7 +20,7 @@ const Navbar = () => {
 
 	return (
 		<>
-			<header className="fixed inset-x-0 top-0 z-50 border-b border-white/20 bg-gradient-to-r from-green-50/80 via-white/60 to-green-50/80 backdrop-blur-xl shadow-lg">
+			<header className="fixed inset-x-0 top-0 z-100 border-b border-white/20 bg-gradient-to-r from-green-50/80 via-white/60 to-green-50/80 backdrop-blur-xl shadow-lg">
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 					{/* Logo */}
 					<Link
