@@ -278,7 +278,7 @@ const AdminPropertiesMap = ({
 	})();
 
 	return (
-                <div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] border border-white/50 bg-gradient-to-br from-white/95 via-white/80 to-white/50 shadow-[0_28px_60px_-20px_rgba(30,41,59,0.55)] shadow-inner backdrop-blur">
+                <div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] border border-white/50 bg-gradient-to-br from-white/95 via-white/80 to-white/50 shadow-[10px_10px_20px_#babecc,-10px_-10px_20px_#ffffff] backdrop-blur">
                         <div
                                 className={`h-full w-full transition-opacity duration-300 ${
                                         isMapReady ? "opacity-100" : "opacity-0"
