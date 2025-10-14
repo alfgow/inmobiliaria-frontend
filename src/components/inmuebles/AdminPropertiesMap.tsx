@@ -278,10 +278,10 @@ const AdminPropertiesMap = ({
 	})();
 
 	return (
-		<div className="relative mt-6 h-[560px] w-full overflow-hidden ">
-			<div className="h-full w-full transition-opacity duration-300">
+		<div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[32px] shadow-xl/30">
+			<div className="h-full w-full overflow-hidden rounded-[inherit] transition-opacity duration-300">
 				<MapContainer
-					className="h-full w-full  border border-red-600"
+					className="h-full w-full overflow-hidden rounded-[inherit]"
 					center={DEFAULT_CENTER}
 					zoom={DEFAULT_ZOOM}
 					minZoom={2}
@@ -403,7 +403,7 @@ const AdminPropertiesMap = ({
 			</div>
 
 			{overlayMessage ? (
-				<div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
+				<div className="absolute inset-0 flex items-center justify-center rounded-[inherit] bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
 					{overlayMessage}
 				</div>
 			) : null}
