@@ -5,55 +5,58 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 const HeroSection = () => {
-        const parallaxRef = useRef<HTMLDivElement>(null);
+	const parallaxRef = useRef<HTMLDivElement>(null);
 
-        useEffect(() => {
-                const parallax = parallaxRef.current;
-                if (!parallax) return;
+	useEffect(() => {
+		const parallax = parallaxRef.current;
+		if (!parallax) return;
 
-                let ticking = false;
+		let ticking = false;
 
-                const handleScroll = () => {
-                        if (!ticking) {
-                                requestAnimationFrame(() => {
-                                        const scrolled = window.pageYOffset;
-                                        const rate = scrolled * 0.5;
-                                        parallax.style.transform = `translate3d(0, ${rate}px, 0)`;
-                                        ticking = false;
-                                });
-                                ticking = true;
-                        }
-                };
+		const handleScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					const scrolled = window.pageYOffset;
+					const rate = scrolled * 0.5;
+					parallax.style.transform = `translate3d(0, ${rate}px, 0)`;
+					ticking = false;
+				});
+				ticking = true;
+			}
+		};
 
-                window.addEventListener("scroll", handleScroll, { passive: true });
-                handleScroll();
+		window.addEventListener("scroll", handleScroll, { passive: true });
+		handleScroll();
 
-                return () => window.removeEventListener("scroll", handleScroll);
-        }, []);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
 
-        return (
-                <section
-                        id="inicio"
+	return (
+		<section
+			id="inicio"
 			className="relative flex h-screen items-center justify-center overflow-hidden"
 		>
 			{/* Fondo con parallax extendido */}
-                        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-                                <div
-                                        ref={parallaxRef}
-                                        className="relative h-[200vh] w-full"
-                                        style={{ willChange: "transform" }}
-                                >
-                                        <Image
-                                                src="/1.png"
-                                                alt="Fachada de una residencia de lujo"
-                                                fill
-                                                priority={false}
-                                                loading="lazy"
-                                                sizes="100vw"
-                                                className="object-cover"
-                                        />
-                                </div>
-                        </div>
+			<div
+				className="absolute inset-0 overflow-hidden"
+				aria-hidden="true"
+			>
+				<div
+					ref={parallaxRef}
+					className="relative h-[200vh] w-full"
+					style={{ willChange: "transform" }}
+				>
+					<Image
+						src="/1.png"
+						alt="Fachada de una residencia de lujo"
+						fill
+						priority={false}
+						loading="lazy"
+						sizes="100vw"
+						className="object-cover"
+					/>
+				</div>
+			</div>
 			{/* Overlay degradado extendido */}
 			<div className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/30 to-green-900/20 min-h-screen" />
 
@@ -66,14 +69,14 @@ const HeroSection = () => {
 					transition={{ duration: 0.8 }}
 					className="mb-8"
 				>
-                                        <Image
-                                                src="/logo.png"
-                                                alt="Villanueva García - Inmobiliaria de lujo"
-                                                width={120}
-                                                height={120}
-                                                className="h-24 w-auto rounded-full shadow-2xl md:h-32 object-contain"
-                                                loading="lazy"
-                                        />
+					<Image
+						src="/logo.png"
+						alt="Villanueva García - Inmobiliaria de lujo"
+						width={120}
+						height={120}
+						className="h-24 w-auto rounded-full shadow-2xl md:h-32 object-contain"
+						loading="lazy"
+					/>
 				</motion.div>
 
 				{/* Título */}
@@ -107,7 +110,9 @@ const HeroSection = () => {
 					className="group rounded-full bg-gradient-to-r from-green-400 to-lime-500 px-10 py-4 text-lg font-bold text-black shadow-2xl transition-all duration-300 hover:from-green-500 hover:to-lime-600 hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-300"
 					aria-label="Explorar propiedades exclusivas"
 				>
-					<span className="relative z-10">Explorar propiedades</span>
+					<span className="relative z-10">
+						Propiedades Destacadas
+					</span>
 					{/* Ripple effect sutil */}
 					<div className="absolute inset-0 rounded-full bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
 				</motion.a>
