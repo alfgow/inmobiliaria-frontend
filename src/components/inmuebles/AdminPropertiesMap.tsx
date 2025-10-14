@@ -277,24 +277,30 @@ const AdminPropertiesMap = ({
 		return null;
 	})();
 
-	return (
-                <div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] border border-white/50 bg-gradient-to-br from-white/95 via-white/80 to-white/50 shadow-[10px_10px_20px_#babecc,-10px_-10px_20px_#ffffff] backdrop-blur">
+        return (
+                <div className="relative mt-6 w-full">
                         <div
-                                className={`h-full w-full transition-opacity duration-300 ${
-                                        isMapReady ? "opacity-100" : "opacity-0"
-                                }`}
-                        >
-                                <MapContainer
-                                        className="h-full w-full"
-                                        center={DEFAULT_CENTER}
-                                        zoom={DEFAULT_ZOOM}
-                                        minZoom={2}
-                                        maxZoom={18}
-                                        scrollWheelZoom
-                                        zoomControl
-                                        ref={mapRef}
-                                        whenReady={handleMapReady}
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-x-8 -bottom-14 mx-auto h-28 rounded-full bg-slate-900/25 blur-3xl"
+                        />
+
+                        <div className="relative h-[560px] w-full overflow-hidden rounded-[2.75rem] border border-white/50 bg-gradient-to-br from-white/95 via-white/80 to-white/50 shadow-[0_32px_55px_-24px_rgba(15,23,42,0.6),0_18px_35px_-28px_rgba(15,23,42,0.5)] shadow-inner backdrop-blur before:pointer-events-none before:absolute before:inset-0 before:rounded-[2.7rem] before:bg-gradient-to-b before:from-white/70 before:via-white/10 before:to-transparent before:opacity-90 before:content-[''] after:pointer-events-none after:absolute after:inset-x-6 after:bottom-3 after:h-36 after:rounded-[2.4rem] after:bg-gradient-to-t after:from-slate-900/25 after:via-slate-900/5 after:to-transparent after:content-['']">
+                                <div
+                                        className={`relative z-[1] h-full w-full transition-opacity duration-300 ${
+                                                isMapReady ? "opacity-100" : "opacity-0"
+                                        }`}
                                 >
+                                        <MapContainer
+                                                className="h-full w-full"
+                                                center={DEFAULT_CENTER}
+                                                zoom={DEFAULT_ZOOM}
+                                                minZoom={2}
+                                                maxZoom={18}
+                                                scrollWheelZoom
+                                                zoomControl
+                                                ref={mapRef}
+                                                whenReady={handleMapReady}
+                                        >
                                         <TileLayer
                                                 url={TILE_LAYER_URL}
                                                 attribution={TILE_LAYER_ATTRIBUTION}
@@ -401,25 +407,26 @@ const AdminPropertiesMap = ({
                                 </MapContainer>
                         </div>
 
-                        {overlayMessage ? (
-                                <div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
-                                        {overlayMessage}
-                                </div>
-                        ) : null}
+                                {overlayMessage ? (
+                                        <div className="absolute inset-0 z-[2] flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
+                                                {overlayMessage}
+                                        </div>
+                                ) : null}
 
-                        {floatingMessage ? (
-                                <div
-                                        className={`pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl px-4 py-3 text-sm shadow-lg backdrop-blur ${
-                                                floatingMessage.tone === "loading"
-                                                        ? "bg-white/75 text-gray-600"
-                                                        : "bg-white/90 text-gray-500"
-                                        }`}
-                                >
-                                        {floatingMessage.text}
-                                </div>
-                        ) : null}
+                                {floatingMessage ? (
+                                        <div
+                                                className={`pointer-events-none absolute inset-x-6 bottom-6 z-[2] rounded-2xl px-4 py-3 text-sm shadow-lg backdrop-blur ${
+                                                        floatingMessage.tone === "loading"
+                                                                ? "bg-white/75 text-gray-600"
+                                                                : "bg-white/90 text-gray-500"
+                                                }`}
+                                        >
+                                                {floatingMessage.text}
+                                        </div>
+                                ) : null}
+                        </div>
                 </div>
-	);
+        );
 };
 
 export default AdminPropertiesMap;
