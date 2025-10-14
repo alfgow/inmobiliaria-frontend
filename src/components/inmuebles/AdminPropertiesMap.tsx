@@ -278,176 +278,147 @@ const AdminPropertiesMap = ({
 	})();
 
 	return (
-		<section className="rounded-3xl bg-white/80 p-6 shadow-lg backdrop-blur">
-			<div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-				<div>
-					<p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--indigo)]">
-						Mapa interactivo
-					</p>
-					<h2 className="text-2xl font-semibold text-[var(--text-dark)] md:text-3xl">
-						Distribución de propiedades
-					</h2>
-				</div>
-				<div className="text-sm text-gray-500">
-					{hasMarkers
-						? `${markers.length} propiedades con ubicación disponible`
-						: "Sin propiedades georreferenciadas"}
-				</div>
-			</div>
+                <div className="relative mt-6 h-[560px] w-full overflow-hidden rounded-[2.75rem] border border-white/50 bg-gradient-to-br from-white/95 via-white/80 to-white/50 shadow-[0_28px_60px_-20px_rgba(30,41,59,0.55)] shadow-inner backdrop-blur">
+                        <div
+                                className={`h-full w-full transition-opacity duration-300 ${
+                                        isMapReady ? "opacity-100" : "opacity-0"
+                                }`}
+                        >
+                                <MapContainer
+                                        className="h-full w-full"
+                                        center={DEFAULT_CENTER}
+                                        zoom={DEFAULT_ZOOM}
+                                        minZoom={2}
+                                        maxZoom={18}
+                                        scrollWheelZoom
+                                        zoomControl
+                                        ref={mapRef}
+                                        whenReady={handleMapReady}
+                                >
+                                        <TileLayer
+                                                url={TILE_LAYER_URL}
+                                                attribution={TILE_LAYER_ATTRIBUTION}
+                                        />
+                                        <MapBoundsController positions={markerPositions} />
+                                        {markers.map((marker) => (
+                                                <Marker
+                                                        key={marker.id}
+                                                        position={marker.position}
+                                                        icon={
+                                                                marker.isAvailable
+                                                                        ? markerIcons.available
+                                                                        : markerIcons.unavailable
+                                                        }
+                                                >
+                                                        <Popup
+                                                                className="admin-property-popup"
+                                                                maxWidth={320}
+                                                                offset={[0, -24]}
+                                                        >
+                                                                <article className="flex w-[68vw] max-w-[260px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5 md:w-[80vw] md:max-w-[320px]">
+                                                                        <div className="relative aspect-[3/2] w-full overflow-hidden bg-gray-100 md:aspect-[4/3]">
+                                                                                <img
+                                                                                        src={marker.imageUrl}
+                                                                                        alt={`Imagen de ${marker.title}`}
+                                                                                        className="h-full w-full object-cover"
+                                                                                        loading="lazy"
+                                                                                />
+                                                                                {marker.statusName ? (
+                                                                                        <span
+                                                                                                className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow"
+                                                                                                style={
+                                                                                                        !marker.isAvailable
+                                                                                                                ? {
+                                                                                                                        color: "#dc2626",
+                                                                                                                        border: "1px solid #dc2626",
+                                                                                                                        backgroundColor: "#fee2e2",
+                                                                                                                }
+                                                                                                                : {
+                                                                                                                        color: marker.statusColor || "var(--text-dark)",
+                                                                                                                        border: `1px solid ${marker.statusColor || "transparent"}`,
+                                                                                                                        backgroundColor:
+                                                                                                                                marker.statusColor
+                                                                                                                                        ? "#ffffffcc"
+                                                                                                                                        : "rgba(255, 255, 255, 0.85)",
+                                                                                                                }
+                                                                                                }
+                                                                                        >
+                                                                                                <span aria-hidden="true">
+                                                                                                        ●
+                                                                                                </span>
+                                                                                                <span>
+                                                                                                        {marker.statusName}
+                                                                                                </span>
+                                                                                                {marker.isAvailable && marker.operation ? (
+                                                                                                        <>
+                                                                                                                <span aria-hidden="true">
+                                                                                                                        •
+                                                                                                                </span>
+                                                                                                                <span>
+                                                                                                                        {marker.operation}
+                                                                                                                </span>
+                                                                                                        </>
+                                                                                                ) : null}
+                                                                                        </span>
+                                                                                ) : null}
+                                                                                {marker.priceLabel ? (
+                                                                                        <span className="absolute right-3 top-3 rounded-full bg-[#d2ff1e] px-3 py-1 text-xs font-bold text-black shadow-md">
+                                                                                                {marker.priceLabel}
+                                                                                        </span>
+                                                                                ) : null}
+                                                                        </div>
 
-			<div className="relative mt-6 h-[420px] w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-inner">
-				<div
-					className={`h-full w-full transition-opacity duration-300 ${
-						isMapReady ? "opacity-100" : "opacity-0"
-					}`}
-				>
-					<MapContainer
-						className="h-full w-full"
-						center={DEFAULT_CENTER}
-						zoom={DEFAULT_ZOOM}
-						minZoom={2}
-						maxZoom={18}
-						scrollWheelZoom
-						zoomControl
-						ref={mapRef}
-						whenReady={handleMapReady}
-					>
-						<TileLayer
-							url={TILE_LAYER_URL}
-							attribution={TILE_LAYER_ATTRIBUTION}
-						/>
-						<MapBoundsController positions={markerPositions} />
-						{markers.map((marker) => (
-							<Marker
-								key={marker.id}
-								position={marker.position}
-								icon={
-									marker.isAvailable
-										? markerIcons.available
-										: markerIcons.unavailable
-								}
-							>
-								<Popup
-									className="admin-property-popup"
-									maxWidth={320}
-									offset={[0, -24]}
-								>
-									<article className="flex w-[68vw] max-w-[260px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5 md:w-[80vw] md:max-w-[320px]">
-										<div className="relative aspect-[3/2] w-full overflow-hidden bg-gray-100 md:aspect-[4/3]">
-											<img
-												src={marker.imageUrl}
-												alt={`Imagen de ${marker.title}`}
-												className="h-full w-full object-cover"
-												loading="lazy"
-											/>
-											{marker.statusName ? (
-												<span
-													className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow"
-													style={
-														!marker.isAvailable
-															? {
-																	color: "#dc2626",
-																	border: "1px solid #dc2626",
-																	backgroundColor:
-																		"#fee2e2",
-															  }
-															: {
-																	color:
-																		marker.statusColor ||
-																		"var(--text-dark)",
-																	border: `1px solid ${
-																		marker.statusColor ||
-																		"transparent"
-																	}`,
-																	backgroundColor:
-																		marker.statusColor
-																			? "#ffffffcc"
-																			: "rgba(255, 255, 255, 0.85)",
-															  }
-													}
-												>
-													<span aria-hidden="true">
-														●
-													</span>
-													<span>
-														{marker.statusName}
-													</span>
-													{marker.isAvailable &&
-													marker.operation ? (
-														<>
-															<span aria-hidden="true">
-																•
-															</span>
-															<span>
-																{
-																	marker.operation
-																}
-															</span>
-														</>
-													) : null}
-												</span>
-											) : null}
-											{marker.priceLabel ? (
-												<span className="absolute right-3 top-3 rounded-full bg-[#d2ff1e] px-3 py-1 text-xs font-bold text-black shadow-md">
-													{marker.priceLabel}
-												</span>
-											) : null}
-										</div>
+                                                                        <div className="space-y-3 p-3 md:p-4">
+                                                                                <div className="space-y-1">
+                                                                                        <p className="truncate text-sm font-semibold text-[var(--text-dark)]">
+                                                                                                {marker.title}
+                                                                                        </p>
+                                                                                        {marker.locationLabel ? (
+                                                                                                <p className="flex items-center gap-1 text-xs text-gray-500">
+                                                                                                        <span aria-hidden="true">
+                                                                                                                📍
+                                                                                                        </span>
+                                                                                                        {marker.locationLabel}
+                                                                                                </p>
+                                                                                        ) : null}
+                                                                                </div>
 
-										<div className="space-y-3 p-3 md:p-4">
-											<div className="space-y-1">
-												<p className="truncate text-sm font-semibold text-[var(--text-dark)]">
-													{marker.title}
-												</p>
-												{marker.locationLabel ? (
-													<p className="flex items-center gap-1 text-xs text-gray-500">
-														<span aria-hidden="true">
-															📍
-														</span>
-														{marker.locationLabel}
-													</p>
-												) : null}
-											</div>
+                                                                                <div className="flex flex-wrap items-center gap-3 text-[0.65rem] font-medium text-gray-600 md:text-xs">
+                                                                                        {marker.slug ? (
+                                                                                                <Link
+                                                                                                        href={`/inmuebles/${marker.slug}`}
+                                                                                                        className="w-[100%] rounded-full bg-[#d2ff1e] px-5 py-3 text-center text-sm font-semibold text-black shadow transition hover:opacity-90"
+                                                                                                >
+                                                                                                        Ver Inmueble
+                                                                                                </Link>
+                                                                                        ) : null}
+                                                                                </div>
+                                                                        </div>
+                                                                </article>
+                                                        </Popup>
+                                                </Marker>
+                                        ))}
+                                </MapContainer>
+                        </div>
 
-											<div className="flex flex-wrap items-center gap-3 text-[0.65rem] font-medium text-gray-600 md:text-xs">
-												{marker.slug ? (
-													<Link
-														href={`/inmuebles/${marker.slug}`}
-														className="w-[100%] rounded-full bg-[#d2ff1e] 
-                                                        px-5 py-3 text-center text-sm font-semibold text-black 
-                                                        shadow transition hover:opacity-90"
-													>
-														Ver Inmueble
-													</Link>
-												) : null}
-											</div>
-										</div>
-									</article>
-								</Popup>
-							</Marker>
-						))}
-					</MapContainer>
-				</div>
+                        {overlayMessage ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
+                                        {overlayMessage}
+                                </div>
+                        ) : null}
 
-				{overlayMessage ? (
-					<div className="absolute inset-0 flex items-center justify-center bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
-						{overlayMessage}
-					</div>
-				) : null}
-
-				{floatingMessage ? (
-					<div
-						className={`pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl px-4 py-3 text-sm shadow-lg backdrop-blur ${
-							floatingMessage.tone === "loading"
-								? "bg-white/75 text-gray-600"
-								: "bg-white/90 text-gray-500"
-						}`}
-					>
-						{floatingMessage.text}
-					</div>
-				) : null}
-			</div>
-		</section>
+                        {floatingMessage ? (
+                                <div
+                                        className={`pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl px-4 py-3 text-sm shadow-lg backdrop-blur ${
+                                                floatingMessage.tone === "loading"
+                                                        ? "bg-white/75 text-gray-600"
+                                                        : "bg-white/90 text-gray-500"
+                                        }`}
+                                >
+                                        {floatingMessage.text}
+                                </div>
+                        ) : null}
+                </div>
 	);
 };
 
