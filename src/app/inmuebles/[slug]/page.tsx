@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PropertyGallery from "@/components/inmuebles/PropertyGallery";
@@ -288,9 +287,6 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
             operation={property.operacion}
           />
 
-          <div className="mt-4">
-            <ContactSection />
-          </div>
         </div>
       </main>
       <Footer />

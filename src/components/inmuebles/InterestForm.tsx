@@ -29,8 +29,10 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const isComplete = useMemo(() => {
-    return Object.values(formData).every((value) => value.trim().length > 0);
+  const hasContactDetails = useMemo(() => {
+    const { name, email, phone } = formData;
+
+    return [name, email, phone].every((value) => value.trim().length > 0);
   }, [formData]);
 
   const handleChange = (field: keyof FormDataState) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,8 +43,8 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!isComplete) {
-      setError("Completa todos los campos para que nuestro equipo pueda contactarte.");
+    if (!hasContactDetails) {
+      setError("Completa tu nombre, correo y teléfono para que nuestro equipo pueda contactarte.");
       return;
     }
 
@@ -50,8 +52,8 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
   };
 
   const handleCallClick = () => {
-    if (!isComplete) {
-      setError("Por favor llena tus datos antes de llamar. Así podremos brindarte un mejor seguimiento.");
+    if (!hasContactDetails) {
+      setError("Por favor comparte tu nombre, correo y teléfono antes de llamar. Así podremos brindarte un mejor seguimiento.");
       return;
     }
 
@@ -133,7 +135,6 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
             rows={4}
             className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-[var(--indigo)] focus:ring-2 focus:ring-[var(--indigo)]/20"
             placeholder="Cuéntanos qué te gustaría saber"
-            required
           />
         </label>
 
