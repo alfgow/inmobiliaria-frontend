@@ -21,6 +21,8 @@ type PropertyPageProps = {
       }>;
 };
 
+const hasValue = (value: unknown): boolean => value !== null && value !== undefined && value !== "";
+
 const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
   const openGraphImages = (property?.imagenes ?? []).flatMap((image) => {
     const imageMetadata = (image.metadata ?? {}) as { alt?: string };
@@ -125,19 +127,19 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
   const metrics = [
     {
       label: "Recámaras",
-      value: property.habitaciones ? `${property.habitaciones}` : "Por confirmar",
+      value: hasValue(property.habitaciones) ? `${property.habitaciones}` : "Por confirmar",
     },
     {
       label: "Baños",
-      value: property.banos ? `${property.banos}` : "Por confirmar",
+      value: hasValue(property.banos) ? `${property.banos}` : "Por confirmar",
     },
     {
       label: "Estacionamientos",
-      value: property.estacionamientos ? `${property.estacionamientos}` : "Por confirmar",
+      value: hasValue(property.estacionamientos) ? `${property.estacionamientos}` : "Por confirmar",
     },
     {
       label: "Construcción",
-      value: property.superficie_construida
+      value: hasValue(property.superficie_construida)
         ? `${Number(property.superficie_construida).toLocaleString("es-MX", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
@@ -146,7 +148,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
     },
     {
       label: "Terreno",
-      value: property.superficie_terreno
+      value: hasValue(property.superficie_terreno)
         ? `${Number(property.superficie_terreno).toLocaleString("es-MX", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
@@ -155,7 +157,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
     },
     {
       label: "Año de construcción",
-      value: property.anio_construccion ? `${property.anio_construccion}` : "Por confirmar",
+      value: hasValue(property.anio_construccion) ? `${property.anio_construccion}` : "Por confirmar",
     },
   ].filter((metric) => metric.value);
 

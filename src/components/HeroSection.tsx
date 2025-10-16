@@ -47,7 +47,7 @@ const HeroSection = () => {
 					style={{ willChange: "transform" }}
 				>
 					<Image
-						src="/1.png"
+						src="/1.jpg"
 						alt="Fachada de una residencia de lujo"
 						fill
 						priority={false}
