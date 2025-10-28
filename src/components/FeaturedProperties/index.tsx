@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import PropertyCarousel from "./PropertyCarousel";
 import { mapPropertiesFromApi, useProperties } from "./useProperties";
@@ -10,12 +10,6 @@ const FeaturedProperties = () => {
 	const nextRef = useRef<HTMLButtonElement>(null);
 	const paginationRef = useRef<HTMLDivElement>(null);
 	const { properties: apiProperties, isLoading, error } = useProperties();
-	useEffect(() => {
-		const script = document.createElement("script");
-		script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
-		script.async = true;
-		document.body.appendChild(script);
-	}, []);
 	const properties = useMemo(
 		() => mapPropertiesFromApi(apiProperties),
 		[apiProperties]
@@ -23,16 +17,6 @@ const FeaturedProperties = () => {
 
 	return (
 		<section id="propiedades" className="py-20">
-			<div
-				dangerouslySetInnerHTML={{
-					__html: `<elevenlabs-convai agent-id="agent_8401k8j5gq5zf0aabmwmvhn5aqe9"></elevenlabs-convai>`,
-				}}
-			/>
-			<script
-				src="https://unpkg.com/@elevenlabs/convai-widget-embed"
-				async
-				type="text/javascript"
-			></script>
 			<div className="mx-auto max-w-7xl px-6">
 				<h2 className="mb-12 text-center text-3xl font-bold text-[var(--text-dark)]">
 					Propiedades Destacadas
