@@ -12,10 +12,23 @@ import type { NavigationOptions, PaginationOptions } from "swiper/types";
 import "@/styles/swiper-bundle.css";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
-	style: "currency",
-	currency: "MXN",
-	maximumFractionDigits: 0,
+        style: "currency",
+        currency: "MXN",
+        maximumFractionDigits: 0,
 });
+
+const badgeBaseClass = "rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black";
+
+const formatOperationBadgeLabel = (operation?: string | null) => {
+        if (!operation) return null;
+
+        const normalized = operation.toLowerCase();
+
+        if (normalized.includes("venta")) return "En Venta";
+        if (normalized.includes("renta")) return "En Renta";
+
+        return operation;
+};
 
 export interface Property {
 	id: string;
@@ -205,21 +218,25 @@ const PropertyCarousel = ({
 				swiperRef.current = swiper;
 			}}
 		>
-			{properties.map((property) => {
-				const formattedPrice = Number.isFinite(property.price)
-					? currencyFormatter.format(property.price)
-					: "Consultar";
+                        {properties.map((property) => {
+                                const formattedPrice = Number.isFinite(property.price)
+                                        ? currencyFormatter.format(property.price)
+                                        : "Consultar";
 
-				const statusLabel =
-					property.status ?? property.operation ?? "Disponible";
-				const detailsLineItems = [formattedPrice];
-				if (property.operation)
-					detailsLineItems.push(property.operation);
-				if (property.location) detailsLineItems.push(property.location);
-				const detailsLine = detailsLineItems.join(" · ");
-				const detailsUrl = property.slug
-					? `/inmuebles/${property.slug}`
-					: "/inmuebles";
+                                const operationLabel = formatOperationBadgeLabel(
+                                        property.operation
+                                );
+                                const availabilityLabel = property.status ?? "Disponible";
+                                const statusLabel = operationLabel
+                                        ? `${operationLabel} - ${availabilityLabel}`
+                                        : availabilityLabel;
+
+                                const detailsLineItems: string[] = [];
+                                if (property.location) detailsLineItems.push(property.location);
+                                const detailsLine = detailsLineItems.join(" · ");
+                                const detailsUrl = property.slug
+                                        ? `/inmuebles/${property.slug}`
+                                        : "/inmuebles";
 
 				return (
 					<SwiperSlide
@@ -236,24 +253,31 @@ const PropertyCarousel = ({
 									className="object-cover"
 									sizes="(max-width: 768px) 100vw, 352px"
 								/>
-								<span className="absolute left-3 top-3 rounded-full bg-[var(--lime)] px-3 py-1 text-xs font-bold text-black">
-									{statusLabel}
-								</span>
-							</div>
-							<div className="flex h-full flex-col p-6">
-								<h3 className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold text-[var(--text-dark)]">
-									{property.title}
-								</h3>
-								<p className="mb-4 text-gray-600">
-									{detailsLine}
-								</p>
-								<Link
-									href={detailsUrl}
-									className="mt-auto inline-flex items-center justify-center rounded-full bg-lime-400 px-5 py-2 text-sm font-semibold text-sky-700 shadow-sm transition hover:bg-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500"
-								>
-									Ver Detalles
-								</Link>
-							</div>
+                                                                <span
+                                                                        className={`absolute left-3 top-3 ${badgeBaseClass}`}
+                                                                >
+                                                                        {statusLabel}
+                                                                </span>
+                                                        </div>
+                                                        <div className="flex h-full flex-col p-6">
+                                                                <span className={`mb-3 w-fit ${badgeBaseClass}`}>
+                                                                        {formattedPrice}
+                                                                </span>
+                                                                <h3 className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-semibold text-[var(--text-dark)]">
+                                                                        {property.title}
+                                                                </h3>
+                                                                {detailsLine ? (
+                                                                        <p className="mb-4 text-gray-600">
+                                                                                {detailsLine}
+                                                                        </p>
+                                                                ) : null}
+                                                                <Link
+                                                                        href={detailsUrl}
+                                                                        className={`mt-auto inline-flex items-center justify-center ${badgeBaseClass} transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40`}
+                                                                >
+                                                                        Ver Detalles
+                                                                </Link>
+                                                        </div>
 						</div>
 					</SwiperSlide>
 				);
