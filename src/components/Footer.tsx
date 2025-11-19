@@ -17,14 +17,13 @@ const Footer = () => {
                                 </div>
 
                                 <p className="text-sm">
-                                        Desarrollado y diseñado por{" "}
                                         <a
                                                 href="https://alfgow.app"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-gray-200 transition hover:text-white"
                                         >
-                                                alfgow
+                                                &lt;alfgow/&gt;
                                         </a>
                                 </p>
                         </div>
