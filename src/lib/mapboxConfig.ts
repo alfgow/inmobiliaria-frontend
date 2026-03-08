@@ -16,7 +16,23 @@ const sanitizeStyle = (style?: string, fallback = DEFAULT_PUBLIC_STYLE) => {
     .trim();
 };
 
-export const getMapboxAccessToken = () => process.env.NEXT_PUBLIC_API_MAPBOX;
+const normalizeToken = (token?: string) => {
+  if (!token) {
+    return undefined;
+  }
+
+  const sanitized = token.trim();
+
+  return sanitized.length > 0 ? sanitized : undefined;
+};
+
+export const getMapboxAccessToken = () =>
+  normalizeToken(
+    process.env.NEXT_PUBLIC_API_MAPBOX ??
+      process.env.NEXT_PUBLIC_MAPBOX_TOKEN ??
+      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ??
+      process.env.MAPBOX_ACCESS_TOKEN,
+  );
 
 export const getPublicMapboxStyle = () =>
   sanitizeStyle(

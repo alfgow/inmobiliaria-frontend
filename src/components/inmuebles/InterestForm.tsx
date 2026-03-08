@@ -1,8 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { PhoneCall, Send } from "lucide-react";
+import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
 
 type InterestFormProps = {
   propertyTitle?: string | null;
@@ -22,7 +20,8 @@ const defaultState: FormDataState = {
   message: "",
 };
 
-const phoneNumber = "5584438656";
+const whatsappNumber = "525584438656";
+const localPhoneNumber = "+52 55 8443 8656";
 
 const InterestForm = ({ propertyTitle }: InterestFormProps) => {
   const [formData, setFormData] = useState<FormDataState>(defaultState);
@@ -35,132 +34,127 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
     return [name, email, phone].every((value) => value.trim().length > 0);
   }, [formData]);
 
-  const handleChange = (field: keyof FormDataState) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
-    setError(null);
-    setFeedback(null);
-  };
+  const handleChange =
+    (field: keyof FormDataState) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((previous) => ({ ...previous, [field]: event.target.value }));
+      setError(null);
+      setFeedback(null);
+    };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     if (!hasContactDetails) {
-      setError("Completa tu nombre, correo y teléfono para que nuestro equipo pueda contactarte.");
+      setError("Completa nombre, correo y telefono para poder contactarte.");
       return;
     }
 
-    setFeedback("¡Gracias! Hemos recibido tu interés. Muy pronto un asesor se pondrá en contacto contigo.");
+    setFeedback("Listo. Un asesor se pondra en contacto contigo en breve.");
   };
 
-  const handleCallClick = () => {
-    if (!hasContactDetails) {
-      setError("Por favor comparte tu nombre, correo y teléfono antes de llamar. Así podremos brindarte un mejor seguimiento.");
-      return;
-    }
+  const whatsappHref = useMemo(() => {
+    const propertyLabel = propertyTitle?.trim() || "esta propiedad";
+    const message = encodeURIComponent(`Hola, me interesa ${propertyLabel}. Quiero agendar una visita.`);
 
-    window.location.href = `tel:${phoneNumber}`;
-  };
+    return `https://wa.me/${whatsappNumber}?text=${message}`;
+  }, [propertyTitle]);
 
   return (
-    <motion.section
-      className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur"
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6 }}
-    >
-      <header className="space-y-2">
-        <h3 className="text-2xl font-semibold text-[var(--text-dark)]">¿Te interesa esta propiedad?</h3>
+    <section className="rounded-3xl border border-[#d9e9dd] bg-white p-6 shadow-sm">
+      <header className="mb-5 space-y-2">
+        <h3 className="text-xl font-bold text-gray-900">Agenda una visita</h3>
         <p className="text-sm text-gray-600">
-          Déjanos tus datos y un asesor de Villanueva García te contactará para brindarte asesoría personalizada.
+          Comparte tus datos y te contactamos para resolver dudas y coordinar cita.
         </p>
       </header>
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--text-dark)]">
-            Nombre completo
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange("name")}
-              className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-[var(--indigo)] focus:ring-2 focus:ring-[var(--indigo)]/20"
-              placeholder="¿Cómo te llamas?"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--text-dark)]">
-            Correo electrónico
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange("email")}
-              className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-[var(--indigo)] focus:ring-2 focus:ring-[var(--indigo)]/20"
-              placeholder="correo@ejemplo.com"
-              required
-            />
-          </label>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--text-dark)]">
-            Teléfono
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange("phone")}
-              className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-[var(--indigo)] focus:ring-2 focus:ring-[var(--indigo)]/20"
-              placeholder="10 dígitos"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--text-dark)]">
-            Propiedad de interés
-            <input
-              type="text"
-              name="property"
-              value={propertyTitle ?? ""}
-              readOnly
-              className="cursor-not-allowed rounded-2xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-500 shadow-inner"
-            />
-          </label>
-        </div>
-        <label className="flex flex-col gap-2 text-sm font-medium text-[var(--text-dark)]">
-          Mensaje
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Nombre completo</span>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange("name")}
+            placeholder="Ej. Maria Perez"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-green-600 focus:bg-white focus:ring-2 focus:ring-green-100"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Correo electronico</span>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange("email")}
+            placeholder="correo@ejemplo.com"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-green-600 focus:bg-white focus:ring-2 focus:ring-green-100"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Telefono</span>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange("phone")}
+            placeholder="55 1234 5678"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-green-600 focus:bg-white focus:ring-2 focus:ring-green-100"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Propiedad</span>
+          <input
+            type="text"
+            value={propertyTitle ?? "Sin titulo"}
+            readOnly
+            className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-500"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Mensaje</span>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange("message")}
-            rows={4}
-            className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-[var(--indigo)] focus:ring-2 focus:ring-[var(--indigo)]/20"
-            placeholder="Cuéntanos qué te gustaría saber"
+            rows={3}
+            placeholder="Quiero saber disponibilidad y horarios de visita"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-green-600 focus:bg-white focus:ring-2 focus:ring-green-100"
           />
         </label>
 
-        {error ? <p className="text-sm font-medium text-rose-500">{error}</p> : null}
-        {feedback ? <p className="text-sm font-medium text-emerald-600">{feedback}</p> : null}
+        {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+        {feedback ? <p className="text-sm font-medium text-green-700">{feedback}</p> : null}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--indigo)] px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/30"
-          >
-            <Send className="h-4 w-4" />
-            Enviar interés
-          </button>
-          <button
-            type="button"
-            onClick={handleCallClick}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--indigo)]/60 bg-white px-6 py-3 text-sm font-semibold text-[var(--indigo)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--indigo)] focus:outline-none focus:ring-2 focus:ring-[var(--indigo)]/20"
-          >
-            <PhoneCall className="h-4 w-4" />
-            Llamar a la inmobiliaria
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="inline-flex w-full items-center justify-center rounded-xl bg-green-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-green-800"
+        >
+          Solicitar informacion
+        </button>
       </form>
-    </motion.section>
+
+      <div className="mt-5 border-t border-gray-100 pt-5">
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700 transition hover:bg-green-100"
+        >
+          WhatsApp directo
+        </a>
+        <p className="mt-3 text-center text-xs text-gray-500">Tambien puedes llamar al {localPhoneNumber}</p>
+      </div>
+    </section>
   );
 };
 
 export default InterestForm;
+

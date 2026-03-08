@@ -34,6 +34,27 @@ type MarkerColorTokens = {
   pulseBorder: string;
 };
 
+const BRAND_MARKER_TOKENS: MarkerColorTokens = {
+  core: "rgb(21, 128, 61)",
+  shadow: "rgba(21, 128, 61, 0.45)",
+  pulse: "rgba(34, 197, 94, 0.22)",
+  pulseBorder: "rgba(34, 197, 94, 0.36)",
+};
+
+const buildOsmEmbedUrl = (latitude: number, longitude: number) => {
+  const delta = 0.01;
+  const minLon = longitude - delta;
+  const maxLon = longitude + delta;
+  const minLat = latitude - delta;
+  const maxLat = latitude + delta;
+
+  const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
+
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+    bbox,
+  )}&layer=mapnik&marker=${encodeURIComponent(`${latitude},${longitude}`)}`;
+};
+
 const normalizeCoordinate = (value?: number | null): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -177,9 +198,7 @@ const PropertyDetailMap = ({
       return null;
     }
 
-    return mapboxStylePath.startsWith("mapbox://")
-      ? mapboxStylePath
-      : `mapbox://styles/${mapboxStylePath}`;
+    return mapboxStylePath.startsWith("mapbox://") ? mapboxStylePath : `mapbox://styles/${mapboxStylePath}`;
   }, [mapboxStylePath]);
 
   const normalizedLatitude = normalizeCoordinate(latitude ?? null);
@@ -193,10 +212,15 @@ const PropertyDetailMap = ({
     return [normalizedLatitude, normalizedLongitude] as [number, number];
   }, [normalizedLatitude, normalizedLongitude]);
 
-  const tileLayerUrl = useMemo(
-    () => buildMapboxTilesUrl(mapboxToken, mapboxStylePath),
-    [mapboxToken, mapboxStylePath],
-  );
+  const osmEmbedUrl = useMemo(() => {
+    if (!position) {
+      return null;
+    }
+
+    return buildOsmEmbedUrl(position[0], position[1]);
+  }, [position]);
+
+  const tileLayerUrl = useMemo(() => buildMapboxTilesUrl(mapboxToken, mapboxStylePath), [mapboxToken, mapboxStylePath]);
 
   const mapboxCenter = useMemo(() => {
     if (!position) {
@@ -242,9 +266,10 @@ const PropertyDetailMap = ({
     return true;
   }, [numericStatusId, statusName]);
 
-  const markerTokens = useMemo(() => buildMarkerTokens(statusColor), [statusColor]);
+  const markerTokens = useMemo(() => buildMarkerTokens(statusColor) ?? BRAND_MARKER_TOKENS, [statusColor]);
 
   const canRenderMap = Boolean(mapbox && mapboxCenter && mapboxToken && mapboxStyleUrl);
+  const canRenderOsmFallback = Boolean(!canRenderMap && osmEmbedUrl);
 
   useEffect(() => {
     if (!mapbox || !mapContainerRef.current || !mapboxToken || !mapboxStyleUrl || !mapboxCenter) {
@@ -282,12 +307,8 @@ const PropertyDetailMap = ({
       }),
     );
 
-    const resizeMap = () => {
-      map.resize();
-    };
-
     map.once("load", () => {
-      resizeMap();
+      map.resize();
       setIsMapReady(true);
     });
 
@@ -325,7 +346,7 @@ const PropertyDetailMap = ({
     const markerElement = document.createElement("div");
     markerElement.className = "admin-property-marker";
 
-    const markerColorAttributes = markerTokens && isAvailable
+    const markerColorAttributes = isAvailable
       ? ` data-marker-color="true" style="--marker-color: ${markerTokens.core}; --marker-shadow: ${markerTokens.shadow}; --marker-pulse: ${markerTokens.pulse}; --marker-pulse-border: ${markerTokens.pulseBorder};"`
       : "";
 
@@ -344,9 +365,7 @@ const PropertyDetailMap = ({
       </div>
     `;
 
-    const marker = new mapbox.Marker({ element: markerElement, anchor: "bottom" })
-      .setLngLat(mapboxCenter)
-      .addTo(map);
+    const marker = new mapbox.Marker({ element: markerElement, anchor: "bottom" }).setLngLat(mapboxCenter).addTo(map);
 
     markerRef.current = marker;
 
@@ -362,23 +381,22 @@ const PropertyDetailMap = ({
   const fallbackCopy = useMemo(() => {
     if (!mapboxToken || !tileLayerUrl) {
       return {
-        title: "Configura tu token de Mapbox",
+        title: "Mostrando mapa base",
         message:
-          "Para visualizar el mapa necesitamos que la variable NEXT_PUBLIC_API_MAPBOX esté definida en el entorno.",
+          "No se detecto token de Mapbox, por ahora mostramos OpenStreetMap. Si quieres el estilo institucional, configura NEXT_PUBLIC_API_MAPBOX (o NEXT_PUBLIC_MAPBOX_TOKEN).",
       };
     }
 
     if (!position) {
       return {
         title: "Mapa no disponible",
-        message:
-          "En cuanto contemos con las coordenadas de este inmueble podrás explorar la zona y calcular rutas fácilmente.",
+        message: "Cuando contemos con las coordenadas de este inmueble podras explorar la zona y calcular rutas facilmente.",
       };
     }
 
     return {
-      title: "Preparando mapa panorámico…",
-      message: "Estamos cargando la nueva experiencia del mapa, esto puede tardar unos segundos.",
+      title: "Preparando mapa panoramico...",
+      message: "Estamos cargando la experiencia del mapa, esto puede tardar unos segundos.",
     };
   }, [mapboxToken, position, tileLayerUrl]);
 
@@ -387,57 +405,61 @@ const PropertyDetailMap = ({
   }, [address, city, state]);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-lg backdrop-blur">
-      <div className="border-b border-white/60 bg-white/70 px-6 py-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--indigo)]">
-          Ubicación interactiva
-        </p>
-        <h2 className="text-2xl font-semibold text-[var(--text-dark)] md:text-3xl">
-          {title ?? "Ubicación del inmueble"}
-        </h2>
-        {locationLabel ? (
-          <p className="mt-2 text-sm text-gray-600">{locationLabel}</p>
-        ) : null}
+    <section className="overflow-hidden rounded-3xl border border-[#d9e9dd] bg-white shadow-sm">
+      <div className="border-b border-[#d9e9dd] bg-green-50/40 px-6 py-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-green-700">Ubicacion interactiva</p>
+        <h2 className="text-2xl font-semibold text-[var(--text-dark)] md:text-3xl">{title ?? "Ubicacion del inmueble"}</h2>
+        {locationLabel ? <p className="mt-2 text-sm text-gray-600">{locationLabel}</p> : null}
+
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
           {statusName ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={statusColor ? { backgroundColor: statusColor } : undefined}
-              />
+              <span className="h-2 w-2 rounded-full" style={statusColor ? { backgroundColor: statusColor } : undefined} />
               {statusName}
             </span>
           ) : null}
-          {operation ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">{operation}</span>
-          ) : null}
+
+          {operation ? <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">{operation}</span> : null}
+
           <span
             className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${
-              isAvailable ? "bg-[var(--lime)]/20 text-[var(--text-dark)]" : "bg-gray-200 text-gray-600"
+              isAvailable ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-600"
             }`}
           >
-            <span aria-hidden="true">{isAvailable ? "✅" : "⛔"}</span>
+            <span aria-hidden="true">{isAvailable ? "OK" : "NO"}</span>
             {isAvailable ? "Disponible" : "No disponible"}
           </span>
-          {priceLabel ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[var(--indigo)]">
-              {priceLabel}
-            </span>
-          ) : null}
+
+          {priceLabel ? <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-green-700">{priceLabel}</span> : null}
         </div>
       </div>
+
       <div className="relative h-[420px] w-full">
         {canRenderMap ? (
-          <div className="h-full w-full" ref={mapContainerRef} />
+          <div
+            className="h-full w-full select-none pointer-events-none"
+            ref={mapContainerRef}
+            aria-label="Mapa fijo de ubicacion"
+          />
+        ) : canRenderOsmFallback ? (
+          <iframe
+            title="Mapa de ubicacion (OpenStreetMap)"
+            src={osmEmbedUrl ?? undefined}
+            className="h-full w-full border-0 select-none pointer-events-none"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            tabIndex={-1}
+          />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white/70 px-6 text-center">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-white px-6 text-center">
             <p className="text-lg font-semibold text-[var(--text-dark)]">{fallbackCopy.title}</p>
             <p className="max-w-md text-sm text-gray-500">{fallbackCopy.message}</p>
           </div>
         )}
+
         {canRenderMap && !isMapReady ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/40">
-            <span className="animate-pulse text-sm font-medium text-gray-600">Cargando mapa…</span>
+            <span className="animate-pulse text-sm font-medium text-gray-600">Cargando mapa...</span>
           </div>
         ) : null}
       </div>
@@ -446,3 +468,4 @@ const PropertyDetailMap = ({
 };
 
 export default PropertyDetailMap;
+
