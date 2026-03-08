@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ContactSection from "@/components/ContactSection";
+import Footer from "@/components/Footer";
 import InmueblesExplorer from "@/components/inmuebles/InmueblesExplorer";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "Catálogo de inmuebles | Villanueva García",

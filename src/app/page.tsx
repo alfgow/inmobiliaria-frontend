@@ -1,9 +1,9 @@
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import FeaturedProperties from "@/components/FeaturedProperties";
 import AboutSection from "@/components/AboutSection";
 import ContactSection from "@/components/ContactSection";
+import FeaturedProperties from "@/components/FeaturedProperties";
 import Footer from "@/components/Footer";
+import HeroSection from "@/components/HeroSection";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   return (
