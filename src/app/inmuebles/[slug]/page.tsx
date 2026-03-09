@@ -11,13 +11,12 @@ import PropertyGallery from "@/components/inmuebles/PropertyGallery";
 import getInmueblesApiClient from "@/lib/inmuebles-api";
 import {
   getPropertyBySlug,
-  getPropertySlugs,
   normalizeProperty,
   type PropertyWithSignedImages,
   type RawProperty,
 } from "@/lib/properties";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type PropertyPageProps = {
   params:
@@ -250,18 +249,6 @@ const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
 
   return openGraphImages.length > 0 ? openGraphImages : undefined;
 };
-
-export async function generateStaticParams() {
-  try {
-    const slugs = await getPropertySlugs();
-
-    return slugs.map((slug) => ({ slug }));
-  } catch (error) {
-    console.error("Error generating static params for properties", error);
-
-    return [];
-  }
-}
 
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
   const { slug } = await Promise.resolve(params);
