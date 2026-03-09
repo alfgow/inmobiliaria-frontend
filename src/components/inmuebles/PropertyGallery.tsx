@@ -25,6 +25,8 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [mobileIndex, setMobileIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const primaryImage = galleryItems[0];
   const secondaryImages = galleryItems.slice(1, 5);
@@ -55,6 +57,24 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
     }
 
     setActiveIndex((current) => (current === galleryItems.length - 1 ? 0 : current + 1));
+  }, [galleryItems.length]);
+
+  const showPreviousMobile = useCallback(() => {
+    if (galleryItems.length <= 1) {
+      setMobileIndex(0);
+      return;
+    }
+
+    setMobileIndex((current) => (current === 0 ? galleryItems.length - 1 : current - 1));
+  }, [galleryItems.length]);
+
+  const showNextMobile = useCallback(() => {
+    if (galleryItems.length <= 1) {
+      setMobileIndex(0);
+      return;
+    }
+
+    setMobileIndex((current) => (current === galleryItems.length - 1 ? 0 : current + 1));
   }, [galleryItems.length]);
 
   useEffect(() => {
@@ -90,6 +110,15 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
     };
   }, [closeModal, isModalOpen, showNext, showPrevious]);
 
+  useEffect(() => {
+    if (!galleryItems.length) {
+      setMobileIndex(0);
+      return;
+    }
+
+    setMobileIndex((current) => (current > galleryItems.length - 1 ? 0 : current));
+  }, [galleryItems.length]);
+
   if (!galleryItems.length) {
     return (
       <section className="rounded-3xl border border-[#d9e9dd] bg-white p-10 text-center shadow-sm">
@@ -104,7 +133,108 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
   return (
     <>
       <section className="overflow-hidden rounded-3xl border border-[#d9e9dd] bg-white p-3 shadow-sm md:p-4">
-        <div className="grid h-[300px] grid-cols-1 gap-3 md:h-[520px] md:grid-cols-4 md:grid-rows-2">
+        <div className="relative md:hidden">
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            onTouchStart={(event) => {
+              setTouchStartX(event.touches[0]?.clientX ?? null);
+            }}
+            onTouchEnd={(event) => {
+              if (touchStartX === null) {
+                return;
+              }
+
+              const endX = event.changedTouches[0]?.clientX ?? touchStartX;
+              const delta = touchStartX - endX;
+
+              if (Math.abs(delta) < 40) {
+                setTouchStartX(null);
+                return;
+              }
+
+              if (delta > 0) {
+                showNextMobile();
+              } else {
+                showPreviousMobile();
+              }
+
+              setTouchStartX(null);
+            }}
+          >
+            <div
+              className="flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${mobileIndex * 100}%)` }}
+            >
+              {galleryItems.map((image, index) => (
+                <button
+                  key={`mobile-slide-${image.url}-${index}`}
+                  type="button"
+                  className="relative h-[290px] w-full shrink-0 overflow-hidden"
+                  onClick={() => openModalAt(index)}
+                  aria-label={`Abrir imagen ${index + 1}`}
+                >
+                  <Image
+                    fill
+                    src={image.url}
+                    alt={image.alt ?? title ?? "Imagen del inmueble"}
+                    className="object-cover"
+                    sizes="100vw"
+                    priority={index === 0}
+                  />
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                </button>
+              ))}
+            </div>
+
+            {galleryItems.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={showPreviousMobile}
+                  className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur transition hover:bg-black/55"
+                  aria-label="Foto anterior"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 19 8 12l7-7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={showNextMobile}
+                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur transition hover:bg-black/55"
+                  aria-label="Foto siguiente"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="m9 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </>
+            ) : null}
+          </div>
+
+          {galleryItems.length > 1 ? (
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                {galleryItems.map((image, index) => (
+                  <button
+                    key={`mobile-dot-${image.url}-${index}`}
+                    type="button"
+                    onClick={() => setMobileIndex(index)}
+                    aria-label={`Ir a foto ${index + 1}`}
+                    className={`h-2 rounded-full transition-all ${
+                      index === mobileIndex ? "w-5 bg-green-700" : "w-2 bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-semibold text-gray-500">
+                {mobileIndex + 1} / {galleryItems.length}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="hidden h-[520px] grid-cols-4 grid-rows-2 gap-3 md:grid">
           {primaryImage ? (
             <button
               type="button"
