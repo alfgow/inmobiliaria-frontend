@@ -20,8 +20,8 @@ const defaultState: FormDataState = {
   message: "",
 };
 
-const whatsappNumber = "525584438656";
-const localPhoneNumber = "+52 55 8443 8656";
+const whatsappNumber = "525585693681";
+const localPhoneNumber = "5584438656";
 
 const InterestForm = ({ propertyTitle }: InterestFormProps) => {
   const [formData, setFormData] = useState<FormDataState>(defaultState);
@@ -150,11 +150,15 @@ const InterestForm = ({ propertyTitle }: InterestFormProps) => {
         >
           WhatsApp directo
         </a>
-        <p className="mt-3 text-center text-xs text-gray-500">Tambien puedes llamar al {localPhoneNumber}</p>
+        <p className="mt-3 text-center text-xs text-gray-500">
+          Tambien puedes llamar al{" "}
+          <a href={`tel:${localPhoneNumber}`} className="font-medium text-gray-600 underline underline-offset-2">
+            {localPhoneNumber}
+          </a>
+        </p>
       </div>
     </section>
   );
 };
 
 export default InterestForm;
-
