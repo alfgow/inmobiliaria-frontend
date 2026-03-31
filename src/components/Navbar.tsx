@@ -3,7 +3,8 @@
 import { Menu, Phone, X } from "lucide-react"; // Asume que instalas lucide-react para íconos
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const links = [
 	{ href: "/", label: "Inicio" },
@@ -14,9 +15,38 @@ const links = [
 
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const pathname = usePathname();
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 	const closeMenu = () => setIsMenuOpen(false);
+
+	useEffect(() => {
+		closeMenu();
+	}, [pathname]);
+
+	useEffect(() => {
+		if (!isMenuOpen) {
+			document.body.style.overflow = "";
+			return;
+		}
+
+		document.body.style.overflow = "hidden";
+
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [isMenuOpen]);
+
+	useEffect(() => {
+		const handleResize = () => {
+			if (window.innerWidth >= 768) {
+				closeMenu();
+			}
+		};
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	return (
 		<>
@@ -79,7 +109,8 @@ const Navbar = () => {
 						onClick={toggleMenu}
 						aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
 						aria-expanded={isMenuOpen}
-						className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg bg-white/80 shadow hover:bg-green-50 transition"
+						aria-controls="mobile-navigation"
+						className="relative z-[1300] flex h-10 w-10 items-center justify-center rounded-lg bg-white/90 shadow transition hover:bg-green-50 md:hidden"
 					>
 						{isMenuOpen ? (
 							<X size={20} className="text-gray-800" />
@@ -90,18 +121,22 @@ const Navbar = () => {
 				</div>
 			</header>
 
-			{/* Menú Mobile (Drawer lateral) */}
-                        <nav
-                                className={`fixed inset-y-0 right-0 z-[1200] w-80 bg-white/95 backdrop-blur-lg shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
-					isMenuOpen ? "translate-x-0" : "translate-x-full"
+			{/* Menú Mobile */}
+			<nav
+				id="mobile-navigation"
+				className={`fixed inset-x-0 top-[81px] z-[1200] mx-4 origin-top rounded-3xl border border-white/70 bg-white/95 shadow-2xl backdrop-blur-lg transition duration-200 ease-out md:hidden ${
+					isMenuOpen
+						? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+						: "pointer-events-none -translate-y-2 scale-[0.98] opacity-0"
 				}`}
 			>
-				<div className="flex items-center justify-between p-6 border-b border-gray-200">
+				<div className="flex items-center justify-between border-b border-gray-200 p-6">
 					<h2 className="text-lg font-semibold text-gray-800">
 						Menú
 					</h2>
 					<button
-						onClick={toggleMenu}
+						type="button"
+						onClick={closeMenu}
 						className="p-2"
 						aria-label="Cerrar menú"
 					>
@@ -137,12 +172,13 @@ const Navbar = () => {
 			</nav>
 
 			{/* Overlay para mobile */}
-			{isMenuOpen && (
-                                <div
-                                        className="fixed inset-0 z-[1150] bg-black/50 md:hidden"
-					onClick={toggleMenu}
-				/>
-			)}
+			<div
+				className={`fixed inset-0 z-[1150] bg-black/50 transition-opacity duration-200 md:hidden ${
+					isMenuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+				}`}
+				onClick={closeMenu}
+				aria-hidden="true"
+			/>
 		</>
 	);
 };
