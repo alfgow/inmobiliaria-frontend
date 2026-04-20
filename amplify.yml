@@ -7,6 +7,11 @@ applications:
             - npm install
         build:
           commands:
+            - rm -f .env.production
+            - '[ -n "$INMUEBLES_API_KEY" ] || (echo "INMUEBLES_API_KEY is not set in Amplify" && exit 1)'
+            - printf "INMUEBLES_API_KEY=%s\n" "$INMUEBLES_API_KEY" >> .env.production
+            - if [ -n "$INMUEBLES_API_BASE_URL" ]; then printf "INMUEBLES_API_BASE_URL=%s\n" "$INMUEBLES_API_BASE_URL" >> .env.production; fi
+            - env | grep -e NEXT_PUBLIC_ >> .env.production || true
             - npm run build
       artifacts:
         baseDirectory: .next
