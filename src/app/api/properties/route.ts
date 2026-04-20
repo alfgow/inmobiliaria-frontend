@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAxiosError } from "axios";
 
 import getInmueblesApiClient from "@/lib/inmuebles-api";
 import { normalizeProperty, type PropertyWithSignedImages, type RawProperty } from "@/lib/properties";
@@ -96,6 +97,30 @@ export async function GET(request: Request) {
 
                 return NextResponse.json({ data: properties, meta, filters });
         } catch (error) {
+                if (isAxiosError(error)) {
+                        const upstreamStatus = error.response?.status;
+                        const upstreamData = error.response?.data;
+                        const upstreamMessage =
+                                typeof upstreamData?.message === "string"
+                                        ? upstreamData.message
+                                        : typeof upstreamData?.error === "string"
+                                        ? upstreamData.error
+                                        : error.message;
+
+                        console.error("Error fetching properties from API", {
+                                status: upstreamStatus ?? null,
+                                message: upstreamMessage,
+                                details: upstreamData ?? null,
+                        });
+
+                        return NextResponse.json(
+                                {
+                                        error: upstreamMessage || "Failed to fetch properties",
+                                },
+                                { status: upstreamStatus ?? 502 }
+                        );
+                }
+
                 console.error("Error fetching properties from API", error);
 
                 return NextResponse.json(
