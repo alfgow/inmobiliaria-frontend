@@ -1,3 +1,5 @@
+import { publicEnv } from "@/lib/env.public";
+
 const DEFAULT_PUBLIC_STYLE = "alfgow/cmgnbz7aw000u01ry7bnx7rzp";
 const DEFAULT_ADMIN_STYLE = DEFAULT_PUBLIC_STYLE;
 
@@ -27,26 +29,15 @@ const normalizeToken = (token?: string) => {
 };
 
 export const getMapboxAccessToken = () =>
-  normalizeToken(
-    process.env.NEXT_PUBLIC_API_MAPBOX ??
-      process.env.NEXT_PUBLIC_MAPBOX_TOKEN ??
-      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ??
-      process.env.MAPBOX_ACCESS_TOKEN,
-  );
+  normalizeToken(publicEnv.mapboxToken);
 
 export const getPublicMapboxStyle = () =>
-  sanitizeStyle(
-    process.env.NEXT_PUBLIC_MAPBOX_STYLE_ID ?? process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL,
-    DEFAULT_PUBLIC_STYLE,
-  );
+  sanitizeStyle(publicEnv.mapboxStyleId, DEFAULT_PUBLIC_STYLE);
 
 export const getAdminMapboxStyle = () =>
   sanitizeStyle(
-    process.env.NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID ?? process.env.NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_URL,
-    sanitizeStyle(
-      process.env.NEXT_PUBLIC_MAPBOX_STYLE_ID ?? process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL,
-      DEFAULT_ADMIN_STYLE,
-    ),
+    publicEnv.mapboxAdminStyleId,
+    sanitizeStyle(publicEnv.mapboxStyleId, DEFAULT_ADMIN_STYLE),
   );
 
 export const buildMapboxTilesUrl = (token: string | undefined, stylePath: string) => {

@@ -9,9 +9,6 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
-	env: {
-		INMUEBLES_API_KEY: process.env.INMUEBLES_API_KEY,
-	},
 };
 
 export default nextConfig;

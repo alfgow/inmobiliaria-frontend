@@ -2,12 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Environment Variables
 
-Set the following variables to enable data fetching from the Villanueva García API:
+Set the following variables to enable data fetching from the Villanueva García API and configure maps:
 
 - `INMUEBLES_API_KEY`: API token provided for authenticating requests.
 - `INMUEBLES_API_BASE_URL` (opcional): sobrescribe la URL base si necesitas apuntar a otro entorno. Por defecto se usa `https://vg.g210512.com/api/v1`.
+- `NEXT_PUBLIC_API_MAPBOX` (opcional): token público de Mapbox para habilitar el mapa con estilo institucional.
+- `NEXT_PUBLIC_MAPBOX_STYLE_ID` (opcional): estilo público principal de Mapbox.
+- `NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID` (opcional): estilo de Mapbox para vistas administrativas.
 
-El listado de propiedades usa una imagen de respaldo definida en `FALLBACK_IMAGE` cuando el recurso remoto no incluye fotografías públicas.
+El listado de propiedades usa una imagen de respaldo interna (`/1.png`) cuando el recurso remoto no incluye fotografías públicas.
+
+You can use [.env.example](/home/alfgow/Documentos/inmobiliaria-frontend/.env.example:1) as a starting point for local setup.
 
 ## Getting Started
 
