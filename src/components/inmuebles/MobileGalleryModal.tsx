@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
+import { resolvePublicImageUrl } from "@/lib/property-types";
 
 type GalleryImage = {
 	url: string;
@@ -144,7 +145,7 @@ const MobileGalleryModal = ({
                                                 >
                                                         <Image
                                                                 fill
-                                                                src={activeImage.url}
+                                                                src={resolvePublicImageUrl(activeImage.url)}
                                                                 alt={activeImage.alt ?? title ?? "Imagen del inmueble"}
                                                                 className="select-none object-contain"
                                                                 sizes="100vw"

@@ -4,17 +4,52 @@ import { useEffect, useMemo, useState } from "react";
 
 import FiltersBar, { type SortOption, type ViewMode } from "./FiltersBar";
 import PropertiesList from "./PropertiesList";
-import { useProperties } from "@/components/FeaturedProperties/useProperties";
+import type { PublicProperty } from "@/lib/property-types";
+
+type InmueblesExplorerProps = {
+  properties: PublicProperty[];
+  error?: string | null;
+};
 
 const normalizeValue = (value?: string | null) => value?.trim().toLowerCase() ?? "";
+const DEFAULT_SORT_OPTION: SortOption = "relevance";
 
-const InmueblesExplorer = () => {
-  const { properties, isLoading, error } = useProperties();
+const getPublicationTime = (property: PublicProperty) => {
+  const createdAt = property.createdAt ? new Date(property.createdAt).getTime() : 0;
+  const updatedAt = property.updatedAt ? new Date(property.updatedAt).getTime() : 0;
+
+  return Math.max(createdAt, updatedAt);
+};
+
+const comparePropertyRelevance = (left: PublicProperty, right: PublicProperty) => {
+  const leftAvailable = left.isAvailable;
+  const rightAvailable = right.isAvailable;
+
+  if (leftAvailable !== rightAvailable) {
+    return leftAvailable ? -1 : 1;
+  }
+
+  if (leftAvailable && rightAvailable) {
+    const leftPrice = typeof left.price === "number" && Number.isFinite(left.price) ? left.price : Number.NEGATIVE_INFINITY;
+    const rightPrice = typeof right.price === "number" && Number.isFinite(right.price) ? right.price : Number.NEGATIVE_INFINITY;
+
+    if (rightPrice !== leftPrice) {
+      return rightPrice - leftPrice;
+    }
+  }
+
+  const leftPublishedAt = getPublicationTime(left);
+  const rightPublishedAt = getPublicationTime(right);
+
+  return rightPublishedAt - leftPublishedAt;
+};
+
+const InmueblesExplorer = ({ properties, error }: InmueblesExplorerProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [canSelectViewMode, setCanSelectViewMode] = useState(false);
   const [operationFilter, setOperationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOption, setSortOption] = useState<SortOption>("relevance");
+  const [sortOption, setSortOption] = useState<SortOption>(DEFAULT_SORT_OPTION);
   const [searchTerm, setSearchTerm] = useState("");
 
   const availableOperations = useMemo(() => {
@@ -64,7 +99,7 @@ const InmueblesExplorer = () => {
 
   const sortedProperties = useMemo(() => {
     if (sortOption === "relevance") {
-      return filteredProperties;
+      return [...filteredProperties].sort(comparePropertyRelevance);
     }
 
     const copy = [...filteredProperties];
@@ -128,7 +163,7 @@ const InmueblesExplorer = () => {
     <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-8 md:py-12">
       <FiltersBar
         totalCount={sortedProperties.length}
-        isLoading={isLoading}
+        isLoading={false}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         canSelectViewMode={canSelectViewMode}
@@ -144,27 +179,21 @@ const InmueblesExplorer = () => {
         onSearchChange={setSearchTerm}
       />
 
-      {isLoading && (
-        <div className="flex min-h-[200px] items-center justify-center rounded-3xl bg-white/70 p-10 text-center text-gray-500">
-          Cargando propiedades…
-        </div>
-      )}
-
-      {error && !isLoading && (
+      {error ? (
         <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
           {error}
         </div>
-      )}
+      ) : null}
 
-      {!isLoading && !error && sortedProperties.length === 0 && (
+      {!error && sortedProperties.length === 0 ? (
         <div className="flex min-h-[200px] items-center justify-center rounded-3xl bg-white/70 p-10 text-center text-gray-500">
-          No hay propiedades destacadas disponibles por ahora.
+          No hay propiedades disponibles por ahora.
         </div>
-      )}
+      ) : null}
 
-      {!isLoading && !error && sortedProperties.length > 0 && (
+      {!error && sortedProperties.length > 0 ? (
         <PropertiesList properties={sortedProperties} viewMode={viewMode} />
-      )}
+      ) : null}
     </div>
   );
 };

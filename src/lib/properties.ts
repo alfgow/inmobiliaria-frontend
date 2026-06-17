@@ -1,623 +1,512 @@
 import { randomUUID } from "node:crypto";
 
-import { isAxiosError } from "axios";
+import "server-only";
 
-import getInmueblesApiClient from "./inmuebles-api";
+import { getPrismaClient } from "@/lib/prisma";
+import {
+  formatOperation,
+  resolvePublicImageUrl,
+  type FeaturedProperty,
+  type ImageWithSignedUrl,
+  type PropertyStatus,
+  type PublicProperty,
+} from "@/lib/property-types";
 
 export interface GetPropertyBySlugParams {
-        slug: string;
-        id?: string | number | bigint;
+  slug: string;
+  id?: string | number | bigint;
 }
 
+type PrismaLikeProperty = {
+  id: bigint | number | string;
+  asesor_id?: bigint | number | string;
+  titulo?: string | null;
+  destacado?: boolean | null;
+  descripcion?: string | null;
+  precio?: unknown;
+  direccion?: string | null;
+  slug?: string | null;
+  latitud?: unknown;
+  longitud?: unknown;
+  colonia?: string | null;
+  municipio?: string | null;
+  estado?: string | null;
+  codigoPostal?: string | null;
+  codigo_postal?: string | null;
+  tipo?: string | null;
+  operacion?: string | null;
+  estatusId?: number | null;
+  seo_description?: string | null;
+  estatus?: {
+    id?: bigint | number | string;
+    nombre?: string | null;
+    color?: string | null;
+  } | null;
+  habitaciones?: unknown;
+  banos?: unknown;
+  estacionamientos?: unknown;
+  superficie_cuadrados?: unknown;
+  metros_cuadrados?: unknown;
+  superficie_construida?: unknown;
+  superficie_terreno?: unknown;
+  anio_construccion?: unknown;
+  video_url?: string | null;
+  tour_virtual_url?: string | null;
+  amenidades?: string | null;
+  extras?: string | null;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
+  created_at?: Date | string | null;
+  updated_at?: Date | string | null;
+  imagenes?: PrismaLikeImage[] | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type PrismaLikeImage = {
+  id?: bigint | number | string;
+  disk?: string | null;
+  path?: string | null;
+  url?: string | null;
+  metadata?: unknown;
+  inmuebleId?: bigint | number | string;
+  s3Key?: string | null;
+  orden?: number | null;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
+};
+
+const currencyFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  maximumFractionDigits: 0,
+});
+
+const slugify = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const parseNumber = (value: unknown): number | null => {
-        if (typeof value === "number" && Number.isFinite(value)) {
-                return value;
-        }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
 
-        if (typeof value === "string") {
-                const normalized = value.replace(/[^0-9.,-]+/g, "").replace(/,(?=\d{3})/g, "");
-                const parsed = Number(normalized);
+  if (typeof value === "bigint") {
+    return Number(value);
+  }
 
-                return Number.isFinite(parsed) ? parsed : null;
-        }
+  if (typeof value === "string") {
+    const normalized = value.replace(/[^0-9.,-]+/g, "").replace(/,(?=\d{3})/g, "");
+    const parsed = Number(normalized);
 
-        return null;
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (value && typeof value === "object" && "toString" in value) {
+    const parsed = Number((value as { toString(): string }).toString());
+
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 };
 
 const parseBoolean = (value: unknown): boolean => {
-        if (typeof value === "boolean") {
-                return value;
-        }
+  if (typeof value === "boolean") {
+    return value;
+  }
 
-        if (typeof value === "number") {
-                return value !== 0;
-        }
+  if (typeof value === "number") {
+    return value !== 0;
+  }
 
-        if (typeof value === "string") {
-                const normalized = value.trim().toLowerCase();
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
 
-                return ["1", "true", "yes", "si", "sí"].includes(normalized);
-        }
+    return ["1", "true", "yes", "si", "sí"].includes(normalized);
+  }
 
-        return false;
+  return false;
 };
 
 const parseDate = (value: unknown): string | null => {
-        if (value instanceof Date && !Number.isNaN(value.getTime())) {
-                return value.toISOString();
-        }
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
 
-        if (typeof value === "string") {
-                const parsed = new Date(value);
+  if (typeof value === "string") {
+    const parsed = new Date(value);
 
-                return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-        }
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
 
-        return null;
+  return null;
 };
 
 const parseNullableString = (value: unknown): string | null => {
-        if (typeof value === "string" && value.trim().length > 0) {
-                return value.trim();
-        }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value.trim();
+  }
 
-        return null;
+  return null;
 };
 
 const pickMetadataString = (
-        metadata: Record<string, unknown> | null | undefined,
-        candidatePaths: string[][]
+  metadata: Record<string, unknown> | null | undefined,
+  candidatePaths: string[][],
 ): string | null => {
-        if (!metadata) {
-                return null;
-        }
+  if (!metadata) {
+    return null;
+  }
 
-        for (const path of candidatePaths) {
-                let current: unknown = metadata;
+  for (const path of candidatePaths) {
+    let current: unknown = metadata;
 
-                for (const segment of path) {
-                        if (typeof current !== "object" || current === null) {
-                                current = null;
-                                break;
-                        }
+    for (const segment of path) {
+      if (typeof current !== "object" || current === null) {
+        current = null;
+        break;
+      }
 
-                        current = (current as Record<string, unknown>)[segment];
-                }
+      current = (current as Record<string, unknown>)[segment];
+    }
 
-                if (typeof current === "string") {
-                        const normalized = current.trim();
+    if (typeof current === "string") {
+      const normalized = current.trim();
 
-                        if (normalized.length > 0) {
-                                return normalized;
-                        }
-                }
-        }
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    }
+  }
 
-        return null;
+  return null;
 };
 
-const slugify = (value: string): string =>
-        value
-                .normalize("NFD")
-                .replace(/\p{Diacritic}/gu, "")
-                .toLowerCase()
-                .trim()
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "");
+const mapStatus = (
+  status: PrismaLikeProperty["estatus"] | null | undefined,
+  statusId?: number | null,
+): PropertyStatus | null => {
+  if (!status || typeof status !== "object") {
+    if (typeof statusId === "number") {
+      return {
+        id: statusId,
+        name: null,
+        color: null,
+      };
+    }
 
-export type ImageWithSignedUrl = {
-        id: string;
-        url: string | null;
-        signedUrl: string | null;
-        path: string | null;
-        metadata?: Record<string, unknown> | null;
-        orden?: number | null;
-        titulo?: string | null;
-        descripcion?: string | null;
-        isCover?: boolean;
-        isPublic?: boolean;
+    return null;
+  }
+
+  const id = status.id;
+  const nombre = status.nombre ?? null;
+
+  return {
+    id: typeof id === "string" || typeof id === "number" ? id : statusId ?? "",
+    name: parseNullableString(nombre),
+    color: parseNullableString(status.color),
+  };
 };
 
-export type PropertyStatus = {
-        id: number | string;
-        nombre: string | null;
-        color: string | null;
+const mapImage = (image: PrismaLikeImage): ImageWithSignedUrl => {
+  const metadata =
+    image.metadata && typeof image.metadata === "object" && !Array.isArray(image.metadata)
+      ? (image.metadata as Record<string, unknown>)
+      : null;
+
+  const metadataUrl = pickMetadataString(metadata, [
+    ["url"],
+    ["publicUrl"],
+    ["public_url"],
+    ["urls", "default"],
+    ["urls", "public"],
+    ["file", "url"],
+    ["variants", "original"],
+    ["original"],
+  ]);
+  const metadataSignedUrl = pickMetadataString(metadata, [
+    ["signedUrl"],
+    ["signed_url"],
+    ["signed-url"],
+    ["presignedUrl"],
+    ["presigned_url"],
+    ["urls", "signed"],
+    ["file", "signedUrl"],
+    ["file", "signed_url"],
+    ["link", "signed"],
+  ]);
+  const metadataPath = pickMetadataString(metadata, [
+    ["path"],
+    ["file", "path"],
+    ["file", "key"],
+    ["key"],
+    ["s3Key"],
+  ]);
+
+  const rawUrl =
+    parseNullableString(image.url) ??
+    parseNullableString(metadataUrl) ??
+    parseNullableString(metadataSignedUrl) ??
+    parseNullableString(image.path) ??
+    parseNullableString(image.s3Key) ??
+    parseNullableString(metadataPath);
+  const resolvedUrl = resolvePublicImageUrl(rawUrl);
+  const path = parseNullableString(image.path) ?? parseNullableString(metadataPath);
+
+  const idValue = image.id ?? randomUUID();
+  const id = typeof idValue === "string" ? idValue : String(idValue);
+
+  return {
+    id,
+    url: resolvedUrl,
+    signedUrl: null,
+    path,
+    metadata,
+    orden: typeof image.orden === "number" ? image.orden : null,
+    isPublic: parseBoolean((metadata as Record<string, unknown> | null)?.isPublic),
+  };
 };
 
-export type PropertyWithSignedImages = {
-        id: string;
-        slug: string;
-        titulo: string | null;
-        descripcion: string | null;
-        precio: number | null;
-        precioFormateado: string | null;
-        direccion: string | null;
-        colonia: string | null;
-        municipio: string | null;
-        estado: string | null;
-        codigoPostal: string | null;
-        latitud: number | null;
-        longitud: number | null;
-        habitaciones: number | null;
-        banos: number | null;
-        estacionamientos: number | null;
-        superficie_terreno: number | null;
-        superficie_construida: number | null;
-        anio_construccion: number | null;
-        amenidades: string | null;
-        extras: string | null;
-        operacion: string | null;
-        tipo: string | null;
-        destacado: boolean;
-        estatus: PropertyStatus | null;
-        imagenes: ImageWithSignedUrl[];
-        metadata?: Record<string, unknown> | null;
-        createdAt: string | null;
-        updatedAt: string | null;
+const mapProperty = (property: PrismaLikeProperty): PublicProperty => {
+  const id = typeof property.id === "string" ? property.id : String(property.id);
+  const title = parseNullableString(property.titulo);
+  const slug = parseNullableString(property.slug) ?? (title ? slugify(title) : id);
+  const price = parseNumber(property.precio);
+  const latitude = parseNumber(property.latitud);
+  const longitude = parseNumber(property.longitud);
+  const statusId = typeof property.estatusId === "number" ? property.estatusId : null;
+  const status = mapStatus(property.estatus, statusId);
+  const isAvailable = statusId === 1;
+  const images = (property.imagenes ?? [])
+    .map(mapImage)
+    .sort((left, right) => (left.orden ?? Number.POSITIVE_INFINITY) - (right.orden ?? Number.POSITIVE_INFINITY));
+  const address = parseNullableString(property.direccion);
+  const city = parseNullableString(property.municipio);
+  const state = parseNullableString(property.estado);
+  const neighborhood = parseNullableString(property.colonia);
+  const postalCode = parseNullableString(property.codigo_postal) ?? parseNullableString(property.codigoPostal);
+  const createdAt = parseDate(property.createdAt ?? property.created_at);
+  const updatedAt = parseDate(property.updatedAt ?? property.updated_at);
+
+  return {
+    id,
+    title,
+    slug,
+    price,
+    priceFormatted: price !== null ? currencyFormatter.format(price) : null,
+    operation: parseNullableString(property.operacion),
+    status,
+    city,
+    state,
+    address,
+    neighborhood,
+    postalCode,
+    latitude,
+    longitude,
+    location:
+      latitude !== null || longitude !== null
+        ? {
+            latitude,
+            longitude,
+          }
+        : null,
+    isAvailable,
+    is_available: isAvailable,
+    active: isAvailable,
+    images,
+    featured: parseBoolean(property.destacado),
+    metadata:
+      property.metadata && typeof property.metadata === "object" && !Array.isArray(property.metadata)
+        ? (property.metadata as Record<string, unknown>)
+        : null,
+    description: parseNullableString(property.descripcion),
+    seoDescription: parseNullableString(property.seo_description),
+    amenities: parseNullableString(property.amenidades),
+    extras: parseNullableString(property.extras),
+    rooms: parseNumber(property.habitaciones),
+    bathrooms: parseNumber(property.banos),
+    parkingSpots: parseNumber(property.estacionamientos),
+    landSizeM2: parseNumber(property.superficie_terreno) ?? parseNumber(property.metros_cuadrados),
+    constructionSizeM2: parseNumber(property.superficie_construida),
+    age: parseNumber(property.anio_construccion),
+    createdAt,
+    updatedAt,
+    type: parseNullableString(property.tipo),
+  };
 };
 
-type RawImage = {
-        id?: string | number;
-        url?: unknown;
-        signed_url?: unknown;
-        signedUrl?: unknown;
-        path?: unknown;
-        metadata?: unknown;
-        orden?: unknown;
-        order?: unknown;
-        titulo?: unknown;
-        title?: unknown;
-        descripcion?: unknown;
-        description?: unknown;
-        is_cover?: unknown;
-        isCover?: unknown;
-        is_public?: unknown;
-        isPublic?: unknown;
+const toFeaturedProperty = (property: PublicProperty): FeaturedProperty => {
+  const coverImage = property.images.find((image) => image.isCover) ?? property.images[0] ?? null;
+
+  const locationParts = [property.city, property.state].filter(Boolean) as string[];
+
+  return {
+    id: property.id,
+    title: property.title ?? "Inmueble sin título",
+    slug: property.slug ?? null,
+    price: property.price ?? 0,
+    operation: formatOperation(property.operation),
+    status: property.status?.name ?? null,
+    coverImageUrl: resolvePublicImageUrl(coverImage?.url ?? coverImage?.path ?? null),
+    location: locationParts.length > 0 ? locationParts.join(", ") : null,
+  };
 };
 
-type RawStatus = {
-        id?: unknown;
-        nombre?: unknown;
-        name?: unknown;
-        color?: unknown;
+const comparePricesDesc = (left: number | null, right: number | null) => {
+  const leftValue = typeof left === "number" && Number.isFinite(left) ? left : Number.NEGATIVE_INFINITY;
+  const rightValue = typeof right === "number" && Number.isFinite(right) ? right : Number.NEGATIVE_INFINITY;
+
+  return rightValue - leftValue;
 };
 
-type RawLocation = {
-        latitud?: unknown;
-        longitud?: unknown;
-} | null;
-
-export type RawProperty = {
-        id?: unknown;
-        slug?: unknown;
-        titulo?: unknown;
-        title?: unknown;
-        descripcion?: unknown;
-        description?: unknown;
-        precio?: unknown;
-        price?: unknown;
-        precio_formateado?: unknown;
-        price_formatted?: unknown;
-        direccion?: unknown;
-        address?: unknown;
-        colonia?: unknown;
-        neighborhood?: unknown;
-        municipio?: unknown;
-        city?: unknown;
-        estado?: unknown;
-        state?: unknown;
-        codigo_postal?: unknown;
-        codigoPostal?: unknown;
-        postal_code?: unknown;
-        latitud?: unknown;
-        longitud?: unknown;
-        ubicacion?: RawLocation;
-        habitaciones?: unknown;
-        rooms?: unknown;
-        banos?: unknown;
-        bathrooms?: unknown;
-        medios_banos?: unknown;
-        half_bathrooms?: unknown;
-        estacionamientos?: unknown;
-        parking_spots?: unknown;
-        superficie_terreno?: unknown;
-        superficie_construida?: unknown;
-        anio_construccion?: unknown;
-        amenidades?: unknown;
-        extras?: unknown;
-        operacion?: unknown;
-        operation?: unknown;
-        tipo?: unknown;
-        type?: unknown;
-        destacado?: unknown;
-        featured?: unknown;
-        estatus?: RawStatus | null;
-        status?: RawStatus | null;
-        imagenes?: RawImage[] | null;
-        images?: RawImage[] | null;
-        metadata?: unknown;
-        created_at?: unknown;
-        updated_at?: unknown;
-        createdAt?: unknown;
-        updatedAt?: unknown;
+type PropertyQueryOptions = {
+  limit?: number;
+  featuredOnly?: boolean;
 };
 
-const mapImage = (image: RawImage): ImageWithSignedUrl => {
-        const idValue = image.id ?? randomUUID();
-        const id = typeof idValue === "string" ? idValue : idValue !== undefined ? String(idValue) : randomUUID();
-        const metadata =
-                image.metadata && typeof image.metadata === "object" && !Array.isArray(image.metadata)
-                        ? (image.metadata as Record<string, unknown>)
-                        : null;
+const getPropertyRepository = () => {
+  const prisma = getPrismaClient() as unknown as {
+    inmueble: {
+      findMany: (args?: Record<string, unknown>) => Promise<PrismaLikeProperty[]>;
+      findFirst: (args?: Record<string, unknown>) => Promise<PrismaLikeProperty | null>;
+      findUnique: (args?: Record<string, unknown>) => Promise<PrismaLikeProperty | null>;
+    };
+  };
 
-        const metadataUrl = pickMetadataString(metadata, [
-                ["url"],
-                ["publicUrl"],
-                ["public_url"],
-                ["urls", "default"],
-                ["urls", "public"],
-                ["file", "url"],
-                ["variants", "original"],
-                ["original"],
-        ]);
-        const metadataSignedUrl = pickMetadataString(metadata, [
-                ["signedUrl"],
-                ["signed_url"],
-                ["signed-url"],
-                ["presignedUrl"],
-                ["presigned_url"],
-                ["urls", "signed"],
-                ["file", "signedUrl"],
-                ["file", "signed_url"],
-                ["link", "signed"],
-        ]);
-        const metadataPath = pickMetadataString(metadata, [
-                ["path"],
-                ["file", "path"],
-                ["file", "key"],
-                ["key"],
-                ["s3Key"],
-        ]);
-
-        const rawUrl =
-                parseNullableString(image.url) ??
-                parseNullableString(metadataUrl) ??
-                (metadataSignedUrl && !metadataSignedUrl.includes("X-Amz-")
-                        ? metadataSignedUrl
-                        : null);
-        const rawSignedUrl =
-                parseNullableString(image.signed_url) ??
-                parseNullableString(image.signedUrl) ??
-                parseNullableString(metadataSignedUrl) ??
-                (rawUrl && rawUrl.includes("X-Amz-") ? rawUrl : null);
-        const path =
-                parseNullableString(image.path) ??
-                parseNullableString(metadataPath);
-
-        return {
-                id,
-                url: rawUrl,
-                signedUrl: rawSignedUrl,
-                path,
-                metadata,
-                orden: typeof image.orden === "number" ? image.orden : typeof image.order === "number" ? image.order : null,
-                titulo:
-                        parseNullableString(image.titulo) ??
-                        parseNullableString(image.title),
-                descripcion:
-                        parseNullableString(image.descripcion) ??
-                        parseNullableString(image.description),
-                isCover: parseBoolean(image.is_cover ?? image.isCover),
-                isPublic: parseBoolean(
-                        image.is_public ?? image.isPublic ?? (metadata?.isPublic as boolean | undefined)
-                ),
-        };
+  return prisma.inmueble;
 };
 
-const mapStatus = (status: RawStatus | null | undefined): PropertyStatus | null => {
-        if (!status || typeof status !== "object") {
-                return null;
-        }
+export const getPublicProperties = async ({
+  limit = 100,
+  featuredOnly = false,
+}: PropertyQueryOptions = {}): Promise<PublicProperty[]> => {
+  const repository = getPropertyRepository();
+  const where = featuredOnly ? { destacado: true, estatusId: 1 } : undefined;
+  const items = await repository.findMany({
+    take: limit,
+    where,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      imagenes: true,
+      estatus: true,
+    },
+  });
 
-        const id = status.id;
-        const nombre = status.nombre ?? status.name;
-
-        return {
-                id: typeof id === "string" || typeof id === "number" ? id : "",
-                nombre: parseNullableString(nombre),
-                color: parseNullableString(status.color),
-        };
+  return items.map(mapProperty);
 };
 
-export const normalizeProperty = (
-        property: RawProperty | null | undefined
-): PropertyWithSignedImages | null => {
-        if (!property || typeof property !== "object") {
-                return null;
-        }
+export const getFeaturedProperties = async (
+  limit = 12,
+): Promise<FeaturedProperty[]> => {
+  const properties = await getPublicProperties({ limit, featuredOnly: true });
 
-        const idValue = property.id;
-        const id = typeof idValue === "string" || typeof idValue === "number" ? String(idValue) : "";
-        const slugValue =
-                parseNullableString(property.slug) ??
-                (typeof property.slug === "number" ? String(property.slug) : null);
-        const titleValue =
-                parseNullableString(property.titulo) ??
-                parseNullableString(property.title);
-        const descriptionValue =
-                parseNullableString(property.descripcion) ??
-                parseNullableString(property.description);
-
-        const imagesSource = Array.isArray(property.imagenes)
-                ? property.imagenes
-                : Array.isArray(property.images)
-                ? property.images
-                : [];
-
-        const images = imagesSource.map(mapImage);
-
-        const precio =
-                parseNumber(property.precio) ??
-                parseNumber(property.price);
-
-        const surfaceTerreno = parseNumber(property.superficie_terreno);
-        const surfaceConstruida = parseNumber(property.superficie_construida);
-
-        const locationSource =
-                property.ubicacion && typeof property.ubicacion === "object"
-                        ? (property.ubicacion as Record<string, unknown>)
-                        : null;
-
-        const latitudeValue =
-                parseNumber(property.latitud) ??
-                (locationSource ? parseNumber(locationSource.latitud) : null);
-        const longitudeValue =
-                parseNumber(property.longitud) ??
-                (locationSource ? parseNumber(locationSource.longitud) : null);
-
-        const fallbackId = slugValue ?? (titleValue ? slugify(titleValue) : randomUUID());
-        const finalId = id || fallbackId;
-
-        return {
-                id: finalId,
-                slug:
-                        slugValue ??
-                        (titleValue ? slugify(titleValue) : finalId),
-                titulo: titleValue,
-                descripcion: descriptionValue,
-                precio,
-                precioFormateado:
-                        parseNullableString(property.precio_formateado) ??
-                        parseNullableString(property.price_formatted),
-                direccion:
-                        parseNullableString(property.direccion) ??
-                        parseNullableString(property.address),
-                colonia:
-                        parseNullableString(property.colonia) ??
-                        parseNullableString(property.neighborhood),
-                municipio:
-                        parseNullableString(property.municipio) ??
-                        parseNullableString(property.city),
-                estado:
-                        parseNullableString(property.estado) ??
-                        parseNullableString(property.state),
-                codigoPostal:
-                        parseNullableString(property.codigo_postal) ??
-                        parseNullableString(property.codigoPostal) ??
-                        parseNullableString(property.postal_code),
-                latitud: latitudeValue,
-                longitud: longitudeValue,
-                habitaciones:
-                        parseNumber(property.habitaciones) ??
-                        parseNumber(property.rooms),
-                banos:
-                        parseNumber(property.banos) ??
-                        parseNumber(property.bathrooms),
-                estacionamientos:
-                        parseNumber(property.estacionamientos) ??
-                        parseNumber(property.parking_spots),
-                superficie_terreno: surfaceTerreno,
-                superficie_construida: surfaceConstruida,
-                anio_construccion:
-                        parseNumber(property.anio_construccion),
-                amenidades: parseNullableString(property.amenidades),
-                extras: parseNullableString(property.extras),
-                operacion:
-                        parseNullableString(property.operacion) ??
-                        parseNullableString(property.operation),
-                tipo: parseNullableString(property.tipo) ?? parseNullableString(property.type),
-                destacado: parseBoolean(property.destacado ?? property.featured),
-                estatus: mapStatus(property.estatus ?? property.status),
-                imagenes: images,
-                metadata:
-                        property.metadata && typeof property.metadata === "object"
-                                ? (property.metadata as Record<string, unknown>)
-                                : null,
-                createdAt:
-                        parseDate(property.created_at ?? property.createdAt) ??
-                        null,
-                updatedAt:
-                        parseDate(property.updated_at ?? property.updatedAt) ??
-                        null,
-        };
+  return properties
+    .sort((left, right) => comparePricesDesc(left.price, right.price))
+    .map(toFeaturedProperty);
 };
 
-const fetchPropertyDetail = async (
-        identifier: string | number | bigint
-): Promise<PropertyWithSignedImages | null> => {
-        try {
-                const client = getInmueblesApiClient();
-                const response = await client.get(`/inmuebles/${String(identifier)}`);
-                const payload = (response.data?.data ?? response.data) as RawProperty | null | undefined;
+export const getPropertyBySlug = async ({
+  slug,
+  id,
+}: GetPropertyBySlugParams): Promise<PublicProperty | null> => {
+  const repository = getPropertyRepository();
 
-                return normalizeProperty(payload);
-        } catch (error) {
-                if (isAxiosError(error) && error.response?.status === 404) {
-                        return null;
-                }
+  if (id !== undefined) {
+    const idValue = typeof id === "bigint" ? id : typeof id === "number" ? BigInt(id) : undefined;
 
-                console.error(`Error fetching property detail for identifier "${identifier}"`, error);
+    if (idValue !== undefined) {
+      const byId = await repository.findUnique({
+        where: { id: idValue },
+        include: {
+          imagenes: true,
+          estatus: true,
+        },
+      });
 
-                return null;
-        }
-};
+      if (byId) {
+        return mapProperty(byId);
+      }
+    }
+  }
 
-const fetchPropertyBySlugFromApi = async (slug: string): Promise<PropertyWithSignedImages | null> => {
-        try {
-                const client = getInmueblesApiClient();
-                const response = await client.get(`/inmuebles/search-by-slug/${encodeURIComponent(slug)}`);
-                const payload = (response.data?.data ?? response.data) as RawProperty | null | undefined;
+  const normalizedSlug = slug.trim();
 
-                return normalizeProperty(payload);
-        } catch (error) {
-                if (isAxiosError(error) && error.response?.status === 404) {
-                        return null;
-                }
+  if (!normalizedSlug) {
+    return null;
+  }
 
-                console.error(`Error fetching property by slug "${slug}"`, error);
+  const directMatch = await repository.findFirst({
+    where: {
+      slug: normalizedSlug,
+    },
+    include: {
+      imagenes: true,
+      estatus: true,
+    },
+  });
 
-                return null;
-        }
-};
+  if (directMatch) {
+    return mapProperty(directMatch);
+  }
 
-const extractSlugFromRawProperty = (property: RawProperty): string | null => {
-        if (!property) {
-                return null;
-        }
+  const fallbackItems = await repository.findMany({
+    take: 200,
+    include: {
+      imagenes: true,
+      estatus: true,
+    },
+  });
 
-        if (typeof property.slug === "string") {
-                const directSlug = parseNullableString(property.slug);
+  const normalizedTarget = normalizedSlug.toLowerCase();
+  const candidate = fallbackItems.find((property) => {
+    const propertyId = typeof property.id === "bigint" ? String(property.id) : String(property.id);
+    const propertySlug =
+      parseNullableString(property.slug) ?? (parseNullableString(property.titulo) ? slugify(property.titulo as string) : propertyId);
 
-                if (directSlug) {
-                        return directSlug;
-                }
-        }
+    return propertySlug.toLowerCase() === normalizedTarget;
+  });
 
-        if (typeof property.slug === "number") {
-                return String(property.slug);
-        }
-
-        if (property.slug && typeof property.slug === "object") {
-                const slugObject = property.slug as Record<string, unknown>;
-                const objectSlug =
-                        parseNullableString(slugObject.slug) ??
-                        parseNullableString(slugObject.current) ??
-                        parseNullableString(slugObject.value);
-
-                if (objectSlug) {
-                        return objectSlug;
-                }
-        }
-
-        const metadataSlug = pickMetadataString(
-                typeof property.metadata === "object" && property.metadata !== null
-                        ? (property.metadata as Record<string, unknown>)
-                        : null,
-                [
-                        ["slug"],
-                        ["seo", "slug"],
-                        ["meta", "slug"],
-                        ["metadata", "slug"],
-                ]
-        );
-
-        if (metadataSlug) {
-                return metadataSlug;
-        }
-
-        const titleValue =
-                parseNullableString(property.titulo) ?? parseNullableString(property.title);
-
-        return titleValue ? slugify(titleValue) : null;
-};
-
-const findPropertyCandidate = (items: RawProperty[], slug: string): RawProperty | null => {
-        const normalizedSlug = slug.trim().toLowerCase();
-
-        const directMatch = items.find((item) => {
-                const itemSlug = extractSlugFromRawProperty(item);
-
-                return itemSlug?.toLowerCase() === normalizedSlug;
-        });
-
-        return directMatch ?? null;
-};
-
-export const getPropertyBySlug = async ({ slug, id }: GetPropertyBySlugParams): Promise<PropertyWithSignedImages | null> => {
-        if (!slug && id === undefined) {
-                return null;
-        }
-
-        if (id !== undefined) {
-                const property = await fetchPropertyDetail(id);
-
-                if (property) {
-                        return property;
-                }
-        }
-
-        if (!slug) {
-                        return null;
-        }
-
-        const client = getInmueblesApiClient();
-
-        // Intento directo por slug por si el API lo soporta como identificador.
-        const directProperty = await fetchPropertyDetail(slug);
-
-        if (directProperty) {
-                return directProperty;
-        }
-
-        const slugProperty = await fetchPropertyBySlugFromApi(slug);
-
-        if (slugProperty) {
-                return slugProperty;
-        }
-
-        try {
-                const response = await client.get("/inmuebles", {
-                        params: {
-                                search: slug,
-                                limit: 20,
-                        },
-                });
-
-                const data = response.data?.data ?? response.data;
-                const items = Array.isArray(data) ? (data as RawProperty[]) : [];
-                const candidate = findPropertyCandidate(items, slug);
-
-                if (!candidate?.id) {
-                        return null;
-                }
-
-                return fetchPropertyDetail(candidate.id as string | number | bigint);
-        } catch (error) {
-                console.error(`Error searching property by slug "${slug}"`, error);
-
-                return null;
-        }
+  return candidate ? mapProperty(candidate) : null;
 };
 
 export const getPropertySlugs = async (): Promise<string[]> => {
-        try {
-                const client = getInmueblesApiClient();
-                const response = await client.get("/inmuebles", { params: { limit: 100 } });
-                const data = response.data?.data ?? response.data;
-                const items = Array.isArray(data) ? (data as RawProperty[]) : [];
+  const repository = getPropertyRepository();
+  const items = await repository.findMany({
+    take: 200,
+    select: {
+      id: true,
+      slug: true,
+      titulo: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-                return items
-                        .map((item) => {
-                                const slug =
-                                        parseNullableString(item.slug) ??
-                                        (typeof item.slug === "number" ? String(item.slug) : null);
+  return items
+    .map((item) => {
+      if (typeof item.slug === "string" && item.slug.trim().length > 0) {
+        return item.slug.trim();
+      }
 
-                                return slug;
-                        })
-                        .filter((value): value is string => Boolean(value));
-        } catch (error) {
-                console.error("Error fetching property slugs", error);
+      if (typeof item.titulo === "string" && item.titulo.trim().length > 0) {
+        return slugify(item.titulo);
+      }
 
-                return [];
-        }
+      return String(item.id);
+    })
+    .filter((value): value is string => Boolean(value));
 };
+
+export const mapPropertiesToFeaturedCards = (properties: PublicProperty[]): FeaturedProperty[] =>
+  properties
+    .filter((property) => property.featured && property.isAvailable)
+    .sort((left, right) => comparePricesDesc(left.price, right.price))
+    .map(toFeaturedProperty);

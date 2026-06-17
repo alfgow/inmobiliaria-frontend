@@ -4,6 +4,8 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import AdminPropertiesMapClient from "./AdminPropertiesMapClient";
+import { getPublicProperties } from "@/lib/properties";
+import type { PublicProperty } from "@/lib/property-types";
 
 export const metadata: Metadata = {
 	title: "Mapa de propiedades | Villanueva García",
@@ -11,7 +13,17 @@ export const metadata: Metadata = {
 		"Visualiza en un mapa interactivo todas las propiedades disponibles de Villanueva García y conoce su disponibilidad en tiempo real.",
 };
 
-const PropertiesMapPage = () => {
+const PropertiesMapPage = async () => {
+  let properties: PublicProperty[] = [];
+  let error: string | null = null;
+
+  try {
+    properties = await getPublicProperties();
+  } catch (caughtError) {
+    console.error("Error loading properties for map page", caughtError);
+    error = "No se pudieron cargar las propiedades para el mapa.";
+  }
+
 	return (
 		<div className="bg-[var(--bg-base)] text-[var(--text-dark)]">
                         <header className="fixed left-0 right-0 top-0 z-[1200]">
@@ -30,7 +42,7 @@ const PropertiesMapPage = () => {
 						</p>
 					</div>
 				</section>
-				<AdminPropertiesMapClient />
+				<AdminPropertiesMapClient properties={properties} error={error} />
 				<ContactSection />
 			</main>
 			<Footer />

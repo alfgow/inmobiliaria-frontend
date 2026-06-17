@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { resolvePublicImageUrl } from "@/lib/property-types";
 
 type GalleryImage = {
   url: string;
@@ -17,7 +18,7 @@ const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
   const galleryItems = useMemo(() => {
     return (images ?? [])
       .map((image) => ({
-        url: image?.url ?? "",
+        url: resolvePublicImageUrl(image?.url ?? null),
         alt: image?.alt ?? title ?? "Imagen del inmueble",
       }))
       .filter((image) => Boolean(image.url));

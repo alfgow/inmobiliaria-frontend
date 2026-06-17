@@ -10,6 +10,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { NavigationOptions, PaginationOptions } from "swiper/types";
 
 import "@/styles/swiper-bundle.css";
+import type { FeaturedProperty } from "@/lib/property-types";
+import { resolvePublicImageUrl } from "@/lib/property-types";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
         style: "currency",
@@ -30,19 +32,8 @@ const formatOperationBadgeLabel = (operation?: string | null) => {
         return operation;
 };
 
-export interface Property {
-	id: string;
-	title: string;
-	slug?: string | null;
-	price: number;
-	operation?: string | null;
-	status?: string | null;
-	coverImageUrl: string;
-	location?: string | null;
-}
-
 interface PropertyCarouselProps {
-	properties: Property[];
+	properties: FeaturedProperty[];
 	navigationPrevRef: RefObject<HTMLButtonElement | null>;
 	navigationNextRef: RefObject<HTMLButtonElement | null>;
 	paginationRef: RefObject<HTMLDivElement | null>;
@@ -248,7 +239,7 @@ const PropertyCarousel = ({
 							<div className="relative w-full aspect-[16/9] overflow-hidden">
 								<Image
 									fill
-									src={property.coverImageUrl}
+									src={resolvePublicImageUrl(property.coverImageUrl)}
 									alt={property.title}
 									className="object-cover"
 									sizes="(max-width: 768px) 100vw, 352px"

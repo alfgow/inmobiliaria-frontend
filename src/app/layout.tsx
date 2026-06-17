@@ -1,6 +1,6 @@
 import DynamicOfferCatalogSchema from "@/components/SEO/DynamicOfferCatalogSchema";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -59,6 +59,9 @@ export const metadata: Metadata = {
 	},
 	robots: { index: true, follow: true },
 	metadataBase: new URL("https://villanuevagarcia.com"),
+};
+
+export const viewport: Viewport = {
 	themeColor: "#fbbf24",
 };
 

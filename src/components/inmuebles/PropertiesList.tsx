@@ -1,9 +1,9 @@
 import PropertyCard from "./PropertyCard";
 import type { ViewMode } from "./FiltersBar";
-import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
+import type { PublicProperty } from "@/lib/property-types";
 
 interface PropertiesListProps {
-  properties: ApiProperty[];
+  properties: PublicProperty[];
   viewMode: ViewMode;
 }
 

@@ -4,17 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import InterestForm from "@/components/inmuebles/InterestForm";
+import Navbar from "@/components/Navbar";
 import PropertyDetailMap from "@/components/inmuebles/PropertyDetailMap";
 import PropertyGallery from "@/components/inmuebles/PropertyGallery";
-import getInmueblesApiClient from "@/lib/inmuebles-api";
-import {
-  getPropertyBySlug,
-  normalizeProperty,
-  type PropertyWithSignedImages,
-  type RawProperty,
-} from "@/lib/properties";
+import { getPropertyBySlug, getPublicProperties } from "@/lib/properties";
+import { resolvePublicImageUrl, type PublicProperty } from "@/lib/property-types";
+import { getPrimaryPropertyImageUrl, getRelatedProperties as selectRelatedProperties } from "@/lib/property-selection";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +34,6 @@ type RelatedPropertyCard = {
   statusLabel: string | null;
   statusTone: "reserved" | "rented" | "sold" | "available" | "default";
 };
-
-const FALLBACK_SIMILAR_IMAGE = "/1.png";
 
 const hasValue = (value: unknown): boolean => value !== null && value !== undefined && value !== "";
 
@@ -122,34 +116,70 @@ const formatCurrency = (value: number | null | undefined, fallback?: string | nu
   return "Precio no disponible";
 };
 
+const decodeEscapedText = (value: string): string =>
+  value
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    )
+    .replace(/\\"/g, '"')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, "\\");
+
+const normalizeListItem = (value: string): string => {
+  const decoded = decodeEscapedText(value.trim());
+  const unwrapped = decoded.replace(/^["'[\s]+|["'\s\]]+$/g, "").trim();
+
+  return unwrapped;
+};
+
 const parseList = (value?: string | null) => {
   if (!value) {
     return [] as string[];
   }
 
-  return value
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .flatMap((item) => (typeof item === "string" ? [normalizeListItem(item)] : []))
+        .filter(Boolean);
+    }
+
+    if (typeof parsed === "string") {
+      return [normalizeListItem(parsed)].filter(Boolean);
+    }
+  } catch {
+    // Fall back to delimiter-based parsing below.
+  }
+
+  return trimmed
     .split(/\r?\n|,|\u2022|;|\|/)
-    .map((item) => item.replace(/^[-•\s]+/, "").trim())
+    .map((item) => normalizeListItem(item.replace(/^[-•\s]+/, "")))
     .filter(Boolean);
 };
 
-const pickCardImage = (property: PropertyWithSignedImages): string => {
-  const cover = property.imagenes.find((image) => image.isCover);
-  const coverUrl = cover?.signedUrl ?? cover?.url ?? cover?.path;
-
-  if (coverUrl) {
-    return coverUrl;
+const parseDescription = (value?: string | null) => {
+  if (!value) {
+    return "";
   }
 
-  const firstImage = property.imagenes[0];
-
-  return firstImage?.signedUrl ?? firstImage?.url ?? firstImage?.path ?? FALLBACK_SIMILAR_IMAGE;
+  return decodeEscapedText(value)
+    .replace(/\r\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .trim();
 };
 
-const buildRelatedSummary = (property: PropertyWithSignedImages): string => {
-  const roomLabel = hasValue(property.habitaciones) ? `${property.habitaciones} rec` : null;
-  const bathLabel = hasValue(property.banos) ? `${property.banos} baños` : null;
-  const surfaceLabel = formatSquareMeters(property.superficie_construida);
+const buildRelatedSummary = (property: PublicProperty): string => {
+  const roomLabel = hasValue(property.rooms) ? `${property.rooms} rec` : null;
+  const bathLabel = hasValue(property.bathrooms) ? `${property.bathrooms} baños` : null;
+  const surfaceLabel = formatSquareMeters(property.constructionSizeM2);
 
   const summary = [roomLabel, bathLabel, surfaceLabel].filter(Boolean).join(" · ");
 
@@ -157,83 +187,36 @@ const buildRelatedSummary = (property: PropertyWithSignedImages): string => {
     return summary;
   }
 
-  return [property.colonia, property.municipio, property.estado].filter(Boolean).join(", ") || "Conoce esta propiedad";
+  return [property.neighborhood, property.city, property.state].filter(Boolean).join(", ") || "Conoce esta propiedad";
 };
 
-const getRelatedProperties = async (property: PropertyWithSignedImages): Promise<RelatedPropertyCard[]> => {
+const getRelatedProperties = async (property: PublicProperty): Promise<RelatedPropertyCard[]> => {
   try {
-    const client = getInmueblesApiClient();
-    const response = await client.get("/inmuebles", { params: { limit: 40 } });
-    const rawData = response.data?.data ?? response.data;
-    const items = Array.isArray(rawData) ? (rawData as RawProperty[]) : [];
+    const candidates = await getPublicProperties({ limit: 40 });
+    const related = selectRelatedProperties(property, candidates, { limit: 3, priceTolerance: 3000 });
 
-    const normalizedItems = items
-      .map((item) => normalizeProperty(item))
-      .filter((item): item is PropertyWithSignedImages => Boolean(item))
-      .filter((item) => item.slug !== property.slug);
-
-    const scored = normalizedItems.map((candidate) => {
-      let score = 0;
-
-      if (candidate.municipio && candidate.municipio === property.municipio) {
-        score += 4;
-      }
-
-      if (candidate.estado && candidate.estado === property.estado) {
-        score += 3;
-      }
-
-      if (candidate.operacion && candidate.operacion === property.operacion) {
-        score += 2;
-      }
-
-      if (candidate.tipo && candidate.tipo === property.tipo) {
-        score += 2;
-      }
-
-      if (candidate.estatus?.nombre?.toLowerCase().includes("disponible")) {
-        score += 1;
-      }
-
-      return {
-        candidate,
-        score,
-      };
-    });
-
-    return scored
-      .sort((a, b) => {
-        if (b.score !== a.score) {
-          return b.score - a.score;
-        }
-
-        const aTime = a.candidate.updatedAt ? new Date(a.candidate.updatedAt).getTime() : 0;
-        const bTime = b.candidate.updatedAt ? new Date(b.candidate.updatedAt).getTime() : 0;
-
-        return bTime - aTime;
-      })
-      .slice(0, 3)
-      .map(({ candidate }) => ({
-        slug: candidate.slug,
-        title: candidate.titulo ?? "Inmueble recomendado",
-        priceLabel: formatCurrency(candidate.precio, candidate.precioFormateado),
-        imageUrl: pickCardImage(candidate),
+    return related
+      .map((candidate) => ({
+        slug: candidate.slug ?? candidate.id,
+        title: candidate.title ?? "Inmueble recomendado",
+        priceLabel: formatCurrency(candidate.price, candidate.priceFormatted),
+        imageUrl: getPrimaryPropertyImageUrl(candidate),
         summary: buildRelatedSummary(candidate),
-        operationLabel: candidate.operacion,
-        statusLabel: candidate.estatus?.nombre ?? null,
-        statusTone: normalizeStatusTone(candidate.estatus?.nombre ?? null),
+        operationLabel: candidate.operation,
+        statusLabel: candidate.status?.name ?? null,
+        statusTone: normalizeStatusTone(candidate.status?.name ?? null),
       }));
-  } catch (error) {
-    console.error("Error loading related properties", error);
+  } catch (caughtError) {
+    console.error("Error loading related properties", caughtError);
 
     return [];
   }
 };
 
-const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
-  const openGraphImages = (property?.imagenes ?? []).flatMap((image) => {
+const buildOpenGraphImages = (property: PublicProperty | null) => {
+  const openGraphImages = (property?.images ?? []).flatMap((image) => {
     const imageMetadata = (image.metadata ?? {}) as { alt?: string };
-    const url = image.signedUrl ?? image.url ?? image.path;
+    const url = resolvePublicImageUrl(image.url ?? image.path ?? null);
 
     if (!url) {
       return [] as const;
@@ -242,7 +225,7 @@ const buildOpenGraphImages = (property: PropertyWithSignedImages | null) => {
     return [
       {
         url,
-        alt: imageMetadata?.alt ?? property?.titulo ?? "Imagen del inmueble",
+        alt: imageMetadata?.alt ?? property?.title ?? "Imagen del inmueble",
       },
     ] as const;
   });
@@ -261,12 +244,13 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
     };
   }
 
-  const locationSegments = [property.colonia, property.municipio, property.estado].filter(Boolean);
+  const locationSegments = [property.neighborhood, property.city, property.state].filter(Boolean);
   const locationLabel = locationSegments.join(", ");
-  const baseTitle = property.titulo ?? "Detalle de inmueble";
+  const baseTitle = property.title ?? "Detalle de inmueble";
   const title = `${baseTitle} | Villanueva Garcia`;
   const description =
-    property.descripcion ??
+    property.seoDescription ??
+    property.description ??
     `Conoce los detalles de ${baseTitle}${locationLabel ? ` ubicada en ${locationLabel}` : ""}.`;
 
   const images = buildOpenGraphImages(property);
@@ -292,18 +276,18 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
     notFound();
   }
 
-  const statusName = property.estatus?.nombre ?? "Sin estatus";
-  const statusColor = property.estatus?.color ?? null;
-  const statusId = property.estatus?.id ?? null;
+  const statusName = property.status?.name ?? "Sin estatus";
+  const statusColor = property.status?.color ?? null;
+  const statusId = property.status?.id ?? null;
 
-  const images = (property.imagenes ?? [])
+  const images = (property.images ?? [])
     .map((image) => ({
-      url: image?.signedUrl ?? image?.url ?? image?.path ?? "",
-      alt: (image?.metadata as { alt?: string } | null)?.alt ?? property.titulo ?? "Imagen del inmueble",
+      url: resolvePublicImageUrl(image?.url ?? image?.path ?? null),
+      alt: (image?.metadata as { alt?: string } | null)?.alt ?? property.title ?? "Imagen del inmueble",
     }))
     .filter((image) => Boolean(image.url));
 
-  const priceLabel = formatCurrency(property.precio, property.precioFormateado);
+  const priceLabel = formatCurrency(property.price, property.priceFormatted);
   const updatedAtLabel = property.updatedAt
     ? new Date(property.updatedAt).toLocaleDateString("es-MX", {
         year: "numeric",
@@ -315,57 +299,61 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
   const quickMetrics = [
     {
       label: "Construccion",
-      value: formatSquareMeters(property.superficie_construida) ?? "Por confirmar",
+      value: formatSquareMeters(property.constructionSizeM2) ?? "Por confirmar",
     },
     {
       label: "Recamaras",
-      value: hasValue(property.habitaciones) ? `${property.habitaciones}` : "Por confirmar",
+      value: hasValue(property.rooms) ? `${property.rooms}` : "Por confirmar",
     },
     {
       label: "Banos",
-      value: hasValue(property.banos) ? `${property.banos}` : "Por confirmar",
+      value: hasValue(property.bathrooms) ? `${property.bathrooms}` : "Por confirmar",
     },
     {
       label: "Cajones",
-      value: hasValue(property.estacionamientos) ? `${property.estacionamientos}` : "Por confirmar",
+      value: hasValue(property.parkingSpots) ? `${property.parkingSpots}` : "Por confirmar",
     },
   ];
 
   const extraMetrics = [
     {
       label: "Terreno",
-      value: formatSquareMeters(property.superficie_terreno) ?? "Por confirmar",
+      value: formatSquareMeters(property.landSizeM2) ?? "Por confirmar",
     },
     {
       label: "Ano de construccion",
-      value: hasValue(property.anio_construccion) ? `${property.anio_construccion}` : "Por confirmar",
+      value: hasValue(property.age) ? `${property.age}` : "Por confirmar",
     },
     {
       label: "Operacion",
-      value: property.operacion ?? "Por confirmar",
+      value: property.operation ?? "Por confirmar",
     },
     {
       label: "Tipo",
-      value: property.tipo ?? "Por confirmar",
+      value: property.type ?? "Por confirmar",
     },
   ];
 
-  const amenities = parseList(property.amenidades);
+  const amenities = parseList(property.amenities);
   const extras = parseList(property.extras);
-  const descriptionParagraphs = property.descripcion
-    ? property.descripcion
-        .split("\n")
-        .map((paragraph) => paragraph.trim())
-        .filter(Boolean)
-    : [];
+  const descriptionText = parseDescription(property.description);
+  const seoDescriptionText = parseDescription(property.seoDescription);
+  const mainDescriptionText = seoDescriptionText || descriptionText;
 
-  const locationSegments = [property.colonia, property.municipio, property.estado].filter(Boolean);
+  const locationSegments = [property.neighborhood, property.city, property.state].filter(Boolean);
   const locationLabel = locationSegments.join(", ");
 
-  const latitude = property.latitud ? Number(property.latitud) : null;
-  const longitude = property.longitud ? Number(property.longitud) : null;
+  const latitude = property.latitude ? Number(property.latitude) : null;
+  const longitude = property.longitude ? Number(property.longitude) : null;
 
   const relatedProperties = await getRelatedProperties(property);
+  const relatedPropertiesCount = relatedProperties.length;
+  const relatedGridClasses =
+    relatedPropertiesCount === 1
+      ? "mt-8 grid grid-cols-1 justify-items-center gap-6"
+      : relatedPropertiesCount === 2
+        ? "mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:mx-auto lg:max-w-5xl"
+        : "mt-8 grid grid-cols-1 gap-6 md:grid-cols-3";
 
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-dark)]">
@@ -387,10 +375,10 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
                       Inmuebles
                     </Link>
                   </li>
-                  {property.estado ? (
+                  {property.state ? (
                     <>
                       <li aria-hidden="true">/</li>
-                      <li className="font-medium text-gray-700">{property.estado}</li>
+                      <li className="font-medium text-gray-700">{property.state}</li>
                     </>
                   ) : null}
                 </ol>
@@ -411,11 +399,11 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
               </div>
 
               <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
-                {property.titulo ?? "Detalle del inmueble"}
+                {property.title ?? "Detalle del inmueble"}
               </h1>
 
               <p className="text-base text-gray-600 md:text-lg">
-                {property.direccion ?? locationLabel ?? "Ubicacion por confirmar"}
+                {property.address ?? locationLabel ?? "Ubicacion por confirmar"}
               </p>
             </div>
 
@@ -425,7 +413,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
             </div>
           </header>
 
-          <PropertyGallery images={images} title={property.titulo} />
+          <PropertyGallery images={images} title={property.title} />
 
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
             <section className="space-y-10 lg:col-span-2">
@@ -444,38 +432,41 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
               <section className="space-y-4 rounded-3xl border border-[#d9e9dd] bg-white p-6 shadow-sm md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900">Sobre esta propiedad</h2>
 
-                {descriptionParagraphs.length ? (
-                  <div className="space-y-4 text-base leading-relaxed text-gray-700">
-                    {descriptionParagraphs.map((paragraph, index) => (
-                      <p key={`description-${index}`}>{paragraph}</p>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600">
-                    Solicita informacion para conocer todos los detalles de este inmueble.
-                  </p>
-                )}
-
-                <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {extraMetrics.map((metric) => (
-                    <div key={metric.label} className="rounded-2xl bg-[#f6fbf8] px-4 py-3">
+                    <div key={metric.label} className="rounded-2xl border border-[#d9e9dd] bg-[#f6fbf8] px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-green-700">{metric.label}</p>
                       <p className="mt-1 text-sm font-semibold text-gray-800">{metric.value}</p>
                     </div>
                   ))}
                 </div>
+
+                {mainDescriptionText ? (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Descripción</h3>
+                    <div className="space-y-4 text-base leading-relaxed text-gray-700">
+                      <p className="whitespace-pre-line break-words">{mainDescriptionText}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!mainDescriptionText ? (
+                  <p className="text-gray-600">
+                    Solicita informacion para conocer todos los detalles de este inmueble.
+                  </p>
+                ) : null}
+
               </section>
 
               {amenities.length ? (
                 <section className="space-y-5 rounded-3xl border border-[#d9e9dd] bg-white p-6 shadow-sm md:p-8">
                   <h2 className="text-2xl font-bold text-gray-900">Amenidades y caracteristicas</h2>
-                  <ul className="grid gap-3 md:grid-cols-2">
+                  <ul className="flex flex-wrap gap-3">
                     {amenities.map((amenity) => (
                       <li
                         key={amenity}
-                        className="flex items-center gap-3 rounded-2xl border border-green-100 bg-green-50/60 px-4 py-3 text-sm font-medium text-gray-700"
+                        className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-800 shadow-sm"
                       >
-                        <span className="inline-flex h-2 w-2 rounded-full bg-green-600" />
                         {amenity}
                       </li>
                     ))}
@@ -499,21 +490,21 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
               <PropertyDetailMap
                 latitude={latitude}
                 longitude={longitude}
-                title={property.titulo}
-                address={property.direccion}
-                city={property.municipio}
-                state={property.estado}
+                title={property.title}
+                address={property.address}
+                city={property.city}
+                state={property.state}
                 priceLabel={priceLabel}
                 statusName={statusName}
                 statusColor={statusColor ?? undefined}
                 statusId={statusId}
-                operation={property.operacion}
+                operation={property.operation}
               />
             </section>
 
             <aside className="lg:col-span-1">
               <div className="sticky top-28 space-y-5">
-                <InterestForm propertyTitle={property.titulo} />
+                <InterestForm propertyTitle={property.title} />
 
                 <div className="flex items-center justify-between rounded-2xl border border-[#d9e9dd] bg-white px-4 py-3 text-sm">
                   <button
@@ -536,12 +527,18 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
           {relatedProperties.length ? (
             <section className="mt-8 border-t border-[#d9e9dd] pt-12">
               <h2 className="text-3xl font-extrabold text-gray-900">Propiedades similares</h2>
-              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className={relatedGridClasses}>
                 {relatedProperties.map((related) => (
                   <Link
                     key={related.slug}
                     href={`/inmuebles/${related.slug}`}
-                    className="group overflow-hidden rounded-3xl border border-[#d9e9dd] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    className={`group overflow-hidden rounded-3xl border border-[#d9e9dd] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${
+                      relatedPropertiesCount === 1
+                        ? "w-full max-w-md"
+                        : relatedPropertiesCount === 2
+                          ? "w-full max-w-md"
+                          : ""
+                    }`}
                   >
                     <div className="relative h-56 overflow-hidden">
                       <Image
@@ -569,7 +566,9 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
                       </div>
                     </div>
                     <div className="space-y-2 p-5">
-                      <h3 className="text-lg font-bold text-gray-900 transition group-hover:text-green-700">{related.title}</h3>
+                      <h3 className="text-lg font-bold text-gray-900 transition group-hover:text-green-700">
+                        {related.title}
+                      </h3>
                       <p className="text-sm text-gray-500">{related.summary}</p>
                       <p className="text-xl font-black text-gray-900">{related.priceLabel}</p>
                     </div>
@@ -586,4 +585,3 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
 };
 
 export default PropertyPage;
-

@@ -3,6 +3,22 @@ import { Prisma, PrismaClient } from '@prisma/client';
 type PrismaClientConstructor = typeof PrismaClient;
 type PrismaClientInstance = InstanceType<PrismaClientConstructor>;
 
+const validateDatabaseUrl = () => {
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+
+  if (!databaseUrl) {
+    throw new Error(
+      'Falta DATABASE_URL. Define una URL PostgreSQL válida, por ejemplo postgresql://user:password@host:5433/database?schema=public.'
+    );
+  }
+
+  if (!databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) {
+    throw new Error(
+      'DATABASE_URL debe empezar con postgresql:// o postgres://. El esquema actual de Prisma está configurado para PostgreSQL.'
+    );
+  }
+};
+
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClientInstance;
 };
@@ -16,6 +32,8 @@ let prismaInstance: PrismaClientInstance | undefined;
 
 const createPrismaClient = (): PrismaClientInstance => {
   try {
+    validateDatabaseUrl();
+
     return new PrismaClient({
       log: logOptions,
     });

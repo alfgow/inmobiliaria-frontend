@@ -81,6 +81,7 @@ declare module "mapbox-gl" {
   interface PopupOptions {
     offset?: number | { [anchor: string]: [number, number] } | [number, number];
     maxWidth?: string;
+    className?: string;
   }
 
   class Popup {

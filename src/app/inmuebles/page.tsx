@@ -4,6 +4,8 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import InmueblesExplorer from "@/components/inmuebles/InmueblesExplorer";
 import Navbar from "@/components/Navbar";
+import { getPublicProperties } from "@/lib/properties";
+import type { PublicProperty } from "@/lib/property-types";
 
 export const metadata: Metadata = {
   title: "Catálogo de inmuebles | Villanueva García",
@@ -11,7 +13,17 @@ export const metadata: Metadata = {
     "Explora las propiedades en venta y renta de Villanueva García. Filtra por ciudad, estatus y precio para encontrar tu próximo hogar.",
 };
 
-const InmueblesPage = () => {
+const InmueblesPage = async () => {
+  let properties: PublicProperty[] = [];
+  let error: string | null = null;
+
+  try {
+    properties = await getPublicProperties();
+  } catch (caughtError) {
+    console.error("Error loading properties for inventory page", caughtError);
+    error = "No se pudieron cargar las propiedades.";
+  }
+
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-dark)]">
       <Navbar />
@@ -21,13 +33,13 @@ const InmueblesPage = () => {
             <h1 className="text-3xl font-bold text-[var(--text-dark)] md:text-4xl">
               Propiedades disponibles
             </h1>
-            <p className="mt-4 text-base text-gray-600 md:text-lg">
-              Descubre residencias exclusivas, departamentos y terrenos cuidadosamente
-              seleccionados. Ajusta los filtros para encontrar la propiedad ideal.
-            </p>
-          </div>
-        </section>
-        <InmueblesExplorer />
+          <p className="mt-4 text-base text-gray-600 md:text-lg">
+            Descubre residencias exclusivas, departamentos y terrenos cuidadosamente
+            seleccionados. Ajusta los filtros para encontrar la propiedad ideal.
+          </p>
+        </div>
+      </section>
+        <InmueblesExplorer properties={properties} error={error} />
         <ContactSection />
       </main>
       <Footer />

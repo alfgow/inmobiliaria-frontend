@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { ApiProperty } from "@/components/FeaturedProperties/useProperties";
-import { FALLBACK_IMAGE } from "@/components/FeaturedProperties/useProperties";
+import type { PublicProperty } from "@/lib/property-types";
+import { getPrimaryPropertyImageUrl } from "@/lib/property-selection";
 import type { ViewMode } from "./FiltersBar";
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
@@ -12,46 +12,26 @@ const currencyFormatter = new Intl.NumberFormat("es-MX", {
 });
 
 interface PropertyCardProps {
-	property: ApiProperty;
+	property: PublicProperty;
 	viewMode: ViewMode;
 }
 
-const getLocationLabel = (property: ApiProperty) => {
+const getLocationLabel = (property: PublicProperty) => {
 	const locationParts = [property.city, property.state].filter(Boolean);
 
 	return locationParts.length > 0 ? locationParts.join(", ") : null;
 };
 
-const getPrimaryImage = (property: ApiProperty) => {
-	const coverImage = property.images?.find((image) => image.isCover);
-	const coverImageUrl = coverImage?.signedUrl ?? coverImage?.url;
-
-	if (coverImageUrl) {
-		return coverImageUrl;
-	}
-
-	const firstImage = property.images?.[0];
-	const firstImageUrl = firstImage?.signedUrl ?? firstImage?.url;
-
-	return firstImageUrl ?? FALLBACK_IMAGE;
+const getPrimaryImage = (property: PublicProperty) => {
+	return getPrimaryPropertyImageUrl(property);
 };
 
 const PropertyCard = ({ property, viewMode }: PropertyCardProps) => {
-	console.log("[PropertyCard] Rendering property", property.id, {
-		images: (property.images ?? []).map((image) => ({
-			id: image.id,
-			signedUrl: image.signedUrl,
-			url: image.url,
-			path: image.path,
-			isCover: image.isCover ?? false,
-		})),
-	});
-
 	const imageUrl = getPrimaryImage(property);
 	const isAvailable =
-		property.isAvailable ??
-		property.is_available ??
-		property.active ??
+		property.isAvailable ?? 
+		property.is_available ?? 
+		property.active ?? 
 		true;
 	const isUnavailable = isAvailable === false;
 	const locationLabel = getLocationLabel(property);

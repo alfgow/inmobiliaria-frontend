@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 
+import type { AdminPropertiesMapViewProps } from "@/components/inmuebles/AdminPropertiesMapView";
+
 const AdminPropertiesMapView = dynamic(
   () => import("@/components/inmuebles/AdminPropertiesMapView"),
   {
@@ -16,8 +18,8 @@ const AdminPropertiesMapView = dynamic(
   },
 );
 
-const AdminPropertiesMapClient = () => {
-  return <AdminPropertiesMapView />;
+const AdminPropertiesMapClient = (props: AdminPropertiesMapViewProps) => {
+  return <AdminPropertiesMapView {...props} />;
 };
 
 export default AdminPropertiesMapClient;
