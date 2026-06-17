@@ -40,16 +40,17 @@ const createPrismaClient = (): PrismaClientInstance => {
   } catch (error) {
     const installCommand = 'npm install @prisma/client prisma';
     const generateCommand = 'npx prisma generate';
+    const causeMessage = error instanceof Error ? error.message : String(error);
 
     const message =
       `No se pudo crear una instancia de PrismaClient. Ejecuta "${installCommand}" ` +
-      `y después "${generateCommand}" para generar el cliente de Prisma.`;
+      `y después "${generateCommand}" para generar el cliente de Prisma. Causa: ${causeMessage}`;
 
     if (process.env.NODE_ENV !== 'production') {
       console.warn(message, error);
     }
 
-    throw new Error(message);
+    throw new Error(message, { cause: error instanceof Error ? error : undefined });
   }
 };
 

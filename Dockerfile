@@ -7,11 +7,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
-ARG DATABASE_URL
 ARG NEXT_PUBLIC_MAPBOX_TOKEN
 ARG NEXT_PUBLIC_MAPBOX_STYLE_ID
 ARG NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID
-ENV DATABASE_URL=${DATABASE_URL}
 ENV NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
 ENV NEXT_PUBLIC_MAPBOX_STYLE_ID=${NEXT_PUBLIC_MAPBOX_STYLE_ID}
 ENV NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID=${NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID}
@@ -30,6 +28,7 @@ RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nextjs /app
 USER nextjs
 EXPOSE 3004
 CMD ["node", "server.js"]
