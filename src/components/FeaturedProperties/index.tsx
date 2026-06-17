@@ -1,9 +1,13 @@
+import { unstable_noStore as noStore } from "next/cache";
+
 import { getFeaturedProperties } from "@/lib/properties";
 
 import FeaturedPropertiesClient from "./FeaturedPropertiesClient";
 import type { FeaturedProperty } from "@/lib/property-types";
 
 const FeaturedProperties = async () => {
+  noStore();
+
   let properties: FeaturedProperty[] = [];
   let error: string | null = null;
 

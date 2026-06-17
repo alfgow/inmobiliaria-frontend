@@ -5,6 +5,8 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import Navbar from "@/components/Navbar";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-dark)]">

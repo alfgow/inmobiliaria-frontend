@@ -1,8 +1,11 @@
+import { unstable_noStore as noStore } from "next/cache";
 import Script from "next/script";
 
 import { getFeaturedProperties } from "@/lib/properties";
 
 export default async function DynamicOfferCatalogSchema() {
+  noStore();
+
   try {
     const properties = await getFeaturedProperties();
 
