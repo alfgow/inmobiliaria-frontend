@@ -10,11 +10,8 @@ services:
     env_file:
       - .env.local
     environment:
-      DATABASE_URL: postgresql://alfgow:D210512d@host.docker.internal:5432/inmobiliaria?schema=public
+      DATABASE_URL: postgresql://alfgow:D210512d@127.0.0.1:5432/inmobiliaria?schema=public
       NODE_ENV: production
       PORT: 3004
       HOSTNAME: 0.0.0.0
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "3004:3004"
+    network_mode: host

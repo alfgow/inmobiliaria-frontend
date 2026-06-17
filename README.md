@@ -41,6 +41,8 @@ Con Docker Compose y tu `.env.local`:
 docker compose --env-file .env.local up --build
 ```
 
+En Linux, el compose usa `network_mode: host` para que el frontend vea el mismo PostgreSQL del host en `127.0.0.1:5432`.
+
 ## Getting Started
 
 First, run the development server:
