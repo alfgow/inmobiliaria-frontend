@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN}
+        NEXT_PUBLIC_MAPBOX_STYLE_ID: ${NEXT_PUBLIC_MAPBOX_STYLE_ID}
+        NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID: ${NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID}
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3004:3004"

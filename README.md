@@ -14,6 +14,33 @@ El listado de propiedades usa una imagen de respaldo interna (`/1.png`) cuando e
 
 You can use [.env.example](/home/alfgow/Documentos/inmobiliaria-frontend/.env.example:1) as a starting point for local setup.
 
+## Docker
+
+La aplicación se puede construir en un contenedor con salida standalone y se expone en el puerto `3004`.
+
+Ejemplo de build:
+
+```bash
+docker build \
+  --build-arg DATABASE_URL="postgresql://user:pass@host:5432/db?schema=public" \
+  --build-arg NEXT_PUBLIC_MAPBOX_TOKEN="..." \
+  --build-arg NEXT_PUBLIC_MAPBOX_STYLE_ID="..." \
+  --build-arg NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID="..." \
+  -t inmobiliaria-frontend .
+```
+
+Ejemplo de ejecución:
+
+```bash
+docker run --rm -p 3004:3004 inmobiliaria-frontend
+```
+
+Con Docker Compose y tu `.env.local`:
+
+```bash
+docker compose --env-file .env.local up --build
+```
+
 ## Getting Started
 
 First, run the development server:
