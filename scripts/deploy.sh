@@ -47,14 +47,14 @@ const prisma = new PrismaClient();
 
 async function main() {
   const [{ migration_table: migrationTable }] = await prisma.$queryRawUnsafe(`
-    SELECT TO_REGCLASS('public._prisma_migrations')::TEXT AS migration_table
+    SELECT TO_REGCLASS('dbs14813645._prisma_migrations')::TEXT AS migration_table
   `);
 
   if (migrationTable) {
     const rows = await prisma.$queryRawUnsafe(
       `
         SELECT migration_name, finished_at, rolled_back_at
-        FROM public._prisma_migrations
+        FROM dbs14813645._prisma_migrations
         WHERE migration_name = $1
         ORDER BY started_at DESC
       `,
@@ -114,7 +114,18 @@ mark_baseline_applied() {
     "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --rolled-back "$BASELINE_MIGRATION"
   fi
 
-  "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --applied "$BASELINE_MIGRATION"
+  local resolve_output
+  if ! resolve_output="$("${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --applied "$BASELINE_MIGRATION" 2>&1)"; then
+    if grep -q 'P3008' <<<"$resolve_output"; then
+      printf '%s\n' "$resolve_output"
+      echo "Baseline was already marked as applied; continuing..."
+    else
+      printf '%s\n' "$resolve_output" >&2
+      return 1
+    fi
+  else
+    printf '%s\n' "$resolve_output"
+  fi
 }
 
 state="$(baseline_state)"
