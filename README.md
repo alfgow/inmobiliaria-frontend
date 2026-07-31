@@ -53,7 +53,7 @@ ejecutar ambos workflows manualmente desde GitHub Actions.
 
 El environment `production` de GitHub necesita estos secrets:
 
-- `TS_OAUTH_CLIENT_ID` y `TS_OAUTH_SECRET`: credenciales OAuth de Tailscale con permiso para `tag:ci`.
+- `TS_OAUTH_CLIENT_ID` y `TS_OAUTH_SECRET`: credenciales OAuth de Tailscale con scope `auth_keys` de escritura y permiso para crear nodos con `tag:ci`.
 - `VPS_TAILSCALE_HOST`: nombre o IP privada del servidor en la tailnet.
 - `VPS_SSH_USER` y `VPS_SSH_PRIVATE_KEY`: usuario y llave privada de despliegue.
 

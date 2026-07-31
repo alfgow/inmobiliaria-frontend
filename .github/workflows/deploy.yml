@@ -31,7 +31,6 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
           ping: ${{ secrets.VPS_TAILSCALE_HOST }}
-          log-mode: normal
 
       - name: Configure SSH
         env:
