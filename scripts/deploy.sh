@@ -57,32 +57,38 @@ const baseline = process.env.BASELINE_MIGRATION;
 const prisma = new PrismaClient();
 
 async function main() {
-  const [{ migration_table: migrationTable }] = await prisma.$queryRawUnsafe(`
-    SELECT TO_REGCLASS('dbs14813645._prisma_migrations')::TEXT AS migration_table
+  // Don't assume which schema Prisma put _prisma_migrations in (with
+  // multiSchema it depends on the DATABASE_URL's ?schema= param, not on the
+  // order of the `schemas` array) — find it wherever it actually is.
+  const tableRows = await prisma.$queryRawUnsafe(`
+    SELECT table_schema
+    FROM information_schema.tables
+    WHERE table_name = '_prisma_migrations'
   `);
 
-  if (migrationTable) {
+  const candidates = [];
+  for (const { table_schema: schema } of tableRows) {
     const rows = await prisma.$queryRawUnsafe(
       `
         SELECT migration_name, finished_at, rolled_back_at
-        FROM dbs14813645._prisma_migrations
+        FROM "${schema}"."_prisma_migrations"
         WHERE migration_name = $1
         ORDER BY started_at DESC
+        LIMIT 1
       `,
       baseline,
     );
+    if (rows[0]) candidates.push(rows[0]);
+  }
 
-    const latest = rows[0];
+  if (candidates.some((row) => row.finished_at)) {
+    console.log("APPLIED");
+    return;
+  }
 
-    if (latest?.finished_at) {
-      console.log("APPLIED");
-      return;
-    }
-
-    if (latest && !latest.rolled_back_at) {
-      console.log("FAILED");
-      return;
-    }
+  if (candidates.some((row) => !row.rolled_back_at)) {
+    console.log("FAILED");
+    return;
   }
 
   const [{ object_count: objectCount }] = await prisma.$queryRawUnsafe(`
