@@ -29,9 +29,11 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 RUN groupadd --system nextjs && useradd --system --gid nextjs nextjs
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
 RUN mkdir -p /app/.next/cache && chown -R nextjs:nextjs /app
 USER nextjs
 EXPOSE 3004
