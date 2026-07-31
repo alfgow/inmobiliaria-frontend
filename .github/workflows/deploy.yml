@@ -1,8 +1,9 @@
 name: Deploy production
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -13,13 +14,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
   deploy:
-    needs: ci
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment: production
+    env:
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Connect to the private network
         uses: tailscale/github-action@v3
@@ -42,5 +45,4 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_TAILSCALE_HOST }}
           VPS_USER: ${{ secrets.VPS_SSH_USER }}
-          TARGET_SHA: ${{ github.sha }}
         run: ssh "$VPS_USER@$VPS_HOST" "/opt/inmobiliaria-frontend/scripts/deploy.sh '$TARGET_SHA'"
