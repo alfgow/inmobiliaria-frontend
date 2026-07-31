@@ -45,9 +45,9 @@ En Linux, el compose usa `network_mode: host` para que el frontend vea el mismo 
 
 ## CI/CD
 
-Los pull requests y cada push a `main` ejecutan Prisma, una instancia PostgreSQL
+Los pull requests y cada push a `master` ejecutan Prisma, una instancia PostgreSQL
 efímera, lint, TypeScript y el build de producción. Cuando el workflow `CI` de
-`main` termina correctamente, `Deploy production` despliega el SHA exacto que fue
+`master` termina correctamente, `Deploy production` despliega el SHA exacto que fue
 validado por Tailscale y SSH mediante `scripts/deploy.sh`. También es posible
 ejecutar ambos workflows manualmente desde GitHub Actions.
 

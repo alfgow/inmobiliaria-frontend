@@ -50,6 +50,34 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
 
+          echo "Checking Tailscale connectivity to VPS_TAILSCALE_HOST..."
+          tailscale status >/dev/null
+          if ! getent ahosts "$VPS_HOST" >/dev/null; then
+            echo "Could not resolve VPS_TAILSCALE_HOST=$VPS_HOST from the GitHub runner." >&2
+            echo "Use a Tailscale 100.x.y.z IP, the full MagicDNS name, or enable MagicDNS for the tailnet." >&2
+            exit 1
+          fi
+          if ! tailscale ping --timeout=10s --c 5 "$VPS_HOST"; then
+            echo "Tailscale could not reach VPS_TAILSCALE_HOST=$VPS_HOST." >&2
+            echo "Check that the OAuth client tag is allowed by ACLs to reach the VPS node." >&2
+            exit 1
+          fi
+
+          echo "Waiting for SSH on VPS_TAILSCALE_HOST..."
+          for attempt in {1..12}; do
+            if timeout 5 bash -c '</dev/tcp/$1/22' _ "$VPS_HOST"; then
+              ssh_ready=1
+              break
+            fi
+            echo "SSH port check attempt $attempt/12 failed; retrying in 5 seconds..."
+            sleep 5
+          done
+          if [ "${ssh_ready:-0}" -ne 1 ]; then
+            echo "Timed out waiting for SSH on VPS_TAILSCALE_HOST=$VPS_HOST." >&2
+            echo "Check that sshd is listening on port 22 and that Tailscale ACLs allow tag:ci to connect." >&2
+            exit 1
+          fi
+
           if ! ssh-keyscan -T 15 -H "$VPS_HOST" >> ~/.ssh/known_hosts; then
             echo "Could not collect the SSH host key for VPS_TAILSCALE_HOST=$VPS_HOST." >&2
             echo "Check that the Tailscale node name/IP is reachable from the GitHub runner and that sshd is listening on port 22." >&2
