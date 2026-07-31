@@ -4,6 +4,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
+const WHATSAPP_NUMBER = "525584438656";
+const WHATSAPP_MESSAGE = encodeURIComponent(
+	"Hola, quiero vender o rentar mi propiedad. ¿Me pueden ayudar?"
+);
+const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`;
+
 const HeroSection = () => {
 	const parallaxRef = useRef<HTMLDivElement>(null);
 
@@ -84,9 +90,10 @@ const HeroSection = () => {
 					initial={{ opacity: 0, y: 30 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.8, delay: 0.2 }}
-					className="mb-6 text-4xl font-bold tracking-tight drop-shadow-xl md:text-6xl lg:text-7xl"
+					className="mb-6 text-3xl font-bold leading-tight tracking-tight drop-shadow-xl sm:text-4xl md:text-5xl lg:text-6xl"
 				>
-					Vive el lujo que mereces
+					Renta o vende tu propiedad sin improvisar con tu
+					patrimonio.
 				</motion.h1>
 
 				{/* Subtítulo */}
@@ -96,8 +103,9 @@ const HeroSection = () => {
 					transition={{ duration: 0.8, delay: 0.4 }}
 					className="mb-10 max-w-2xl text-lg leading-relaxed drop-shadow-md md:text-xl"
 				>
-					Departamentos y residencias exclusivas en las mejores
-					ubicaciones.
+					Cada interesado pasa por un proceso claro antes de
+					avanzar, para reducir riesgos y evitar pérdidas de
+					tiempo.
 				</motion.p>
 
 				{/* Botón CTA */}
@@ -106,12 +114,14 @@ const HeroSection = () => {
 					animate={{ opacity: 1, y: 0, scale: 1 }}
 					whileHover={{ scale: 1.05 }}
 					whileTap={{ scale: 0.95 }}
-					href="#propiedades"
-					className="group rounded-full bg-gradient-to-r from-green-400 to-lime-500 px-10 py-4 text-lg font-bold text-black shadow-2xl transition-all duration-300 hover:from-green-500 hover:to-lime-600 hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-300"
-					aria-label="Explorar propiedades exclusivas"
+					href={WHATSAPP_HREF}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="group inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-lime-500 px-6 py-4 text-base font-bold text-black shadow-2xl transition-all duration-300 hover:from-green-500 hover:to-lime-600 hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-300 sm:w-auto sm:px-10 sm:text-lg"
+					aria-label="Contactar por WhatsApp para vender o rentar mi propiedad"
 				>
 					<span className="relative z-10">
-						Propiedades Destacadas
+						Quiero vender o rentar mi propiedad
 					</span>
 					{/* Ripple effect sutil */}
 					<div className="absolute inset-0 rounded-full bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
