@@ -25,11 +25,13 @@ jobs:
       TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Connect to the private network
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
+          ping: ${{ secrets.VPS_TAILSCALE_HOST }}
+          log-mode: normal
 
       - name: Configure SSH
         env:
@@ -51,7 +53,11 @@ jobs:
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
 
           echo "Checking Tailscale connectivity to VPS_TAILSCALE_HOST..."
-          tailscale status >/dev/null
+          if ! tailscale ip -4 >/dev/null; then
+            echo "Tailscale is not authenticated or did not assign an IPv4 address to the GitHub runner." >&2
+            tailscale netcheck || true
+            exit 1
+          fi
           if ! getent ahosts "$VPS_HOST" >/dev/null; then
             echo "Could not resolve VPS_TAILSCALE_HOST=$VPS_HOST from the GitHub runner." >&2
             echo "Use a Tailscale 100.x.y.z IP, the full MagicDNS name, or enable MagicDNS for the tailnet." >&2
