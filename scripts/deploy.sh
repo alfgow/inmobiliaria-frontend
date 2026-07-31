@@ -22,7 +22,7 @@ if ! grep -Eq '^DATABASE_URL=.+$' "$ENV_FILE"; then
 fi
 
 cd "$APP_DIR"
-git fetch origin main --prune
+git fetch origin --prune '+refs/heads/*:refs/remotes/origin/*'
 
 if ! git cat-file -e "${TARGET_REF}^{commit}" 2>/dev/null; then
   echo "Commit $TARGET_REF was not fetched from origin" >&2
