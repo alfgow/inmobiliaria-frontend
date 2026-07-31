@@ -53,4 +53,25 @@ SET "slug" = "f"."slug"
 FROM final_slugs AS "f"
 WHERE "i"."id" = "f"."id";
 
-CREATE UNIQUE INDEX IF NOT EXISTS "inmuebles_slug_key" ON "inmuebles"("slug");
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_index AS "i"
+    JOIN pg_class AS "idx" ON "idx"."oid" = "i"."indexrelid"
+    JOIN pg_class AS "tbl" ON "tbl"."oid" = "i"."indrelid"
+    JOIN pg_namespace AS "ns" ON "ns"."oid" = "tbl"."relnamespace"
+    WHERE "ns"."nspname" = 'public'
+      AND "tbl"."relname" = 'inmuebles'
+      AND "i"."indisunique"
+      AND (
+        SELECT ARRAY_AGG("attr"."attname" ORDER BY "cols"."ordinality")
+        FROM UNNEST("i"."indkey") WITH ORDINALITY AS "cols"("attnum", "ordinality")
+        JOIN pg_attribute AS "attr"
+          ON "attr"."attrelid" = "tbl"."oid"
+         AND "attr"."attnum" = "cols"."attnum"
+      ) = ARRAY['slug']::NAME[]
+  ) THEN
+    CREATE UNIQUE INDEX "inmuebles_slug_key" ON "inmuebles"("slug");
+  END IF;
+END $$;
