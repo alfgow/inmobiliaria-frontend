@@ -43,6 +43,24 @@ docker compose --env-file .env.local up --build
 
 En Linux, el compose usa `network_mode: host` para que el frontend vea el mismo PostgreSQL del host en `127.0.0.1:5432`.
 
+## CI/CD
+
+Los pull requests ejecutan Prisma, una instancia PostgreSQL efímera, lint,
+TypeScript y el build de producción. Cada push a `main` reutiliza ese mismo CI y,
+si termina correctamente, despliega el SHA exacto por Tailscale y SSH mediante
+`scripts/deploy.sh`.
+
+El environment `production` de GitHub necesita estos secrets:
+
+- `TS_OAUTH_CLIENT_ID` y `TS_OAUTH_SECRET`: credenciales OAuth de Tailscale con permiso para `tag:ci`.
+- `VPS_TAILSCALE_HOST`: nombre o IP privada del servidor en la tailnet.
+- `VPS_SSH_USER` y `VPS_SSH_PRIVATE_KEY`: usuario y llave privada de despliegue.
+
+En el VPS, clona el repositorio en `/opt/inmobiliaria-frontend`, instala el script
+en esa misma ruta y crea `/opt/inmobiliaria-frontend/.env.local`. El despliegue
+construye la imagen, aplica `prisma migrate deploy`, inicia Docker Compose y
+comprueba PostgreSQL y `GET /api/health` antes de finalizar.
+
 ## Getting Started
 
 First, run the development server:

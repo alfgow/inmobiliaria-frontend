@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: inmobiliaria
+          POSTGRES_PASSWORD: inmobiliaria
+          POSTGRES_DB: inmobiliaria_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inmobiliaria -d inmobiliaria_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://inmobiliaria:inmobiliaria@localhost:5432/inmobiliaria_ci?schema=public
+      NEXT_PUBLIC_MAPBOX_TOKEN: ci-placeholder
+      NEXT_PUBLIC_MAPBOX_STYLE_ID: ci-placeholder
+      NEXT_PUBLIC_MAPBOX_ADMIN_STYLE_ID: ci-placeholder
+      INMUEBLES_API_KEY: ci-placeholder
+      INMUEBLES_API_BASE_URL: https://example.invalid/api/v1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate and generate Prisma Client
+        run: |
+          npx prisma validate
+          npx prisma generate
+
+      # This project adopted Prisma on top of a pre-existing database and does
+      # not yet have a baseline migration. db push still verifies that the full
+      # current schema can be materialized in a clean PostgreSQL instance.
+      - name: Materialize schema in PostgreSQL
+        run: npx prisma db push --skip-generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
