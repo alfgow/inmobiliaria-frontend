@@ -5,6 +5,8 @@ readonly APP_DIR="${APP_DIR:-/opt/inmobiliaria-frontend}"
 readonly ENV_FILE="${ENV_FILE:-$APP_DIR/.env.local}"
 readonly HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:3004/api/health}"
 readonly TARGET_REF="${1:-}"
+readonly BASELINE_MIGRATION="20241009120000_add-inmueble-slug"
+readonly BASELINE_SQL="prisma/migrations/$BASELINE_MIGRATION/migration.sql"
 
 if [[ ! "$TARGET_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
   echo "Usage: $0 <40-character-git-sha>" >&2
@@ -35,7 +37,21 @@ git checkout --detach "$TARGET_REF"
 # for build arguments and container runtime values.
 compose=(docker compose --env-file "$ENV_FILE")
 "${compose[@]}" build app
-"${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy
+
+if ! migrate_output="$("${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy 2>&1)"; then
+  printf '%s\n' "$migrate_output" >&2
+  if grep -q 'P3005' <<<"$migrate_output"; then
+    echo "Existing database has no Prisma migration history; applying baseline migration and marking it as applied..."
+    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma db execute --file "$BASELINE_SQL" --schema prisma/schema.prisma
+    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --applied "$BASELINE_MIGRATION"
+    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy
+  else
+    exit 1
+  fi
+else
+  printf '%s\n' "$migrate_output"
+fi
+
 "${compose[@]}" up -d --remove-orphans app
 
 echo "Checking PostgreSQL from the application container..."
