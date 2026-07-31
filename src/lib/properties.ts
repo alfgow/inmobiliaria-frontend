@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { Prisma } from "@prisma/client";
 import "server-only";
 
 import { getPrismaClient } from "@/lib/prisma";
@@ -214,10 +215,25 @@ const mapStatus = (
 };
 
 const mapImage = (image: PrismaLikeImage): ImageWithSignedUrl => {
-  const metadata =
-    image.metadata && typeof image.metadata === "object" && !Array.isArray(image.metadata)
-      ? (image.metadata as Record<string, unknown>)
-      : null;
+  const metadata = (() => {
+    if (image.metadata && typeof image.metadata === "object" && !Array.isArray(image.metadata)) {
+      return image.metadata as Record<string, unknown>;
+    }
+
+    if (typeof image.metadata === "string" && image.metadata.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(image.metadata) as unknown;
+
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+          ? (parsed as Record<string, unknown>)
+          : null;
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  })();
 
   const metadataUrl = pickMetadataString(metadata, [
     ["url"],
@@ -376,16 +392,65 @@ const getPropertyRepository = () => {
       findFirst: (args?: Record<string, unknown>) => Promise<PrismaLikeProperty | null>;
       findUnique: (args?: Record<string, unknown>) => Promise<PrismaLikeProperty | null>;
     };
+    inmuebleImagen: {
+      findMany: (args?: Record<string, unknown>) => Promise<PrismaLikeImage[]>;
+    };
   };
 
-  return prisma.inmueble;
+  return {
+    properties: prisma.inmueble,
+    images: prisma.inmuebleImagen,
+  };
+};
+
+const attachImages = async (
+  imagesRepository: ReturnType<typeof getPropertyRepository>["images"],
+  properties: PrismaLikeProperty[],
+): Promise<PrismaLikeProperty[]> => {
+  const ids = properties
+    .map((property) => property.id)
+    .filter((id): id is bigint | number | string => id !== null && id !== undefined);
+
+  if (ids.length === 0) {
+    return properties;
+  }
+
+  const images = await imagesRepository.findMany({
+    where: {
+      inmuebleId: {
+        in: ids.map((id) => new Prisma.Decimal(id.toString())),
+      },
+    },
+    orderBy: {
+      orden: "asc",
+    },
+  });
+
+  const imagesByPropertyId = new Map<string, PrismaLikeImage[]>();
+
+  for (const image of images) {
+    if (image.inmuebleId === null || image.inmuebleId === undefined) {
+      continue;
+    }
+
+    const propertyId = image.inmuebleId.toString();
+    const existing = imagesByPropertyId.get(propertyId) ?? [];
+
+    existing.push(image);
+    imagesByPropertyId.set(propertyId, existing);
+  }
+
+  return properties.map((property) => ({
+    ...property,
+    imagenes: imagesByPropertyId.get(property.id.toString()) ?? [],
+  }));
 };
 
 export const getPublicProperties = async ({
   limit = 100,
   featuredOnly = false,
 }: PropertyQueryOptions = {}): Promise<PublicProperty[]> => {
-  const repository = getPropertyRepository();
+  const { properties: repository, images: imagesRepository } = getPropertyRepository();
   const where = featuredOnly ? { destacado: true, estatusId: 1 } : undefined;
   const items = await repository.findMany({
     take: limit,
@@ -394,12 +459,13 @@ export const getPublicProperties = async ({
       createdAt: "desc",
     },
     include: {
-      imagenes: true,
       estatus: true,
     },
   });
 
-  return items.map(mapProperty);
+  const itemsWithImages = await attachImages(imagesRepository, items);
+
+  return itemsWithImages.map(mapProperty);
 };
 
 export const getFeaturedProperties = async (
@@ -416,7 +482,7 @@ export const getPropertyBySlug = async ({
   slug,
   id,
 }: GetPropertyBySlugParams): Promise<PublicProperty | null> => {
-  const repository = getPropertyRepository();
+  const { properties: repository, images: imagesRepository } = getPropertyRepository();
 
   if (id !== undefined) {
     const idValue = typeof id === "bigint" ? id : typeof id === "number" ? BigInt(id) : undefined;
@@ -425,13 +491,14 @@ export const getPropertyBySlug = async ({
       const byId = await repository.findUnique({
         where: { id: idValue },
         include: {
-          imagenes: true,
           estatus: true,
         },
       });
 
       if (byId) {
-        return mapProperty(byId);
+        const [itemWithImages] = await attachImages(imagesRepository, [byId]);
+
+        return mapProperty(itemWithImages);
       }
     }
   }
@@ -447,25 +514,26 @@ export const getPropertyBySlug = async ({
       slug: normalizedSlug,
     },
     include: {
-      imagenes: true,
       estatus: true,
     },
   });
 
   if (directMatch) {
-    return mapProperty(directMatch);
+    const [itemWithImages] = await attachImages(imagesRepository, [directMatch]);
+
+    return mapProperty(itemWithImages);
   }
 
   const fallbackItems = await repository.findMany({
     take: 200,
     include: {
-      imagenes: true,
       estatus: true,
     },
   });
+  const fallbackItemsWithImages = await attachImages(imagesRepository, fallbackItems);
 
   const normalizedTarget = normalizedSlug.toLowerCase();
-  const candidate = fallbackItems.find((property) => {
+  const candidate = fallbackItemsWithImages.find((property) => {
     const propertyId = typeof property.id === "bigint" ? String(property.id) : String(property.id);
     const propertySlug =
       parseNullableString(property.slug) ?? (parseNullableString(property.titulo) ? slugify(property.titulo as string) : propertyId);
@@ -477,7 +545,7 @@ export const getPropertyBySlug = async ({
 };
 
 export const getPropertySlugs = async (): Promise<string[]> => {
-  const repository = getPropertyRepository();
+  const { properties: repository } = getPropertyRepository();
   const items = await repository.findMany({
     take: 200,
     select: {

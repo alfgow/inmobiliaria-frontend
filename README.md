@@ -62,6 +62,17 @@ en esa misma ruta y crea `/opt/inmobiliaria-frontend/.env.local`. El despliegue
 construye la imagen, aplica `prisma migrate deploy`, inicia Docker Compose y
 comprueba PostgreSQL y `GET /api/health` antes de finalizar.
 
+La base de datos de producción es la fuente de verdad para Prisma. Antes de crear
+o modificar migraciones, alinea `prisma/schema.prisma` con la base actual usando
+introspección y verifica que no haya drift:
+
+```bash
+npx prisma db pull
+npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script
+```
+
+El diff esperado después de alinear schema y base es `-- This is an empty migration.`.
+
 ## Getting Started
 
 First, run the development server:
