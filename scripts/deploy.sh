@@ -33,6 +33,17 @@ fi
 
 git checkout --detach "$TARGET_REF"
 
+# git checkout replaces this file via rename(2), which does not affect the
+# file descriptor bash already has open for this running script. Without a
+# re-exec, everything below would keep running the version of this script
+# that existed before the checkout, not the one that was just checked out.
+# Re-exec once (guarded to avoid looping) so the rest of the deploy runs the
+# code that actually matches $TARGET_REF.
+if [[ "${DEPLOY_SH_REEXECUTED:-0}" != "1" ]]; then
+  export DEPLOY_SH_REEXECUTED=1
+  exec "$0" "$@"
+fi
+
 # Compose interpolation does not read env_file, so explicitly use the same file
 # for build arguments and container runtime values.
 compose=(docker compose --env-file "$ENV_FILE")
