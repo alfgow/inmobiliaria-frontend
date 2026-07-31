@@ -74,19 +74,19 @@ html.gallery-modal-open body {
 
 .swiper-container {
 	position: relative;
-	overflow: visible;
+	overflow: hidden;
 	padding: 0;
 	border-radius: 0;
 	background: transparent;
 }
 
 .swiper {
-	overflow: visible !important;
+	overflow: hidden !important;
 	padding: 0;
 }
 
 .swiper-wrapper {
-        overflow: visible !important;
+        overflow: hidden !important;
 }
 
 .swiper-slide {
