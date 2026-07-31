@@ -1,9 +1,20 @@
-name: CI
+name: CI/CD
 
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy to production after validation
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -64,3 +75,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  deploy:
+    needs: validate
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Connect to the private network
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_TAILSCALE_HOST }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy exact commit
+        env:
+          VPS_HOST: ${{ secrets.VPS_TAILSCALE_HOST }}
+          VPS_USER: ${{ secrets.VPS_SSH_USER }}
+          TARGET_SHA: ${{ github.sha }}
+        run: ssh "$VPS_USER@$VPS_HOST" "/opt/inmobiliaria-frontend/scripts/deploy.sh '$TARGET_SHA'"
