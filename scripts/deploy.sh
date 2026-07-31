@@ -6,6 +6,7 @@ readonly ENV_FILE="${ENV_FILE:-$APP_DIR/.env.local}"
 readonly HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:3004/api/health}"
 readonly TARGET_REF="${1:-}"
 readonly BASELINE_MIGRATION="20260731203000_baseline_current_production"
+export BASELINE_MIGRATION
 
 if [[ ! "$TARGET_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
   echo "Usage: $0 <40-character-git-sha>" >&2
@@ -37,11 +38,108 @@ git checkout --detach "$TARGET_REF"
 compose=(docker compose --env-file "$ENV_FILE")
 "${compose[@]}" build app
 
+baseline_state() {
+  "${compose[@]}" run --rm --no-deps -T --entrypoint node app - <<'NODE'
+const { PrismaClient } = require("@prisma/client");
+
+const baseline = process.env.BASELINE_MIGRATION;
+const prisma = new PrismaClient();
+
+async function main() {
+  const [{ migration_table: migrationTable }] = await prisma.$queryRawUnsafe(`
+    SELECT TO_REGCLASS('public._prisma_migrations')::TEXT AS migration_table
+  `);
+
+  if (migrationTable) {
+    const rows = await prisma.$queryRawUnsafe(
+      `
+        SELECT migration_name, finished_at, rolled_back_at
+        FROM public._prisma_migrations
+        WHERE migration_name = $1
+        ORDER BY started_at DESC
+      `,
+      baseline,
+    );
+
+    const latest = rows[0];
+
+    if (latest?.finished_at) {
+      console.log("APPLIED");
+      return;
+    }
+
+    if (latest && !latest.rolled_back_at) {
+      console.log("FAILED");
+      return;
+    }
+  }
+
+  const [{ object_count: objectCount }] = await prisma.$queryRawUnsafe(`
+    SELECT
+      (
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_type = 'BASE TABLE'
+          AND table_name <> '_prisma_migrations'
+      ) +
+      (
+        SELECT COUNT(*)
+        FROM pg_type AS t
+        JOIN pg_namespace AS n ON n.oid = t.typnamespace
+        WHERE n.nspname IN ('public', 'dbs14813645')
+          AND t.typtype = 'e'
+      ) AS object_count
+  `);
+
+  console.log(Number(objectCount) > 0 ? "NEEDS_BASELINE" : "EMPTY");
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+NODE
+}
+
+mark_baseline_applied() {
+  local state="$1"
+
+  if [ "$state" = "FAILED" ]; then
+    echo "Previous baseline attempt failed; marking it as rolled back before applying baseline resolution..."
+    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --rolled-back "$BASELINE_MIGRATION"
+  fi
+
+  "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --applied "$BASELINE_MIGRATION"
+}
+
+state="$(baseline_state)"
+case "$state" in
+  APPLIED|EMPTY)
+    ;;
+  NEEDS_BASELINE|FAILED)
+    echo "Existing database detected without an applied Prisma baseline; marking $BASELINE_MIGRATION as applied..."
+    mark_baseline_applied "$state"
+    ;;
+  *)
+    echo "Could not determine Prisma baseline state: $state" >&2
+    exit 1
+    ;;
+esac
+
 if ! migrate_output="$("${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy 2>&1)"; then
   printf '%s\n' "$migrate_output" >&2
   if grep -q 'P3005' <<<"$migrate_output"; then
     echo "Existing database has no Prisma migration history; marking the current production baseline as applied..."
-    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate resolve --applied "$BASELINE_MIGRATION"
+    mark_baseline_applied "NEEDS_BASELINE"
+    "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy
+  elif grep -Eq '42710|already exists' <<<"$migrate_output"; then
+    echo "Baseline objects already exist; marking the current production baseline as applied and retrying..."
+    mark_baseline_applied "FAILED"
     "${compose[@]}" run --rm --no-deps --entrypoint npx app prisma migrate deploy
   else
     exit 1
