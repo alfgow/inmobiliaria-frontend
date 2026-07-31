@@ -85,10 +85,6 @@ html.gallery-modal-open body {
 	padding: 0;
 }
 
-.swiper-wrapper {
-        overflow: hidden !important;
-}
-
 .swiper-slide {
         z-index: 50;
 }

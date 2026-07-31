@@ -19,7 +19,7 @@ const FeaturedProperties = async () => {
   }
 
   return (
-    <section id="propiedades" className="py-20">
+    <section id="propiedades" className="overflow-x-hidden py-20">
       <div className="mx-auto max-w-7xl px-6">
         <h2 className="mb-12 text-center text-3xl font-bold text-[var(--text-dark)]">
           Propiedades Destacadas
