@@ -103,9 +103,8 @@ const HeroSection = () => {
 					transition={{ duration: 0.8, delay: 0.4 }}
 					className="mb-10 max-w-2xl text-lg leading-relaxed drop-shadow-md md:text-xl"
 				>
-					Cada interesado pasa por un proceso claro antes de
-					avanzar, para reducir riesgos y evitar pérdidas de
-					tiempo.
+					Contáctanos hoy mismo y obtén el estudio de mercado de
+					tu propiedad sin costo
 				</motion.p>
 
 				{/* Botón CTA */}
