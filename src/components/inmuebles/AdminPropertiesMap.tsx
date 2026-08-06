@@ -8,6 +8,8 @@ type MapboxMarker = import("mapbox-gl").Marker;
 type MapboxPopup = import("mapbox-gl").Popup;
 import {
   MAPBOX_ATTRIBUTION,
+  MAPBOX_GL_SCRIPT_URL,
+  MAPBOX_GL_STYLESHEET_URL,
   getMapboxAccessToken,
   getPublicMapboxStyle,
 } from "@/lib/mapboxConfig";
@@ -290,7 +292,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       const stylesheet = document.createElement("link");
       stylesheet.id = "mapbox-gl-css";
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css";
+      stylesheet.href = MAPBOX_GL_STYLESHEET_URL;
       document.head.appendChild(stylesheet);
     }
 
@@ -312,7 +314,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
 
     const script = document.createElement("script");
     script.id = "mapbox-gl-js";
-    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js";
+    script.src = MAPBOX_GL_SCRIPT_URL;
     script.async = true;
 
     script.addEventListener("load", () => {
