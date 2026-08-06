@@ -2,7 +2,7 @@ import { publicEnv } from "@/lib/env.public";
 
 const DEFAULT_PUBLIC_STYLE = "alfgow/cmgnbz7aw000u01ry7bnx7rzp";
 const DEFAULT_ADMIN_STYLE = DEFAULT_PUBLIC_STYLE;
-const MAPBOX_GL_VERSION = "3.16.0";
+const MAPBOX_GL_VERSION = "3.21.0";
 
 export const MAPBOX_GL_SCRIPT_URL = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.js`;
 export const MAPBOX_GL_STYLESHEET_URL = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.css`;
