@@ -504,7 +504,7 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
       </div>
 
       {overlayMessage ? (
-        <div className="absolute inset-0 flex items-center justify-center rounded-[inherit] bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[inherit] bg-white/80 px-6 text-center text-sm text-gray-500 backdrop-blur">
           {overlayMessage}
         </div>
       ) : null}
