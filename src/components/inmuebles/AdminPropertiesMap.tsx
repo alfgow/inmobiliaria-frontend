@@ -147,8 +147,13 @@ const buildPopupContent = (marker: MapMarker) => {
       ? `color:${marker.statusColor};border:1px solid ${marker.statusColor};background-color:#ffffffcc;`
       : "color:var(--text-dark);border:1px solid transparent;background-color:rgba(255,255,255,0.85);";
 
+  const imageWrapperTag = marker.slug ? "a" : "div";
+  const imageWrapperAttrs = marker.slug
+    ? ` href="/inmuebles/${encodeURIComponent(marker.slug)}" aria-label="${escapeHtml(`Ver ${marker.title}`)}"`
+    : "";
+
   root.innerHTML = `
-    <div class="relative aspect-[3/2] w-full overflow-hidden bg-gray-100 md:aspect-[4/3]">
+    <${imageWrapperTag} class="relative block aspect-[3/2] w-full overflow-hidden bg-gray-100 md:aspect-[4/3]"${imageWrapperAttrs}>
       <img
         src="${escapeHtml(marker.imageUrl)}"
         alt="${escapeHtml(`Imagen de ${marker.title}`)}"
@@ -173,7 +178,7 @@ const buildPopupContent = (marker: MapMarker) => {
           ? `<span class="absolute right-3 bottom-3 rounded-full bg-[#d2ff1e] px-3 py-1 text-xs font-bold text-black shadow-md">${escapeHtml(marker.priceLabel)}</span>`
           : ""
       }
-    </div>
+    </${imageWrapperTag}>
 
     <div class="space-y-3 p-3 md:p-4">
       <div class="space-y-1">
