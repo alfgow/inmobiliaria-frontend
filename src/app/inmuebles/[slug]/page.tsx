@@ -469,6 +469,10 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
 
               </section>
 
+              <div className="lg:hidden">
+                <InterestForm propertyUrl={buildPropertyUrl(slug)} />
+              </div>
+
               {amenities.length ? (
                 <section className="space-y-5 rounded-3xl border border-[#d9e9dd] bg-white p-6 shadow-sm md:p-8">
                   <h2 className="text-2xl font-bold text-gray-900">Amenidades y caracteristicas</h2>
@@ -515,7 +519,9 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
 
             <aside className="lg:col-span-1">
               <div className="sticky top-28 space-y-5">
-                <InterestForm propertyUrl={buildPropertyUrl(slug)} />
+                <div className="hidden lg:block">
+                  <InterestForm propertyUrl={buildPropertyUrl(slug)} />
+                </div>
 
                 <div className="flex items-center justify-between rounded-2xl border border-[#d9e9dd] bg-white px-4 py-3 text-sm">
                   <button
