@@ -14,6 +14,8 @@ import { getPrimaryPropertyImageUrl, getRelatedProperties as selectRelatedProper
 
 export const dynamic = "force-dynamic";
 
+const siteUrl = "https://www.villanuevagarcia.com";
+
 type PropertyPageProps = {
   params:
     | {
@@ -214,23 +216,20 @@ const getRelatedProperties = async (property: PublicProperty): Promise<RelatedPr
 };
 
 const buildOpenGraphImages = (property: PublicProperty | null) => {
-  const openGraphImages = (property?.images ?? []).flatMap((image) => {
-    const imageMetadata = (image.metadata ?? {}) as { alt?: string };
-    const url = resolvePublicImageUrl(image.url ?? image.path ?? null);
+  if (!property) {
+    return undefined;
+  }
 
-    if (!url) {
-      return [] as const;
-    }
+  const url = getPrimaryPropertyImageUrl(property);
 
-    return [
-      {
-        url,
-        alt: imageMetadata?.alt ?? property?.title ?? "Imagen del inmueble",
-      },
-    ] as const;
-  });
-
-  return openGraphImages.length > 0 ? openGraphImages : undefined;
+  return [
+    {
+      url,
+      width: 1200,
+      height: 900,
+      alt: property.title ?? "Imagen principal del inmueble",
+    },
+  ];
 };
 
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
@@ -248,22 +247,33 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
   const locationLabel = locationSegments.join(", ");
   const baseTitle = property.title ?? "Detalle de inmueble";
   const title = `${baseTitle} | Villanueva Garcia`;
-  const description =
+  const rawDescription =
     property.seoDescription ??
     property.description ??
     `Conoce los detalles de ${baseTitle}${locationLabel ? ` ubicada en ${locationLabel}` : ""}.`;
+  const description = parseDescription(rawDescription).replace(/\s+/g, " ").slice(0, 200);
 
   const images = buildOpenGraphImages(property);
+  const canonicalUrl = `${siteUrl}/inmuebles/${encodeURIComponent(slug)}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
       type: "article",
-      url: `https://villanuevagarcia.mx/inmuebles/${slug}`,
+      url: canonicalUrl,
       images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: images?.map((image) => image.url),
     },
   };
 }

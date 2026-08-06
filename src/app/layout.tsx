@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+const siteUrl = "https://www.villanuevagarcia.com";
+
 const geistSans = Geist({
 	variable: "--font-geist-sans",
 	subsets: ["latin"],
@@ -31,18 +33,18 @@ export const metadata: Metadata = {
 		"departamentos en renta",
 		"propiedades de lujo",
 	],
-	alternates: { canonical: "https://villanuevagarcia.com" },
+	alternates: { canonical: siteUrl },
 	openGraph: {
 		type: "website",
 		locale: "es_MX",
-		url: "https://villanuevagarcia.com",
+		url: siteUrl,
 		siteName: "Inmobiliaria Villanueva García",
 		title: "Villanueva García Real Estate | Venta y Renta de Propiedades en CDMX y México",
 		description:
 			"Encuentra propiedades exclusivas en venta y renta en CDMX y toda México. Inmobiliaria Villanueva García, expertos en bienes raíces de lujo y asesoría personalizada.",
 		images: [
 			{
-				url: "https://villanuevagarcia.com/og-image.jpg",
+				url: `${siteUrl}/1.jpg`,
 				width: 1200,
 				height: 630,
 				alt: "Inmobiliaria Villanueva García | Real Estate México",
@@ -55,10 +57,10 @@ export const metadata: Metadata = {
 		title: "Villanueva García Real Estate",
 		description:
 			"Venta y renta de propiedades exclusivas en CDMX y México. Asesoría inmobiliaria de lujo con Villanueva García Real Estate.",
-		images: ["https://villanuevagarcia.com/og-image.jpg"],
+		images: [`${siteUrl}/1.jpg`],
 	},
 	robots: { index: true, follow: true },
-	metadataBase: new URL("https://villanuevagarcia.com"),
+	metadataBase: new URL(siteUrl),
 };
 
 export const viewport: Viewport = {
