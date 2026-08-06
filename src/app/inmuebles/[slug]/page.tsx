@@ -15,6 +15,7 @@ import { getPrimaryPropertyImageUrl, getRelatedProperties as selectRelatedProper
 export const dynamic = "force-dynamic";
 
 const siteUrl = "https://www.villanuevagarcia.com";
+const buildPropertyUrl = (slug: string) => `${siteUrl}/inmuebles/${encodeURIComponent(slug)}`;
 
 type PropertyPageProps = {
   params:
@@ -254,7 +255,7 @@ export async function generateMetadata({ params }: PropertyPageProps): Promise<M
   const description = parseDescription(rawDescription).replace(/\s+/g, " ").slice(0, 200);
 
   const images = buildOpenGraphImages(property);
-  const canonicalUrl = `${siteUrl}/inmuebles/${encodeURIComponent(slug)}`;
+  const canonicalUrl = buildPropertyUrl(slug);
 
   return {
     title,
@@ -514,7 +515,7 @@ const PropertyPage = async ({ params }: PropertyPageProps) => {
 
             <aside className="lg:col-span-1">
               <div className="sticky top-28 space-y-5">
-                <InterestForm propertyTitle={property.title} />
+                <InterestForm propertyUrl={buildPropertyUrl(slug)} />
 
                 <div className="flex items-center justify-between rounded-2xl border border-[#d9e9dd] bg-white px-4 py-3 text-sm">
                   <button

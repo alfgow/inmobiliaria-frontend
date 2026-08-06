@@ -3,18 +3,19 @@
 import { useMemo } from "react";
 
 type InterestFormProps = {
-  propertyTitle?: string | null;
+  propertyUrl: string;
 };
 
 const whatsappNumber = "525644136105";
 
-const InterestForm = ({ propertyTitle }: InterestFormProps) => {
+const InterestForm = ({ propertyUrl }: InterestFormProps) => {
   const whatsappHref = useMemo(() => {
-    const propertyLabel = propertyTitle?.trim() || "esta propiedad";
-    const message = encodeURIComponent(`Hola, me interesa ${propertyLabel}. Quiero agendar una visita.`);
+    const message = encodeURIComponent(
+      `Hola, vi este inmueble ${propertyUrl} y quisiera recibir información.`,
+    );
 
     return `https://wa.me/${whatsappNumber}?text=${message}`;
-  }, [propertyTitle]);
+  }, [propertyUrl]);
 
   return (
     <section className="rounded-3xl border border-[#d9e9dd] bg-white p-6 shadow-sm">
