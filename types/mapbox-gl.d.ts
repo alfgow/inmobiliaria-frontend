@@ -32,7 +32,15 @@ declare module "mapbox-gl" {
     setCenter(lngLat: LngLatLike): void;
     once(type: string, listener: MapboxEventHandler): this;
     isStyleLoaded(): boolean;
-    easeTo(options: { center?: LngLatLike; zoom?: number; padding?: number | { top?: number; bottom?: number; left?: number; right?: number }; maxZoom?: number }): void;
+    getZoom(): number;
+    easeTo(options: {
+      center?: LngLatLike;
+      zoom?: number;
+      padding?: number | { top?: number; bottom?: number; left?: number; right?: number };
+      maxZoom?: number;
+      offset?: [number, number];
+      duration?: number;
+    }): void;
     fitBounds(bounds: LngLatBounds, options?: { padding?: number | { top?: number; bottom?: number; left?: number; right?: number }; maxZoom?: number }): void;
     addControl(control: unknown, position?: string): this;
 

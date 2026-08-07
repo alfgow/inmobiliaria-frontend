@@ -416,7 +416,9 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
         .setLngLat(marker.position)
         .addTo(map);
 
-      markerEl.addEventListener("click", () => {
+      markerEl.addEventListener("click", (event) => {
+        event.stopPropagation();
+
         popupRef.current?.remove();
 
         const popup = new mapboxglInstance.Popup({
@@ -429,6 +431,13 @@ const AdminPropertiesMap = ({ properties, isLoading = false }: AdminPropertiesMa
           .addTo(map);
 
         popupRef.current = popup;
+
+        map.easeTo({
+          center: marker.position,
+          zoom: Math.max(map.getZoom(), 14),
+          offset: [0, 60],
+          duration: 600,
+        });
       });
 
       return mapMarker;
